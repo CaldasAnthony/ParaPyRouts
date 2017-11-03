@@ -153,7 +153,7 @@ if Profil == True :
             hmax = h
         else :
             hmax = np.amax(z_sphe)
-        dim = int(h/delta_z)+1
+        dim = int(h/delta_z)+2
         M_mean = np.nansum(M_molar[:,pss-1,:,:])/(tss*loss*lass)
         T_mean, T_max, T_min = T_var[0], T_var[1], T_var[2]
         P_mean = np.nansum(P[:,pss-1,:,:])/(tss*loss*lass)

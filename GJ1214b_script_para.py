@@ -187,8 +187,8 @@ Box = True             ###### Transpose la maille spherique en altitude
 Surf = True            ###### Si des donnees de surface sont accessibles
 Composition = True     ###### Calcul de la composition a partir de l'equilibre thermodynamique
 LogInterp = False       ###### Interpolation de la pression via le logarithme
-N_fixe = False          ###### Si nous voulons imposer le nombre de couche atmospherique
-TopPressure = False     ###### Si nous voulons fixer le toit de l'atmosphere par rapport a une pression minimale
+N_fixe = True          ###### Si nous voulons imposer le nombre de couche atmospherique
+TopPressure = True     ###### Si nous voulons fixer le toit de l'atmosphere par rapport a une pression minimale
 
 Parameters = True
 
