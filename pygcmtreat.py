@@ -560,9 +560,6 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
     # On calcule la distance maximale que peut parcourir un rayon lumineux rasant comme un entier et un multiple du pas
     # en x
 
-    print Rp,h,alpha_step,delta_step,r_step,theta_step,theta_number,x_step,z_level,phi_rot,\
-                                   phi_obli,reso_long,reso_lat,rank,number_rank
-
     if Middle == True :
         L_max = 2*np.sqrt((Rp+h)**2 - (Rp+r_step/2.)**2)
     else :
@@ -597,7 +594,7 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 
     for n_level in range(n_level_rank.size) :
 
-        r_level = Rp + n_level_rank[n_level]*r_step
+        r_level = n_level_rank[n_level]*r_step
 
         # Si les points de la maille spherique correspondent aux proprietes en milieu de couche, alors il faut tenir
         # compte de la demi-epaisseur de couche dans les calculs de correspondance
