@@ -1,4 +1,12 @@
 import numpy as np
+from mpi4py import MPI
+
+########################################################################################################################
+########################################################################################################################
+
+comm = MPI.COMM_WORLD
+rank = comm.rank
+number_rank = comm.size
 
 G = 6.67384e-11
 k_B = 1.380648813e-23
@@ -35,4 +43,5 @@ ratio_HeH2 = 0.17647
 #x_CH4 = 5.e-4
 #x_H2_l = 2*x_CH4
 #ratio_HeH2 = ratio_HeH2/(1.-x_H2_l)
-print 'ratio',ratio_HeH2
+if rank == 0 :
+    print 'ratio',ratio_HeH2
