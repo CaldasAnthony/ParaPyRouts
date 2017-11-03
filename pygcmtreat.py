@@ -712,8 +712,6 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 
             if rank == 0 :
                 bar.animate(r_range*theta_number+theta_range)
-    print n_level_rank
-    print p_grid
 
     return p_grid,q_grid,z_grid,n_level_rank
 
