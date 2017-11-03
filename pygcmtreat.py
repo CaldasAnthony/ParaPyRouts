@@ -181,6 +181,7 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
 
         P_mean = np.exp(np.nansum(np.log(P[:,n_l-1,:,:]))/(n_t*n_lat*n_long))
         print('Mean roof pressure : %f Pa'%(P_mean))
+        T_var = np.array([T_mean,T_max,T_min])
 
     # Si nous n'avons pas l'information sur les parametres de surface
 
