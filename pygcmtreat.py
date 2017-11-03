@@ -716,6 +716,7 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 
     return p_grid,q_grid,z_grid,n_level_rank
 
+
 ########################################################################################################################
 ########################################################################################################################
 
@@ -2059,6 +2060,7 @@ def altitude_line_array1D_cyl_optimized_correspondance (r_line,theta_line,dx_gri
 
         return zone,l,dx_ref,Cn_mol_ref,T_ref,P_ref
 
+
 ########################################################################################################################
 ########################################################################################################################
 
@@ -2075,6 +2077,7 @@ def altitude_line_array1D_cyl_optimized_correspondance (r_line,theta_line,dx_gri
 
 ########################################################################################################################
 ########################################################################################################################
+
 
 def atmospheric_matrix_3D(order,data,t,Rp,c_species,rank,Tracer=False,Clouds=False,Composition=False) :
 
@@ -2098,16 +2101,16 @@ def atmospheric_matrix_3D(order,data,t,Rp,c_species,rank,Tracer=False,Clouds=Fal
         else :
             num = 2
 
-
     composit = data[num : sp,:,:,:,:]
 
     shape = np.shape(order)
-    
+
     del data
 
     T = np.zeros((shape[1],shape[2],shape[3]),dtype=np.float64)
     P = np.zeros((shape[1],shape[2],shape[3]),dtype=np.float64)
     Cn = np.zeros((shape[1],shape[2],shape[3]),dtype=np.float64)
+    compo = np.zeros((sp-num,shape[1],shape[2],shape[3]),dtype=np.float64)
 
     if Tracer == True :
         Xm_Q = np.zeros((shape[1],shape[2],shape[3]),dtype=np.float64)
@@ -2116,11 +2119,7 @@ def atmospheric_matrix_3D(order,data,t,Rp,c_species,rank,Tracer=False,Clouds=Fal
 
         gen = np.zeros((c_number,shape[1],shape[2],shape[3]),dtype=np.float64)
 
-    if Composition == True :
-
-        compo = np.zeros((sp-num,shape[1],shape[2],shape[3]),dtype=np.float64)
-
-    if rank == 0 : 
+    if rank == 0 :
         bar = ProgressBar(shape[1]*shape[2],'Parametric recording')
 
     for i in range(shape[1]) :
@@ -2141,7 +2140,7 @@ def atmospheric_matrix_3D(order,data,t,Rp,c_species,rank,Tracer=False,Clouds=Fal
 
             compo[:,i,j,wh] = composit[:,t,order[0,i,j,wh],order[1,i,j,wh],order[2,i,j,wh]]
 
-            if rank == 0 : 
+            if rank == 0 :
                 bar.animate(i*shape[2] + j)
 
     if Tracer == True :
@@ -2154,7 +2153,6 @@ def atmospheric_matrix_3D(order,data,t,Rp,c_species,rank,Tracer=False,Clouds=Fal
             return P,T,Cn,compo
         else :
             return P,T,Cn,gen,compo
-
 
 
 ########################################################################################################################
