@@ -30,7 +30,7 @@ version = 6.1
 
 # Donnees de base
 
-data_base,diag_file = "/data1/caldas/Simulations/GJ1214b/",'diagfi'
+data_base,diag_file = "/data1/caldas/Pytmosph3R/Simulations/GJ1214b/",'diagfi'
 reso_long, reso_lat = 64, 48
 t, t_selec, phi_rot, phi_obli, inclinaison = 0, 5, 0.00, 0.00, 0.00
 if inclinaison != 0. :
