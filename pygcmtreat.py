@@ -527,9 +527,9 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
                         data_convert[number-1,t,i_z,lat,long] = np.nansum(data_convert[2+m_number+c_number:number-1,t,i_z,lat,long]*\
                                         M_species)
 
-    if rank == 0 :
-        bar.animate(i_z+1)
-        print 'Shape of the dataset :',np.shape(data_convert)
+        if rank == 0 :
+            bar.animate(i_z+1)
+            print 'Shape of the dataset :',np.shape(data_convert)
 
     return data_convert
 
