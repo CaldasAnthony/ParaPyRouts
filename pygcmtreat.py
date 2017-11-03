@@ -465,71 +465,73 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
 
                                 data_convert[1,t,i_z,lat,long] = T[t,n_l-1,lat,long]
 
-                        else :
+                            else :
 
-                            if Upper[0] == "Isotherme" :
-                                data_convert[1,t,i_z,lat,long] = T[t,n_l-1,lat,long]
-                            if Upper[0] ==  "Isotherme_moyen" :
-                                data_convert[1,t,i_z,lat,long] = Upper[1]
-                            if Upper[0] == "Maximum_isotherme" :
-                                data_convert[1,t,i_z,lat,long] = Upper[2]
-                            if Upper[0] == "Minimum_isotherme" :
-                                data_convert[1,t,i_z,lat,long] = Upper[3]
+                                if Upper[0] == "Isotherme" :
+                                    data_convert[1,t,i_z,lat,long] = T[t,n_l-1,lat,long]
+                                if Upper[0] ==  "Isotherme_moyen" :
+                                    data_convert[1,t,i_z,lat,long] = Upper[1]
+                                if Upper[0] == "Maximum_isotherme" :
+                                    data_convert[1,t,i_z,lat,long] = Upper[2]
+                                if Upper[0] == "Minimum_isotherme" :
+                                    data_convert[1,t,i_z,lat,long] = Upper[3]
 
-                        # On estime la pression au dela du toit a partir de la temperature choisie
+                            # On estime la pression au dela du toit a partir de la temperature choisie
 
-                        g = g0 + Mass[t,lat,long]*G/(Rp + i_z*delta_z)**2
+                            g = g0 + Mass[t,lat,long]*G/(Rp + i_z*delta_z)**2
 
-                        if i_z != dim-1 :
-                            data_convert[0,t,i_z,lat,long] = data_convert[0,t,i_z-1,lat,long]*np.exp(-data_convert[number-1,t,i_z-1,lat,long]*g*\
-                                delta_z/(R_gp*data_convert[1,t,i_z,lat,long])*1./((1+z_ref/Rp)*(1+(z_ref-delta_z)/Rp)))
-                        else :
-                            data_convert[0,t,i_z,lat,long] = data_convert[0,t,i_z-1,lat,long]*np.exp(-data_convert[number-1,t,i_z-1,lat,long]*g*\
-                                delta_z/(2.*R_gp*data_convert[1,t,i_z,lat,long])*1./((1+z_ref/Rp)*(1+(z_ref-delta_z/2.)/Rp)))
+                            if i_z != dim-1 :
+                                data_convert[0,t,i_z,lat,long] = data_convert[0,t,i_z-1,lat,long]*np.exp(-data_convert[number-1,t,i_z-1,lat,long]*g*\
+                                    delta_z/(R_gp*data_convert[1,t,i_z,lat,long])*1./((1+z_ref/Rp)*(1+(z_ref-delta_z)/Rp)))
+                            else :
+                                data_convert[0,t,i_z,lat,long] = data_convert[0,t,i_z-1,lat,long]*np.exp(-data_convert[number-1,t,i_z-1,lat,long]*g*\
+                                    delta_z/(2.*R_gp*data_convert[1,t,i_z,lat,long])*1./((1+z_ref/Rp)*(1+(z_ref-delta_z/2.)/Rp)))
 
-                        T_ref = data_convert[1,t,i_z,lat,long]
+                            T_ref = data_convert[1,t,i_z,lat,long]
 
-                        # On incremente toujours la masse atmospherique pour la latitude et la longitude donnee, les
-                        # ce point est a modifier
+                            # On incremente toujours la masse atmospherique pour la latitude et la longitude donnee, les
+                            # ce point est a modifier
 
-                        Mass[t,lat,long] += data_convert[0,t,i_z-1,lat,long]/(R_gp*data_convert[1,t,i_z-1,lat,long])*\
+                            Mass[t,lat,long] += data_convert[0,t,i_z-1,lat,long]/(R_gp*data_convert[1,t,i_z-1,lat,long])*\
                                 data_convert[number-1,t,i_z-1,lat,long]*4/3.*np.pi*((Rp + i_z*delta_z)**3 - (Rp + (i_z - 1)*delta_z)**3)
 
-                        P_ref = data_convert[0,t,i_z,lat,long]
+                            P_ref = data_convert[0,t,i_z,lat,long]
 
-                        if Tracer == True :
-                            data_convert[2,t,i_z,lat,long] = Q[t,n_l-1,lat,long]
-                            Q_ref = data_convert[2,t,i_z,lat,long]
+                            if Tracer == True :
+                                data_convert[2,t,i_z,lat,long] = Q[t,n_l-1,lat,long]
+                                Q_ref = data_convert[2,t,i_z,lat,long]
 
-                            if LogInterp == True :
-                                compos, c_grid, i_grid = interp3olation_uni_multi(np.log10(P_ref),T_ref,Q_ref,np.log10(P_comp),T_comp,Q_comp,x_species)
+                                if LogInterp == True :
+                                    compos, c_grid, i_grid = interp3olation_uni_multi(np.log10(P_ref),T_ref,Q_ref,np.log10(P_comp),T_comp,Q_comp,x_species)
+                                else :
+                                    compos, c_grid, i_grid = interp3olation_uni_multi(P_ref,T_ref,Q_ref,P_comp,T_comp,Q_comp,x_species)
+
+                                if Clouds == True :
+                                    data_convert[3:3+c_number,t,i_z,lat,long] = gen[:,t,n_l-1,lat,long]
+
                             else :
-                                compos, c_grid, i_grid = interp3olation_uni_multi(P_ref,T_ref,Q_ref,P_comp,T_comp,Q_comp,x_species)
+                                if LogInterp == True :
+                                    compos, c_grid, i_grid = interp2olation_uni_multi(np.log10(P_ref),T_ref,np.log10(P_comp),T_comp,x_species)
+                                else :
+                                    compos, c_grid, i_grid = interp2olation_uni_multi(P_ref,T_ref,P_comp,T_comp,x_species)
 
-                            if Clouds == True :
-                                data_convert[3:3+c_number,t,i_z,lat,long] = gen[:,t,n_l-1,lat,long]
+                                if Clouds == True :
+                                    data_convert[2:2+c_number,t,i_z,lat,long] = gen[:,t,n_l-1,lat,long]
 
-                        else :
-                            if LogInterp == True :
-                                compos, c_grid, i_grid = interp2olation_uni_multi(np.log10(P_ref),T_ref,np.log10(P_comp),T_comp,x_species)
-                            else :
-                                compos, c_grid, i_grid = interp2olation_uni_multi(P_ref,T_ref,P_comp,T_comp,x_species)
+                            compoH2 = (1 - np.nansum(compos[2:]))/(ratio + 1.)
+                            compoHe = compoH2*ratio
 
-                            if Clouds == True :
-                                data_convert[2:2+c_number,t,i_z,lat,long] = gen[:,t,n_l-1,lat,long]
-
-                        compoH2 = (1 - np.nansum(compos[2:]))/(ratio + 1.)
-                        compoHe = compoH2*ratio
-
-                        data_convert[2+m_number+c_number,t,i_z,lat,long] = compoH2
-                        data_convert[3+m_number+c_number,t,i_z,lat,long] = compoHe
-                        data_convert[4+m_number+c_number:number-1,t,i_z,lat,long] = compos[2:]
-                        data_convert[number-1,t,i_z,lat,long] = np.nansum(data_convert[2+m_number+c_number:number-1,t,i_z,lat,long]*\
+                            data_convert[2+m_number+c_number,t,i_z,lat,long] = compoH2
+                            data_convert[3+m_number+c_number,t,i_z,lat,long] = compoHe
+                            data_convert[4+m_number+c_number:number-1,t,i_z,lat,long] = compos[2:]
+                            data_convert[number-1,t,i_z,lat,long] = np.nansum(data_convert[2+m_number+c_number:number-1,t,i_z,lat,long]*\
                                         M_species)
 
         if rank == 0 :
             bar.animate(i_z+1)
-            print 'Shape of the dataset :',np.shape(data_convert)
+
+    if rank == 0 :
+        print 'Shape of the dataset :',np.shape(data_convert)
 
     return data_convert
 
