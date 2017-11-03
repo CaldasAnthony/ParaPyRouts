@@ -65,7 +65,8 @@ if Profil == True :
     sha = np.zeros(4,dtype=np.int)
     if rank == 0 :
         print 'Record of GCM data start'
-        P, T, Q, gen = Boxes_spheric_data(data_base,t_selec,c_species,Surf,Tracer,Cloudy,TimeSelec)
+        data_file = '%s%s'%(data_base,diag_file)
+        P, T, Q, gen = Boxes_spheric_data(data_file,t_selec,c_species,Surf,Tracer,Cloudy,TimeSelec)
         print 'Record of GCM finished with success'
         sha = np.shape(P)
         sha = np.array(sha,dtype=np.int)
@@ -105,7 +106,7 @@ if Profil == True :
 
                                     ###### Parallele encoding end ######
 
-    compo_i, M_i, z_i = Boxes_interlopation(P_n,T_n,Q_n,Rp,g0,M_species,number,P_comp,T_comp,Q_comp,n_species,X_species,M_species,\
+    compo_i, M_i, z_i = Boxes_interpolation(P_n,T_n,Q_n,Rp,g0,M_species,number,P_comp,T_comp,Q_comp,n_species,X_species,M_species,\
             c_species,ratio_HeH2,Tracer,Cloudy,LogInterp)
 
                                     ###### Parallele encoding init ######
