@@ -66,7 +66,7 @@ if Profil == True :
     if rank == 0 :
         print 'Record of GCM data start'
         data_file = '%s%s'%(data_base,diag_file)
-        P, T, Q, gen = Boxes_spheric_data(data_file,t_selec,c_species,Surf,Tracer,Cloudy,TimeSelec)
+        P, T, Q, gen, T_var = Boxes_spheric_data(data_file,t_selec,c_species,m_species,Surf,Tracer,Cloudy,TimeSelec)
         print 'Record of GCM finished with success'
         sha = np.shape(P)
         sha = np.array(sha,dtype=np.int)
@@ -106,7 +106,7 @@ if Profil == True :
 
                                     ###### Parallele encoding end ######
 
-    compo_i, M_i, z_i = Boxes_interpolation(P_n,T_n,Q_n,Rp,g0,M_species,number,P_comp,T_comp,Q_comp,n_species,X_species,M_species,\
+    compo_i, M_i, z_i = Boxes_interpolation(P_n,T_n,Q_n,Rp,g0,number,P_comp,T_comp,Q_comp,n_species,X_species,M_species,\
             c_species,ratio_HeH2,Tracer,Cloudy,LogInterp)
 
                                     ###### Parallele encoding init ######
@@ -139,6 +139,7 @@ if Profil == True :
             composition[:,:,:,new_dom_rank,:] = compo_n
             M_molar[:,:,new_dom_rank,:] = M_n
             z_sphe[:,:,new_dom_rank,:] = z_n
+
     comm.Barrier()
 
     del compo_i, M_i, z_i
@@ -154,8 +155,7 @@ if Profil == True :
             hmax = np.amax(z_sphe)
         dim = int(h/delta_z)+1
         M_mean = np.nansum(M_molar[:,pss-1,:,:])/(tss*loss*lass)
-        T_mean = np.nansum(T[:,pss-1,:,:])/(tss*loss*lass)
-        T_min, T_max = np.amin(T[:,pss-1,:,:]), np.amax(T[:,pss-1,:,:])
+        T_mean, T_max, T_min = T_var[0], T_var[1], T_var[2]
         P_mean = np.nansum(P[:,pss-1,:,:])/(tss*loss*lass)
         g_roof = g0*1/(1+hmax/Rp)**2
         H_mean = R_gp*T_mean/(M_mean*g_roof)

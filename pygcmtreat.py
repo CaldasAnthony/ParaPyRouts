@@ -238,8 +238,8 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
 ########################################################################################################################
 
 
-def Boxes_interlopation(P,T,Q,Rp,g0,M_atm,number,P_comp,T_comp,Q_comp,species,x_species,M_species,c_species,ratio,\
-                        Tracer=False,Clouds=False,Composition=False,LogInterp=False) :
+def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_species,M_species,c_species,ratio,\
+                        Tracer=False,Clouds=False,LogInterp=False) :
 
     n_t,n_l,n_lat,n_long = np.shape(P)
     z = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
