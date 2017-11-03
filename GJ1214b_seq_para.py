@@ -377,8 +377,7 @@ if Parameters == True :
 
                                     ###### Parallele encoding init ######
 
-        n_lay_rank = repartition(n_layers,number_rank,rank,False)
-        print n_lay_rank
+        n_lay_rank = repartition(n_layers+1,number_rank,rank,False)
 
                                     ###### Parallele encoding end ######
 
@@ -431,7 +430,7 @@ if Parameters == True :
                 comm.Send([dx_grid_n,MPI.INT],dest=0,tag=rank+1)
                 comm.Send([order_grid_n,MPI.INT],dest=0,tag=rank+2)
             elif r_n != 0 and rank == 0 :
-                n_lay_rank_ne = repartition(n_layers,number_rank,r_n,False)
+                n_lay_rank_ne = repartition(n_layers+1,number_rank,r_n,False)
                 dx_grid_ne = np.zeros((n_lay_rank_ne.size,theta_number,length[r_n]),dtype=np.int)
                 comm.Recv([dx_grid_ne,MPI.INT],source=r_n,tag=r_n+1)
                 order_grid_ne = np.zeros((6,n_lay_rank_ne.size,theta_number,length[r_n]),dtype=np.int)
@@ -513,15 +512,7 @@ if Parameters == True :
 
                                     ###### Parallele encoding init ######
 
-        extra = 2
-        n_lay_rank = repartition(n_layers,number_rank,rank,False)
-        if n_layers%number_rank != 0 :
-            n_extra = n_layers%number_rank-1
-        else :
-            n_extra = number_rank-1
-        if rank == n_extra :
-            for i_extra in range(extra) :
-                n_lay_rank = np.append(n_lay_rank,n_layers+i_extra)
+        n_lay_rank = repartition(n_layers+1,number_rank,rank,False)
 
         data_convert = np.load("%s%s/%s/%s_data_convert_%i%i%i.npy"%(path,name_file,param_file,name_exo,reso_alt,reso_long,\
                     reso_lat))
@@ -548,10 +539,10 @@ if Parameters == True :
 
         if rank == 0 :
             sh_res = np.shape(result_n)
-            result_P = np.zeros((n_layers + 5,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
-            result_T = np.zeros((n_layers + 5,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
-            result_Cn = np.zeros((n_layers + 5,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
-            result_comp = np.zeros((n_species.size + 1, n_layers + 5,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
+            result_P = np.zeros((n_layers+1,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
+            result_T = np.zeros((n_layers+1,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
+            result_Cn = np.zeros((n_layers+1,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
+            result_comp = np.zeros((n_species.size + 1, n_layers+1,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
             result_P[n_lay_rank,:,:] = result_n[0]
             result_T[n_lay_rank,:,:] = result_n[1]
             result_Cn[n_lay_rank,:,:] = result_n[2]
@@ -560,7 +551,7 @@ if Parameters == True :
                 result_Q = np.zeros((n_layers + 5,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
                 result_Q[n_lay_rank,:,:] = result_n[3]
             if Cloudy == True :
-                result_gen = np.zeros((c_species.size,n_layers + 5,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
+                result_gen = np.zeros((c_species.size,n_layers+1,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
                 result_gen[:,n_lay_rank,:,:] = result_n[3+m_m]
 
         length = np.shape(order_grid)[3]
@@ -579,10 +570,7 @@ if Parameters == True :
                 if Composition == True :
                     comm.Send([result_n[3+m_m+c_c],MPI.DOUBLE],dest=0,tag=6)
             elif r_n != 0 and rank == 0 :
-                n_lay_rank_ne = repartition(n_layers,number_rank,r_n,False)
-                if r_n == n_extra :
-                    for i_extra in range(extra) :
-                        n_lay_rank_ne = np.append(n_lay_rank_ne,n_layers+i_extra)
+                n_lay_rank_ne = repartition(n_layers+1,number_rank,r_n,False)
                 result_n_P = np.zeros((n_lay_rank_ne.size,theta_number,length),dtype=np.float64)
                 comm.Recv([result_n_P,MPI.DOUBLE],source=r_n,tag=1)
                 result_P[n_lay_rank_ne,:,:] = result_n_P
