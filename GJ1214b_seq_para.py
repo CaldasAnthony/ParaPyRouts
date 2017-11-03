@@ -378,6 +378,7 @@ if Parameters == True :
                                     ###### Parallele encoding init ######
 
         n_lay_rank = repartition(n_layers,number_rank,rank,False)
+        print n_lay_rank
 
                                     ###### Parallele encoding end ######
 
