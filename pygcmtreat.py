@@ -574,7 +574,6 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
     
     n_level_rank = np.array([],dtype=np.int)
     n = rank
-    extra = 0
     while n <= z_level.size - 1 :
         n_level_rank = np.append(n_level_rank,n)
         n += number_rank
@@ -713,6 +712,7 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 
             if rank == 0 :
                 bar.animate(r_range*theta_number+theta_range)
+    print n_level_rank
 
     return p_grid,q_grid,z_grid,n_level_rank
 
@@ -764,7 +764,6 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
             # L est la moitie de la distance totale que peux parcourir le rayon dans l'atmosphere a r et theta donne
             L = np.sqrt((Rp+h)**2 - (Rp+r)**2)
             Lmax = zone.size*x_step/2.
-            print zone, L, Lmax
             # dist nous permet de localiser si le rayon a depasse ou non le terminateur
             dist = 0
 
