@@ -418,8 +418,8 @@ if Parameters == True :
 
         if rank == 0 :
             x_size = np.amax(length)
-            dx_grid = np.ones((n_layers,theta_number,x_size),dtype=np.int)*(-1)
-            order_grid = np.ones((6,n_layers,theta_number,x_size),dtype=np.int)*(-1)
+            dx_grid = np.ones((n_layers+1,theta_number,x_size),dtype=np.int)*(-1)
+            order_grid = np.ones((6,n_layers+1,theta_number,x_size),dtype=np.int)*(-1)
             dx_grid[n_lay_rank,:,:length[0]] = dx_grid_n
             order_grid[:,n_lay_rank,:,:length[0]] = order_grid_n
             rank_size = np.array([], dtype=np.int)
@@ -458,7 +458,7 @@ if Parameters == True :
 
         if Discret == True :
             if rank == 0 :
-                dx_grid_opt = np.ones((n_layers,theta_number,x_size),dtype=np.float64)*(-1)
+                dx_grid_opt = np.ones((n_layers+1,theta_number,x_size),dtype=np.float64)*(-1)
                 dx_grid_opt[n_lay_rank,:,:length[0]] = dx_grid_opt_n
             for r_n in range(number_rank) :
                 if r_n == rank and rank != 0 :
@@ -484,7 +484,7 @@ if Parameters == True :
 
         if Integral == True :
             if rank == 0 :
-                pdx_grid = np.ones((n_layers,theta_number,x_size),dtype=np.float64)*(-delta_z)
+                pdx_grid = np.ones((n_layers+1,theta_number,x_size),dtype=np.float64)*(-delta_z)
                 pdx_grid[n_lay_rank,:,:length[0]] = pdx_grid_n
             for r_n in range(number_rank) :
                 if r_n == rank and rank != 0 :
