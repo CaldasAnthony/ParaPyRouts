@@ -279,6 +279,7 @@ def ratio(n_species,x_ratio_species_active,IsoComp=False) :
 
 def diag(data_base) :
 
+    print data_base
     file = Dataset("%s.nc"%(data_base))
     variables = file.variables
     controle = variables["controle"][:]
