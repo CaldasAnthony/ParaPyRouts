@@ -560,6 +560,9 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
     # On calcule la distance maximale que peut parcourir un rayon lumineux rasant comme un entier et un multiple du pas
     # en x
 
+    print Rp,h,alpha_step,delta_step,r_step,theta_step,theta_number,x_step,z_level,phi_rot,\
+                                   phi_obli,reso_long,reso_lat,rank,number_rank
+
     if Middle == True :
         L_max = 2*np.sqrt((Rp+h)**2 - (Rp+r_step/2.)**2)
     else :
