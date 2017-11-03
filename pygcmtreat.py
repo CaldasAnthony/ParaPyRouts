@@ -764,6 +764,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
             # L est la moitie de la distance totale que peux parcourir le rayon dans l'atmosphere a r et theta donne
             L = np.sqrt((Rp+h)**2 - (Rp+r)**2)
             Lmax = zone.size*x_step/2.
+            print zone, L, Lmax
             # dist nous permet de localiser si le rayon a depasse ou non le terminateur
             dist = 0
 
