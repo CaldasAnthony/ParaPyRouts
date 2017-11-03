@@ -201,7 +201,7 @@ Discret = True         ###### Calcul les distances discretes
 Integral = True        ###### Effectue l'integration sur les chemins optiques
 Ord = False             ###### Si Discreet == False, Ord permet de calculer les indices avec l'integration
 
-Matrix = False          ###### Transposition de la maille spherique dans la maille cylindrique
+Matrix = True          ###### Transposition de la maille spherique dans la maille cylindrique
 
 Convert = False         ###### Lance la fonction convertator qui assure l'interpolation des sections efficaces
 Kcorr = False           ###### Sections efficaces ou k-correles
@@ -216,7 +216,7 @@ TimeSelec = True       ###### Si nous etudions un temps precis de la simulation
 
 # Cylindric transfert
 
-Cylindric_transfert_3D = True
+Cylindric_transfert_3D = False
 
 Isolated = False        ###### Ne tiens pas compte de l'absorption moleculaire
 Continuum = True       ###### Tiens compte de l'absorption par les collisions
@@ -235,7 +235,7 @@ TimeSel = True         ###### Si nous etudions un temps precis de la simulation
 
 # Plot
 
-View = True
+View = False
 
 Radius = True          ###### Spectre rayon effective = f(longueur d'onde)
 Flux = False            ###### Spectre flux = f(longueur d'onde)
@@ -250,8 +250,8 @@ special = ''
 if rank == 0 : 
     stud = stud_type(r_eff,Single,Continuum,Isolated,Scattering,Clouds)
     save_name_1D = saving('1D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
-            phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,Discreet,Integration,Module,Optimal,Kcorr,False)
+            phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
     save_name_3D = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
-            phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,Discreet,Integration,Module,Optimal,Kcorr,False)
+            phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
 
 ########################################################################################################################

@@ -491,7 +491,7 @@ if Parameters == True :
             del dx_grid_opt_n
 
             comm.Barrier()
-	    
+
                                     ###### Parallele encoding init ######
 
         if Integral == True :
@@ -999,7 +999,7 @@ if Cylindric_transfert_3D == True :
         if rank == 0 :
             stud = stud_type(r_eff,Single,Continuum,Isolated,Scattering,Clouds)
             save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
-                phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,Discreet,Integration,Module,Optimal,Kcorr)	    
+                phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
 
         if Isolated == False :
             if Kcorr == True :
@@ -1107,7 +1107,7 @@ if Cylindric_transfert_3D == True :
                 Isolated, Continuum, Scattering, Clouds = proc[0],proc[1],proc[2],proc[3]
                 stud = stud_type(r_eff,Single,Continuum,Isolated,Scattering,Clouds)
                 save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
-                        phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,Discreet,Integration,Module,Optimal,Kcorr)
+                        phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
                 I_step = np.load(save_name_3D_step)
                 tau += np.log(I_step)
             Itot = np.exp(tau)
