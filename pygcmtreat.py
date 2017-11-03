@@ -574,12 +574,9 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
     
     n_level_rank = np.array([],dtype=np.int)
     n = rank
-    extra = 2
+    extra = 0
     while n <= z_level.size - 1 :
-        n_level_rank = np.append(n_level_rank,n) 
-        if n == z_level.size - 1 :
-            for i_extra in range(extra) :
-                n_level_rank = np.append(n_level_rank,n+i_extra+1)
+        n_level_rank = np.append(n_level_rank,n)
         n += number_rank
 
     # p pour la latitude, q pour la longitude, z pour l'altitude
@@ -589,18 +586,17 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
     p_grid = np.ones((int(n_level_rank.size) ,theta_number , x_reso),dtype='int')*(-1)
     q_grid = np.ones((int(n_level_rank.size) ,theta_number , x_reso),dtype='int')*(-1)
     z_grid = np.ones((int(n_level_rank.size) ,theta_number , x_reso),dtype='int')*(-1)
-        
 
-    if rank == 0 : 
+    if rank == 0 :
         if Obliquity == True :
             bar = ProgressBar(np.int(n_level_rank.size*theta_number),'Transposition on cylindric stitch (with obliquity)')
         else :
-            bar = ProgressBar(np.int(n_level_rank.size*theta_number/2.),'Transposition on cylindric stitch')
+            bar = ProgressBar(np.int(n_level_rank.size*theta_number),'Transposition on cylindric stitch')
 
     for n_level in range(n_level_rank.size) :
 
         r_level = Rp + n_level_rank[n_level]*r_step
-	
+
         # Si les points de la maille spherique correspondent aux proprietes en milieu de couche, alors il faut tenir
         # compte de la demi-epaisseur de couche dans les calculs de correspondance
 
@@ -715,8 +711,8 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 
                         #print x_range, x_pos, begin, q, alpha_o_ref, alpha_o_ref_0
 
-                if rank == 0 : 
-                    bar.animate(r_range*theta_number+theta_range)
+            if rank == 0 :
+                bar.animate(r_range*theta_number+theta_range)
 
     return p_grid,q_grid,z_grid,n_level_rank
 

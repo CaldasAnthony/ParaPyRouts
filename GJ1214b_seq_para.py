@@ -277,7 +277,7 @@ if Parameters == True :
 
         if rank == 0 :
             sh_grid = np.shape(p_grid_n)
-            p_grid = np.ones((dim+5,sh_grid[1],sh_grid[2]),dtype=np.int)*(-1)
+            p_grid = np.ones((n_layers+1,sh_grid[1],sh_grid[2]),dtype=np.int)*(-1)
             p_grid[n_level_rank,:,:] = p_grid_n
 
         comm.Barrier()
@@ -317,7 +317,7 @@ if Parameters == True :
                 comm.Send([q_grid_n,MPI.INT],dest=0,tag=22)
             elif rank == 0 and r_n == 0 :
                 sh_grid = np.shape(q_grid_n)
-                q_grid = np.ones((dim+5,sh_grid[1],sh_grid[2]),dtype=np.int)*(-1)
+                q_grid = np.ones((n_layers+1,sh_grid[1],sh_grid[2]),dtype=np.int)*(-1)
                 q_grid[n_level_rank,:,:] = q_grid_n
             elif rank == 0 and r_n !=0 :
                 sh_grid_ne = np.zeros(3,dtype=np.int)
@@ -348,7 +348,7 @@ if Parameters == True :
                 comm.Send([z_grid_n,MPI.INT],dest=0,tag=12)
             elif rank == 0 and r_n == 0 :
                 sh_grid = np.shape(z_grid_n)
-                z_grid = np.ones((dim+5,sh_grid[1],sh_grid[2]),dtype=np.int)*(-1)
+                z_grid = np.ones((n_layers+1,sh_grid[1],sh_grid[2]),dtype=np.int)*(-1)
                 z_grid[n_level_rank,:,:] = z_grid_n
             elif r_n != 0 and rank == 0 :
                 sh_grid_ne = np.zeros(3,dtype=np.int)
@@ -377,15 +377,7 @@ if Parameters == True :
 
                                     ###### Parallele encoding init ######
 
-        extra = 5
         n_lay_rank = repartition(n_layers,number_rank,rank,False)
-        if n_layers%number_rank != 0 :
-            n_extra = n_layers%number_rank-1
-        else :
-            n_extra = number_rank-1
-        if rank == n_extra :
-            for i_extra in range(extra) :
-                n_lay_rank = np.append(n_lay_rank,n_layers+i_extra)
 
                                     ###### Parallele encoding end ######
 
@@ -408,7 +400,7 @@ if Parameters == True :
         comm.Barrier()
 
                                     ###### Parallele encoding init ######
-	
+
         for r_n in range(number_rank) :
             if r_n == 0 and rank == 0 :
                 length = np.zeros(number_rank,dtype=np.int)
@@ -425,8 +417,8 @@ if Parameters == True :
 
         if rank == 0 :
             x_size = np.amax(length)
-            dx_grid = np.ones((n_layers+extra,theta_number,x_size),dtype=np.int)*(-1)
-            order_grid = np.ones((6,n_layers+extra,theta_number,x_size),dtype=np.int)*(-1)
+            dx_grid = np.ones((n_layers,theta_number,x_size),dtype=np.int)*(-1)
+            order_grid = np.ones((6,n_layers,theta_number,x_size),dtype=np.int)*(-1)
             dx_grid[n_lay_rank,:,:length[0]] = dx_grid_n
             order_grid[:,n_lay_rank,:,:length[0]] = order_grid_n
             rank_size = np.array([], dtype=np.int)
@@ -439,9 +431,6 @@ if Parameters == True :
                 comm.Send([order_grid_n,MPI.INT],dest=0,tag=rank+2)
             elif r_n != 0 and rank == 0 :
                 n_lay_rank_ne = repartition(n_layers,number_rank,r_n,False)
-                if r_n == n_extra :
-                    for i_extra in range(extra) :
-                        n_lay_rank_ne = np.append(n_lay_rank_ne,n_layers+i_extra)
                 dx_grid_ne = np.zeros((n_lay_rank_ne.size,theta_number,length[r_n]),dtype=np.int)
                 comm.Recv([dx_grid_ne,MPI.INT],source=r_n,tag=r_n+1)
                 order_grid_ne = np.zeros((6,n_lay_rank_ne.size,theta_number,length[r_n]),dtype=np.int)
@@ -468,7 +457,7 @@ if Parameters == True :
 
         if Discret == True :
             if rank == 0 :
-                dx_grid_opt = np.ones((n_layers+extra,theta_number,x_size),dtype=np.float64)*(-1)
+                dx_grid_opt = np.ones((n_layers,theta_number,x_size),dtype=np.float64)*(-1)
                 dx_grid_opt[n_lay_rank,:,:length[0]] = dx_grid_opt_n
             for r_n in range(number_rank) :
                 if r_n == rank and rank != 0 :
@@ -478,9 +467,6 @@ if Parameters == True :
                     dx_grid_opt_ne = np.zeros((rank_size[r_n],theta_number,length[r_n]),dtype=np.float64)
                     comm.Recv([dx_grid_opt_ne,MPI.DOUBLE],source=r_n,tag=r_n+11)
                     n_lay_rank_ne = repartition(n_layers,number_rank,r_n,False)
-                    if r_n == n_extra :
-                        for i_extra in range(extra) :
-                            n_lay_rank_ne = np.append(n_lay_rank_ne,n_layers+i_extra)
                     dx_grid_opt[n_lay_rank_ne,:,:length[r_n]] = dx_grid_opt_ne
 
                                     ###### Parallele encoding end ######
@@ -488,7 +474,7 @@ if Parameters == True :
             if rank == 0 :
                 np.save("%s%s/%s/dx_grid_opt_%i_%i%i%i_%i_%.2f_%.2f.npy"
                     %(path,name_file,stitch_file,theta_number,reso_long,reso_lat,reso_alt,r_step,phi_rot,phi_obli),dx_grid_opt)
-            del dx_grid_opt, dx_grid_opt_ne
+                del dx_grid_opt, dx_grid_opt_ne
             del dx_grid_opt_n
 
             comm.Barrier()
@@ -497,7 +483,7 @@ if Parameters == True :
 
         if Integral == True :
             if rank == 0 :
-                pdx_grid = np.ones((n_layers+extra,theta_number,x_size),dtype=np.float64)*(-delta_z)
+                pdx_grid = np.ones((n_layers,theta_number,x_size),dtype=np.float64)*(-delta_z)
                 pdx_grid[n_lay_rank,:,:length[0]] = pdx_grid_n
             for r_n in range(number_rank) :
                 if r_n == rank and rank != 0 :
@@ -507,9 +493,6 @@ if Parameters == True :
                     pdx_grid_ne = np.zeros((rank_size[r_n],theta_number,length[r_n]),dtype=np.float64)
                     comm.Recv([pdx_grid_ne,MPI.DOUBLE],source=r_n,tag=r_n+21)
                     n_lay_rank_ne = repartition(n_layers,number_rank,r_n,False)
-                    if r_n == n_extra :
-                        for i_extra in range(extra) :
-                            n_lay_rank_ne = np.append(n_lay_rank_ne,n_layers+i_extra)
                     pdx_grid[n_lay_rank_ne,:,:length[r_n]] = pdx_grid_ne
 
                                     ###### Parallele encoding end ######
