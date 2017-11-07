@@ -184,10 +184,9 @@ if Profil == True :
             alp_h = H_mean*np.log(P_mean/P_h)
             z_h = z_t + alp_h/(1.+alp_h/(Rp+z_t))
             dim = int(z_h/delta_z)+2
-            z_h = (dim-2)*delta_z
-            h = z_h
+            h = (dim-2)*delta_z
         if N_fixe == True :
-            delta_z = np.float(np.int(h/np.float(n_layers)))
+            delta_z = np.float(np.int(z_h/np.float(n_layers)))
             r_step, x_step = delta_z, delta_z
             h = delta_z*n_layers
             dim = n_layers + 2
