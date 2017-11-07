@@ -156,7 +156,7 @@ if Profil == True :
         dim = int(h/delta_z)+2
         M_mean = np.nansum(M_molar[:,pss-1,:,:])/(tss*loss*lass)
         T_mean, T_max, T_min = T_var[0], T_var[1], T_var[2]
-        print T_mean
+        print M_mean
         P_mean = np.exp(np.nansum(np.log(P[:,pss-1,:,:])/(tss*loss*lass)))
 
         if TopPressure == 'Mean' or TopPressure == 'No' :
@@ -168,6 +168,7 @@ if Profil == True :
             wh_up = np.where(z_sphe[:,pss-1,:,:] == np.amax(z_sphe))
             z_t = np.amax(z_sphe)
             g_roof = g0*1/(1.+z_t/Rp)**2
+            print g_roof
             H_mean = R_gp*T[wh_up[0],pss-1,wh_up[1],wh_up[2]][0]/(M_molar[wh_up[0],pss-1,wh_up[1],wh_up[2]][0]*g_roof)
         if TopPressure == 'Down' :
             wh_dn = np.where(z_sphe[:,pss-1,:,:] == np.amin(z_sphe[:,pss-1,:,:]))
