@@ -106,6 +106,14 @@ if Profil == True :
 
                                     ###### Parallele encoding end ######
 
+    if rank == 0 :
+        print g0, Rp
+        print P_comp
+        print T_comp
+        print n_species
+        print X_species
+        print M_species
+        print ratio_HeH2
     compo_i, M_i, z_i = Boxes_interpolation(P_n,T_n,Q_n,Rp,g0,number,P_comp,T_comp,Q_comp,n_species,X_species,M_species,\
             c_species,ratio_HeH2,Tracer,Cloudy,LogInterp)
 
