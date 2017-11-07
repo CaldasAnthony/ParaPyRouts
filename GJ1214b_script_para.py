@@ -23,7 +23,7 @@ name_file = "Files/Para"
 name_source = "Source"
 name_exo = "GJ1214b"
 opac_file, param_file, stitch_file = 'Opacity', 'Parameters', 'Stitch'
-version = 6.1
+version = 6.2
 
 ########################################################################################################################
 ########################################################################################################################
@@ -98,7 +98,7 @@ cont_associations = np.array(['h2h2','h2he','h2oh2o','h2ofor','h2ch4','h2n2'])
 
 # Proprietes de maille
 
-h, P_h, n_layers = 5.7e+6, 1.e-6, 100
+h, P_h, n_layers = 5.1e+6, 1.e-6, 100
 delta_z, r_step, x_step, theta_number = 3.0e+4, 3.0e+4, 3.0e+4, 96
 z_array = np.arange(h/np.float(delta_z)+1)*float(delta_z)
 theta_step = 2*np.pi/np.float(theta_number)

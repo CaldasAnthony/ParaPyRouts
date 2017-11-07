@@ -188,7 +188,7 @@ if Profil == True :
     comm.Bcast([info,MPI.DOUBLE],root=0)
     h, hmax, dim, delta_z, r_step, x_step, n_layers, T_mean, T_max, T_min = \
         info[0], info[1], np.int(info[2]), info[3], info[4], info[5], np.int(info[6]), info[7], info[8], info[9]
-    reso_alt = int(h/delta_z)
+    reso_alt = int(h/1000)
     Upper = np.array([Upper,T_mean,T_max,T_min])
 
     comm.Barrier()
