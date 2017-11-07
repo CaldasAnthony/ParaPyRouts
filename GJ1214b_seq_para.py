@@ -106,14 +106,6 @@ if Profil == True :
 
                                     ###### Parallele encoding end ######
 
-    if rank == 0 :
-        print g0, Rp
-        print P_comp
-        print T_comp
-        print n_species
-        print X_species
-        print M_species
-        print ratio_HeH2
     compo_i, M_i, z_i = Boxes_interpolation(P_n,T_n,Q_n,Rp,g0,number,P_comp,T_comp,Q_comp,n_species,X_species,M_species,\
             c_species,ratio_HeH2,Tracer,Cloudy,LogInterp)
 
@@ -207,6 +199,7 @@ if Profil == True :
         print "The final thickness of the atmosphere is %i m"%((dim-2)*delta_z)
         print "The final thickness of a layer is %i m"%(delta_z)
         print 'Conversion of the dataset will start soon'
+        print dim, delta_z, h
 
         info = np.array([h,hmax,dim,delta_z,r_step,x_step,n_layers,T_mean,T_max,T_min], dtype=np.float64)
 
