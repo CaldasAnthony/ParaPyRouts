@@ -548,7 +548,7 @@ if Parameters == True :
             result_Cn[n_lay_rank,:,:] = result_n[2]
             result_comp[:,n_lay_rank,:,:] = result_n[3+m_m+c_c]
             if Tracer == True :
-                result_Q = np.zeros((n_layers + 5,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
+                result_Q = np.zeros((n_layers+1,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
                 result_Q[n_lay_rank,:,:] = result_n[3]
             if Cloudy == True :
                 result_gen = np.zeros((c_species.size,n_layers+1,theta_number, np.shape(result_n[0])[2]), dtype=np.float64)
@@ -580,9 +580,6 @@ if Parameters == True :
                 result_n_Cn = np.zeros((n_lay_rank_ne.size,theta_number,length),dtype=np.float64)
                 comm.Recv([result_n_Cn,MPI.DOUBLE],source=r_n,tag=3)
                 result_Cn[n_lay_rank_ne,:,:] = result_n_Cn
-                result_n_comp = np.zeros((n_species.size+1,n_lay_rank_ne.size,theta_number,length),dtype=np.float64)
-                comm.Recv([result_n_comp,MPI.DOUBLE],source=r_n,tag=6)
-                result_comp[:,n_lay_rank_ne,:,:] = result_n_comp
                 if Tracer == True :
                     result_n_Q = np.zeros((n_lay_rank_ne.size,theta_number,length),dtype=np.float64)
                     comm.Recv([result_n_Q,MPI.DOUBLE],source=r_n,tag=4)
@@ -591,6 +588,9 @@ if Parameters == True :
                     result_n_gen = np.zeros((c_species.size,n_lay_rank_ne.size,theta_number,length),dtype=np.float64)
                     comm.Recv([result_n_gen,MPI.DOUBLE],source=r_n,tag=5)
                     result_gen[:,n_lay_rank_ne,:,:] = result_n_gen
+                result_n_comp = np.zeros((n_species.size+1,n_lay_rank_ne.size,theta_number,length),dtype=np.float64)
+                comm.Recv([result_n_comp,MPI.DOUBLE],source=r_n,tag=6)
+                result_comp[:,n_lay_rank_ne,:,:] = result_n_comp
 
                                     ###### Parallele encoding end ######
 
