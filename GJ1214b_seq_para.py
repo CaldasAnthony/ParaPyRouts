@@ -160,20 +160,36 @@ if Profil == True :
         g_roof = g0*1/(1+hmax/Rp)**2
         H_mean = R_gp*T_mean/(M_mean*g_roof)
 
+        if TopPressure == 'Mean' or TopPressure == 'No' :
+            M_mean = np.nansum(M_molar[:,pss-1,:,:])/(tss*loss*lass)
+            z_t = np.mean(z_sphe[:,pss-1,:,:])
+            g_roof = g0*1/(1+z_t/Rp)**2
+            H_mean = R_gp*T_mean/(M_mean*g_roof)
+        if TopPressure == 'Up' :
+            wh_up = np.where(z_sphe[:,pss-1,:,:] == np.amax(z))
+            z_t = np.amax(z_sphe)
+            g_roof = g0*1/(1.+z_t/Rp)**2
+            H_mean = R_gp*T[wh_up[0],pss-1,wh_up[1],wh_up[2]][0]/(M[wh_up[0],pss-1,wh_up[1],wh_up[2]][0]*g_roof)
+        if TopPressure == 'Down' :
+            wh_dn = np.where(z_sphe[:,pss-1,:,:] == np.amin(z[:,pss-1,:,:]))
+            z_t = z_sphe[wh_dn[0],pss-1,wh_dn[1],wh_dn[2]][0]
+            g_roof = g0*1/(1.+z_t/Rp)**2
+            H_mean = R_gp*T[wh_dn[0],pss-1,wh_dn[1],wh_dn[2]][0]/(M[wh_dn[0],pss-1,wh_dn[1],wh_dn[2]][0]*g_roof)
+
         print "The thickness of the simulation is %i m"%(hmax)
         print "The thickness of the atmosphere is %i m"%(h)
         print "The scale height at the roof is %f m"%(H_mean)
 
-        alp_h = H_mean*np.log(P_mean/P_h)
-        z_h = np.amax(z_sphe) + alp_h/(1.+alp_h/(Rp+np.amax(z_sphe)))
-        print z_h
-        if TopPressure == True :
+        if TopPressure != 'No' :
+            alp_h = H_mean*np.log(P_mean/P_h)
+            z_h = z_t + alp_h/(1.+alp_h/(Rp+z_t))
             dim = int(z_h/delta_z)+2
             z_h = (dim-2)*delta_z
             h = z_h
         if N_fixe == True :
-            delta_z = h/np.float(n_layers)
+            delta_z = np.float(np.int(h/np.float(n_layers)))
             r_step, x_step = delta_z, delta_z
+            h = delta_z*n_layers
             dim = n_layers + 2
             print 'Number of layers imposed : %i'%(n_layers)
         else :
