@@ -584,8 +584,7 @@ if Parameters == True :
                     comm.Send([result_n[3],MPI.DOUBLE],dest=0,tag=4)
                 if Cloudy == True :
                     comm.Send([result_n[3+m_m],MPI.DOUBLE],dest=0,tag=5)
-                if Composition == True :
-                    comm.Send([result_n[3+m_m+c_c],MPI.DOUBLE],dest=0,tag=6)
+                comm.Send([result_n[3+m_m+c_c],MPI.DOUBLE],dest=0,tag=6)
             elif r_n != 0 and rank == 0 :
                 n_lay_rank_ne = repartition(n_layers+1,number_rank,r_n,False)
                 result_n_P = np.zeros((n_lay_rank_ne.size,theta_number,length),dtype=np.float64)
@@ -677,7 +676,7 @@ if Parameters == True :
 
         if rank == 0 :
 
-            P_rmd, T_rmd, Q_rmd, gen_cond_rmd, composit_rmd, wher, indices, liste = sort_set_param(P,T,Q,gen,comp,Tracer,Cloudy,Composition)
+            P_rmd, T_rmd, Q_rmd, gen_cond_rmd, composit_rmd, wher, indices, liste = sort_set_param(P,T,Q,gen,comp,Tracer,Cloudy)
             p = np.log10(P_rmd)
             p_min = np.amin(p)
             p_max = np.amax(p)
@@ -696,7 +695,7 @@ if Parameters == True :
                                     ###### Parallele encoding end ######
 
             convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,path,direc,reso_long,reso_lat,name_exo,t,\
-                        x_step,phi_rot,phi_obli,domain,dim_bande,dim_gauss,Kcorr,Tracer,Cloudy,Composition)
+                        x_step,phi_rot,phi_obli,domain,dim_bande,dim_gauss,Kcorr,Tracer,Cloudy)
 
             del P,T,Q,gen,comp,P_rmd,T_rmd,Q_rmd,gen_cond_rmd,composit_rmd,rmind
 
@@ -862,7 +861,7 @@ if Parameters == True :
         convertator (P_rmd,T_rmd,gen_rmd,c_species,Q_rmd,composit_rmd,ind_active,k_corr_data_grid,K_cont,\
                      Q_cloud,P_sample,T_sample,Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,direc,\
                      t,phi_rot,phi_obli,n_species,domain,ratio,path,name_exo,reso_long,reso_lat,wh_p,rank,rank_ref,\
-                     Tracer,Molecular,Cont,Cl,Composition,Scatt,Kcorr,Optimal)
+                     Tracer,Molecular,Cont,Cl,Scatt,Kcorr,Optimal)
 
 ########################################################################################################################
 
