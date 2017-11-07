@@ -147,7 +147,7 @@ if Profil == True :
 
     if rank == 0 :
 
-        np.save('/home/caldas/z',z_sphe)
+        np.save('/data1/caldas/z',z_sphe)
         if h < np.amax(z_sphe) :
             h = np.amax(z_sphe)
             hmax = h
