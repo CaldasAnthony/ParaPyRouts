@@ -168,7 +168,7 @@ if Profil == True :
             wh_up = np.where(z_sphe[:,pss-1,:,:] == np.amax(z_sphe))
             z_t = np.amax(z_sphe)
             g_roof = g0*1/(1.+z_t/Rp)**2
-            print g_roof
+            print g_roof, z_t
             H_mean = R_gp*T[wh_up[0],pss-1,wh_up[1],wh_up[2]][0]/(M_molar[wh_up[0],pss-1,wh_up[1],wh_up[2]][0]*g_roof)
         if TopPressure == 'Down' :
             wh_dn = np.where(z_sphe[:,pss-1,:,:] == np.amin(z_sphe[:,pss-1,:,:]))
