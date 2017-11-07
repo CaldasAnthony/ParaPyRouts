@@ -198,7 +198,7 @@ if Profil == True :
         print "The final thickness of the atmosphere is %i m"%((dim-2)*delta_z)
         print "The final thickness of a layer is %i m"%(delta_z)
         print 'Conversion of the dataset will start soon'
-        print dim, delta_z, h
+        print z_h, dim, delta_z, h
 
         info = np.array([h,hmax,dim,delta_z,r_step,x_step,n_layers,T_mean,T_max,T_min], dtype=np.float64)
 
