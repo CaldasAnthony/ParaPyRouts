@@ -174,7 +174,7 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
 
         if TimeSelec == True :
             n_t = 1
-        T_mean = np.nansum(T_file[:,n_l-1,:,:])/(n_t*n_lat*n_long)
+        T_mean = np.mean(T_file[:,n_l-1,:,:])
         T_max = np.amax(T_file[:,n_l-1,:,:])
         T_min = np.amin(T_file[:,n_l-1,:,:])
         print('Mean temperature : %i K, Maximal temperature : %i K, Minimal temperature : %i K'%(T_mean,T_max,T_min))
@@ -222,7 +222,7 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
 
         if TimeSelec == True :
             n_t = 1
-        T_mean = np.nansum(T[:,n_l-1,:,:]/(n_t*n_lat*n_long))
+        T_mean = np.mean(T[:,n_l-1,:,:])
         T_max = np.amax(T[:,n_l-1,:,:])
         T_min = np.amin(T[:,n_l-1,:,:])
         print('Mean temperature : %i K, Maximal temperature : %i K, Minimal temperature of the high atmosphere : %i K'\
