@@ -240,7 +240,7 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
 
 
 def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_species,M_species,c_species,ratio,\
-                        Tracer=False,Clouds=False,LogInterp=False) :
+                        Tracer=False,Clouds=False,LogInterp=False,MassAtm=False) :
 
     n_t,n_l,n_lat,n_long = np.shape(P)
     z = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
@@ -310,7 +310,10 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
 
             # Premiere estmiation de l'altitude avec l'acceleration de la pesanteur de la couche precedente
 
-            g = g0 + Mass*G/(Rp + z[:,pres-1,:,:])**2
+            if MassAtm == True :
+                g = g0 + Mass*G/(Rp + z[:,pres-1,:,:])**2
+            else :
+                g = g0 + np.zeros((n_t,n_lat,n_long),dtype=np.float64)
             a_z = -(1+z[:,pres-1,:,:]/Rp)*R_gp*(T[:,pres,:,:]-T[:,pres-1,:,:])/((M[:,pres,:,:]+M[:,pres-1,:,:])/2.*g*\
                 np.log(T[:,pres,:,:]/T[:,pres-1,:,:]))*np.log(P[:,pres,:,:]/P[:,pres-1,:,:])
             dz = a_z*(1+z[:,pres-1,:,:]/Rp)/(1-a_z/Rp)
@@ -329,7 +332,8 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
 
             # On incremente petit a petit la masse atmospherique
 
-            Mass += P[:,pres,:,:]/(R_gp*T[:,pres,:,:])*M[:,pres,:,:]*4/3.*np.pi*((Rp + z[:,pres,:,:])**3 - (Rp + z[:,pres-1,:,:])**3)
+            if MassAtm == True :
+                Mass += P[:,pres,:,:]/(R_gp*T[:,pres,:,:])*M[:,pres,:,:]*4/3.*np.pi*((Rp + z[:,pres,:,:])**3 - (Rp + z[:,pres-1,:,:])**3)
 
     return compo, M, z
 
