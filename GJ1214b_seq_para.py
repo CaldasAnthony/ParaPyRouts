@@ -166,6 +166,7 @@ if Profil == True :
 
         alp_h = H_mean*np.log(P_mean/P_h)
         z_h = np.amax(z_sphe) + alp_h/(1.+alp_h/(Rp+np.amax(z_sphe)))
+        print z_h
         if TopPressure == True :
             dim = int(z_h/delta_z)+2
             z_h = (dim-2)*delta_z
