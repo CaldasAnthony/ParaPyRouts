@@ -156,8 +156,8 @@ if Profil == True :
         dim = int(h/delta_z)+2
         M_mean = np.nansum(M_molar[:,pss-1,:,:])/(tss*loss*lass)
         T_mean, T_max, T_min = T_var[0], T_var[1], T_var[2]
-        print M_mean
         P_mean = np.exp(np.nansum(np.log(P[:,pss-1,:,:])/(tss*loss*lass)))
+        print P_mean
 
         if TopPressure == 'Mean' or TopPressure == 'No' :
             M_mean = np.nansum(M_molar[:,pss-1,:,:])/(tss*loss*lass)
