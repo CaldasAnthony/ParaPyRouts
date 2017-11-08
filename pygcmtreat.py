@@ -343,7 +343,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
 
 
 def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_comp,P_comp,Q_comp,x_species,M_species,ratio,rank,Upper,\
-        Tracer=False,Clouds=False,Middle=False,LogInterp=False) :
+        Tracer=False,Clouds=False,Middle=False,LogInterp=False,MassAtm=False) :
 
     n_t,n_l,n_lat,n_long = np.shape(P)
     data_convert = np.zeros((number,n_t,dim,n_lat,n_long),dtype=np.float64)
@@ -482,7 +482,10 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
 
                             # On estime la pression au dela du toit a partir de la temperature choisie
 
-                            g = g0 + Mass[t,lat,long]*G/(Rp + i_z*delta_z)**2
+                            if MassAtm == True :
+                                g = g0 + Mass[t,lat,long]*G/(Rp + i_z*delta_z)**2
+                            else :
+                                g = g0
 
                             if i_z != dim-1 :
                                 data_convert[0,t,i_z,lat,long] = data_convert[0,t,i_z-1,lat,long]*np.exp(-data_convert[number-1,t,i_z-1,lat,long]*g*\
@@ -496,7 +499,8 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
                             # On incremente toujours la masse atmospherique pour la latitude et la longitude donnee, les
                             # ce point est a modifier
 
-                            Mass[t,lat,long] += data_convert[0,t,i_z-1,lat,long]/(R_gp*data_convert[1,t,i_z-1,lat,long])*\
+                            if MassAtm == True :
+                                Mass[t,lat,long] += data_convert[0,t,i_z-1,lat,long]/(R_gp*data_convert[1,t,i_z-1,lat,long])*\
                                 data_convert[number-1,t,i_z-1,lat,long]*4/3.*np.pi*((Rp + i_z*delta_z)**3 - (Rp + (i_z - 1)*delta_z)**3)
 
                             P_ref = data_convert[0,t,i_z,lat,long]
