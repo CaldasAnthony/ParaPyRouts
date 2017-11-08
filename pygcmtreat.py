@@ -782,7 +782,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                 dist += x_step
 
-                if dist <= Lmax :
+                if dist < Lmax :
                     mid = 0
                     mid_y = 0
                     passe = 0
@@ -1005,7 +1005,6 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             z_1_2 = np.sqrt(1+(np.cos(j*theta_step)/np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi))**2)*(Rp+r) - Rp
                                             mess += 'and q'
-
                                             z_ref = np.array([z_1,z_1_2])
                                             ind = np.zeros((2,2),dtype='int')
 
