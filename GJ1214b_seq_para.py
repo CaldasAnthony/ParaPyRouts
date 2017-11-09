@@ -415,7 +415,7 @@ if Parameters == True :
         dx_grid_n,dx_grid_opt_n,order_grid_n,pdx_grid_n = dx_correspondance(p_grid,q_grid,z_grid,data_convert,x_step,r_step,\
                         theta_step,Rp,g0,h,t,reso_long,reso_lat,n_lay_rank,Middle,Integral,Discret,Gravity,Ord)
 
-        print dx_grid_n[0,0,:]
+        print dx_grid_n[0,50,:]
 
         comm.Barrier()
 
