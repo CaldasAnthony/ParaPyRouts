@@ -461,7 +461,7 @@ if Parameters == True :
                 rank_size = np.append(rank_size,n_lay_rank_ne.size)
                 if length[r_n] != x_size :
                     dx_grid[n_lay_rank_ne,:,length[r_n]:x_size] = np.ones((n_lay_rank_ne.size,theta_number,x_size-length[r_n]))*(-1)*x_step
-                    order_grid[:,n_lay_rank_ne,:,length[r_n]:x_size] = np.ones((6,n_lay_rank_ne.size,theta_number,x_size-length[r_n]))*(-1)*x_step
+                    order_grid[:,n_lay_rank_ne,:,length[r_n]:x_size] = np.ones((6,n_lay_rank_ne.size,theta_number,x_size-length[r_n]))*(-1)
 
                                     ###### Parallele encoding end ######
 
