@@ -442,8 +442,6 @@ if Parameters == True :
             order_grid = np.zeros((6,n_layers+1,theta_number,x_size),dtype=np.int)
             dx_grid[n_lay_rank,:,:length[0]] = dx_grid_n
             order_grid[:,n_lay_rank,:,:length[0]] = order_grid_n
-            rank_size = np.array([], dtype=np.int)
-            rank_size = np.append(rank_size,n_lay_rank.size)
 
         for r_n in range(number_rank) :
             if r_n == 0 and rank != 0 :
@@ -458,7 +456,6 @@ if Parameters == True :
                 comm.Recv([order_grid_ne,MPI.INT],source=r_n,tag=r_n+2)
                 dx_grid[n_lay_rank_ne,:,:length[r_n]] = dx_grid_ne
                 order_grid[:,n_lay_rank_ne,:,:length[r_n]] = order_grid_ne
-                rank_size = np.append(rank_size,n_lay_rank_ne.size)
                 if length[r_n] != x_size :
                     dx_grid[n_lay_rank_ne,:,length[r_n]:x_size] = np.ones((n_lay_rank_ne.size,theta_number,x_size-length[r_n]))*(-1)*x_step
                     order_grid[:,n_lay_rank_ne,:,length[r_n]:x_size] = np.ones((6,n_lay_rank_ne.size,theta_number,x_size-length[r_n]))*(-1)
@@ -483,14 +480,15 @@ if Parameters == True :
             if rank == 0 :
                 dx_grid_opt = np.zeros((n_layers+1,theta_number,x_size),dtype=np.float64)
                 dx_grid_opt[n_lay_rank,:,:length[0]] = dx_grid_opt_n
+
             for r_n in range(number_rank) :
                 if r_n == 0 and rank != 0 :
                     dx_grid_opt_n = np.array(dx_grid_opt_n, dtype=np.float64)
-                    comm.Send([dx_grid_opt_n,MPI.DOUBLE],dest=0,tag=rank+11)
+                    comm.Send([dx_grid_opt_n,MPI.DOUBLE],dest=0,tag=rank)
                 elif r_n != 0 and rank == 0 :
-                    dx_grid_opt_ne = np.zeros((rank_size[r_n],theta_number,length[r_n]),dtype=np.float64)
-                    comm.Recv([dx_grid_opt_ne,MPI.DOUBLE],source=r_n,tag=r_n+11)
-                    n_lay_rank_ne = repartition(n_layers,number_rank,r_n,False)
+                    n_lay_rank_ne = repartition(n_layers+1,number_rank,r_n,False)
+                    dx_grid_opt_ne = np.zeros((n_lay_rank_ne.size,theta_number,length[r_n]),dtype=np.float64)
+                    comm.Recv([dx_grid_opt_ne,MPI.DOUBLE],source=r_n,tag=r_n)
                     dx_grid_opt[n_lay_rank_ne,:,:length[r_n]] = dx_grid_opt_ne
                     if length[r_n] != x_size :
                         dx_grid_opt[n_lay_rank_ne,:,length[r_n]:x_size] = np.ones((n_lay_rank_ne.size,theta_number,x_size-length[r_n]))*(-1)
@@ -511,14 +509,15 @@ if Parameters == True :
             if rank == 0 :
                 pdx_grid = np.zeros((n_layers+1,theta_number,x_size),dtype=np.float64)
                 pdx_grid[n_lay_rank,:,:length[0]] = pdx_grid_n
+                
             for r_n in range(number_rank) :
                 if r_n == rank and rank != 0 :
                     pdx_grid_n = np.array(pdx_grid_n, dtype=np.float64)
-                    comm.Send([pdx_grid_n,MPI.DOUBLE],dest=0,tag=rank+21)
+                    comm.Send([pdx_grid_n,MPI.DOUBLE],dest=0,tag=rank)
                 elif r_n != 0 and rank == 0 :
-                    pdx_grid_ne = np.zeros((rank_size[r_n],theta_number,length[r_n]),dtype=np.float64)
-                    comm.Recv([pdx_grid_ne,MPI.DOUBLE],source=r_n,tag=r_n+21)
-                    n_lay_rank_ne = repartition(n_layers,number_rank,r_n,False)
+                    n_lay_rank_ne = repartition(n_layers+1,number_rank,r_n,False)
+                    pdx_grid_ne = np.zeros((n_lay_rank_ne.size,theta_number,length[r_n]),dtype=np.float64)
+                    comm.Recv([pdx_grid_ne,MPI.DOUBLE],source=r_n,tag=r_n)
                     pdx_grid[n_lay_rank_ne,:,:length[r_n]] = pdx_grid_ne
                     if length[r_n] != x_size :
                         pdx_grid[n_lay_rank_ne,:,length[r_n]:x_size] = np.ones((n_lay_rank_ne.size,theta_number,x_size-length[r_n]))*(-1)
