@@ -1521,15 +1521,15 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                             if dist < Lmax :
                                 # Comme z(k) < z(k-1), on resoud pythagore avec la distance au centre de l'exoplanete egale a
-                                # Rp + z(k)*r_step et r = Rp + (i+0.5)*r_step puisque les rayons sont tires au milieu des couches
+                                # Rp + z(k)*r_step et r = Rp + (n_lay_rank[i] +0.5)*r_step puisque les rayons sont tires au milieu des couches
 
                                 if z_grid[i,j,k] != z_grid[i,j,k-1] :
 
                                     if q_grid[i,j,k] != q_grid[i,j,k-1] and p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                        x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - i - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (i+0.5)**2))
-                                        x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
-                                        x_pre_3 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                        x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (n_lay_rank[i] +0.5)**2))
+                                        x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
+                                        x_pre_3 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                         x_ref = np.array([x_pre_1,x_pre_2,x_pre_3])
                                         ind = np.zeros((3,3),dtype='int')
@@ -1560,8 +1560,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                         if q_grid[i,j,k] != q_grid[i,j,k-1] :
 
-                                            x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - i - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (i+0.5)**2))
-                                            x_pre_2 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                            x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (n_lay_rank[i] +0.5)**2))
+                                            x_pre_2 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                             x_ref = np.array([x_pre_1,x_pre_2])
                                             ind = np.zeros((2,2),dtype='int')
@@ -1584,8 +1584,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             if p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                                x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - i - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (i+0.5)**2))
-                                                x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
+                                                x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (n_lay_rank[i] +0.5)**2))
+                                                x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
 
                                                 x_ref = np.array([x_pre_1,x_pre_2])
                                                 ind = np.zeros((2,2),dtype='int')
@@ -1606,7 +1606,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             else :
 
-                                                x_pre = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - i - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (i+0.5)**2))
+                                                x_pre = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (n_lay_rank[i] +0.5)**2))
 
                                                 dx_init_opt[i,j,y] = L - x_pre
                                                 L -= dx_init_opt[i,j,y]
@@ -1616,8 +1616,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                     if q_grid[i,j,k] != q_grid[i,j,k-1] and p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                        x_pre_1 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
-                                        x_pre_2 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                        x_pre_1 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
+                                        x_pre_2 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                         x_ref = np.array([x_pre_1,x_pre_2])
                                         ind = np.zeros((2,2),dtype='int')
@@ -1640,7 +1640,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                         if q_grid[i,j,k] != q_grid[i,j,k-1] :
 
-                                            x_pre = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                            x_pre = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                             dx_init_opt[i,j,y] = L - x_pre
                                             L -= dx_init_opt[i,j,y]
@@ -1650,7 +1650,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             if p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                                x_pre = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
+                                                x_pre = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
 
                                                 dx_init_opt[i,j,y] = L - x_pre
                                                 L -= dx_init_opt[i,j,y]
@@ -1722,9 +1722,9 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             if q_grid[i,j,k] != q_grid[i,j,k-1] and p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                                x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - i - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (i+0.5)**2))
-                                                x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
-                                                x_pre_3 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                                x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (n_lay_rank[i] +0.5)**2))
+                                                x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
+                                                x_pre_3 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                                 x_ref = np.array([x_pre_1,x_pre_2,x_pre_3])
                                                 ind = np.zeros((3,3),dtype='int')
@@ -1753,8 +1753,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                                 if q_grid[i,j,k] != q_grid[i,j,k-1] :
 
-                                                    x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - i - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (i+0.5)**2))
-                                                    x_pre_2 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                                    x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (n_lay_rank[i] +0.5)**2))
+                                                    x_pre_2 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                                     x_ref = np.array([x_pre_1,x_pre_2])
                                                     ind = np.zeros((2,2),dtype='int')
@@ -1774,8 +1774,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                                 else :
 
-                                                    x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - i - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (i+0.5)**2))
-                                                    x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
+                                                    x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (n_lay_rank[i] +0.5)**2))
+                                                    x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
 
                                                     x_ref = np.array([x_pre_1,x_pre_2])
                                                     ind = np.zeros((2,2),dtype='int')
@@ -1795,7 +1795,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                         else :
 
-                                            x_pre = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - i - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (i+0.5)**2))
+                                            x_pre = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (n_lay_rank[i] +0.5)**2))
 
                                             dx_init_opt[i,j,y] = x_pre - ex
                                             ex = x_pre
@@ -1807,8 +1807,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             if q_grid[i,j,k] != q_grid[i,j,k-1] and p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                                x_pre_1 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
-                                                x_pre_2 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                                x_pre_1 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
+                                                x_pre_2 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                                 x_ref = np.array([x_pre_1,x_pre_2])
                                                 ind = np.zeros((2,2),dtype='int')
@@ -1830,7 +1830,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                                 if q_grid[i,j,k] != q_grid[i,j,k-1] :
 
-                                                    x_pre = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                                    x_pre = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                                     dx_init_opt[i,j,y] = x_pre - ex
                                                     ex = x_pre
@@ -1838,7 +1838,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                                 else :
 
-                                                    x_pre = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
+                                                    x_pre = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
 
                                                     dx_init_opt[i,j,y] = x_pre - ex
                                                     ex = x_pre
