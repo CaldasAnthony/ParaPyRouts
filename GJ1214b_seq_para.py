@@ -401,6 +401,7 @@ if Parameters == True :
         p_grid = np.load("%s%s/%s/p_%i_%i%i%i_%i_%.2f_%.2f.npy"%(path,name_file,stitch_file,theta_number,reso_long,\
                         reso_lat,reso_alt,r_step,phi_rot,phi_obli))
         p_grid = p_grid[n_lay_rank,:,:]
+        print n_lay_rank, np.shape(p_grid)
         q_grid = np.load("%s%s/%s/q_%i_%i%i%i_%i_%.2f_%.2f.npy"%(path,name_file,stitch_file,theta_number,reso_long,\
                         reso_lat,reso_alt,r_step,phi_rot,phi_obli))
         q_grid = q_grid[n_lay_rank,:,:]
@@ -413,6 +414,8 @@ if Parameters == True :
 
         dx_grid_n,dx_grid_opt_n,order_grid_n,pdx_grid_n = dx_correspondance(p_grid,q_grid,z_grid,data_convert,x_step,r_step,\
                         theta_step,Rp,g0,h,t,reso_long,reso_lat,n_lay_rank,Middle,Integral,Discret,Gravity,Ord)
+
+        print dx_grid_n[0,0,:]
 
         comm.Barrier()
 
