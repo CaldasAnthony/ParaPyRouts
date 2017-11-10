@@ -52,13 +52,13 @@ if rank == 0 :
 
 if Profil == True :
     
-    T_comp = np.load("%s%s/T_comp.npy"%(path,name_source))
-    P_comp = np.load("%s%s/P_comp.npy"%(path,name_source))
+    T_comp = np.load("%s%s/T_comp_%s.npy"%(path,name_source,name_exo))
+    P_comp = np.load("%s%s/P_comp_%s.npy"%(path,name_source,name_exo))
     if Tracer == True :
-        Q_comp = np.load("%s%s/Q_comp.npy"%(path,name_source))
+        Q_comp = np.load("%s%s/Q_comp_%s.npy"%(path,name_source,name_exo))
     else :
         Q_comp = np.array([])
-    X_species = np.load("%s%s/x_species_comp.npy"%(path,name_source))
+    X_species = np.load("%s%s/x_species_comp_%s.npy"%(path,name_source,name_exo))
 
                                     ###### Parallele encoding init ######
 
