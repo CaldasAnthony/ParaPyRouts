@@ -205,9 +205,9 @@ Matrix = True          ###### Transposition de la maille spherique dans la maill
 Convert = True         ###### Lance la fonction convertator qui assure l'interpolation des sections efficaces
 Kcorr = False           ###### Sections efficaces ou k-correles
 Molecular = True       ###### Effectue les calculs pour l'absorption moleculaire
-Cont = False            ###### Effectue les calculs pour l'absorption par les collisions
-Scatt = False           ###### Effectue les calculs pour l'absorption par diffusion Rayleigh
-Cl = False              ###### Effectue les calculs pour l'absorption par les nuages
+Cont = True            ###### Effectue les calculs pour l'absorption par les collisions
+Scatt = True           ###### Effectue les calculs pour l'absorption par diffusion Rayleigh
+Cl = True              ###### Effectue les calculs pour l'absorption par les nuages
 Optimal = False         ###### Interpolation optimal (Waldmann et al.)
 TimeSelec = True       ###### Si nous etudions un temps precis de la simulation
 

@@ -594,11 +594,16 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
     q_grid = np.ones((int(n_level_rank.size) ,theta_number , x_reso),dtype='int')*(-1)
     z_grid = np.ones((int(n_level_rank.size) ,theta_number , x_reso),dtype='int')*(-1)
 
+    if Obliquity == False :
+        theta_all = int(theta_number/2.)+1
+    else :
+        theta_all = theta_number
+
     if rank == 0 :
         if Obliquity == True :
-            bar = ProgressBar(np.int(n_level_rank.size*theta_number),'Transposition on cylindric stitch (with obliquity)')
+            bar = ProgressBar(np.int(n_level_rank.size*theta_all),'Transposition on cylindric stitch (with obliquity)')
         else :
-            bar = ProgressBar(np.int(n_level_rank.size*theta_number),'Transposition on cylindric stitch')
+            bar = ProgressBar(np.int(n_level_rank.size*theta_all),'Transposition on cylindric stitch')
 
     for n_level in range(n_level_rank.size) :
 
@@ -613,11 +618,6 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
             r = Rp + r_level
 
         # r_range est l'indice dans la maille cylindrique sur r
-
-        if Obliquity == False :
-            theta_all = int(theta_number/2.)+1
-        else :
-            theta_all = theta_number
 
         r_range = n_level
 
@@ -719,7 +719,7 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
                         #print x_range, x_pos, begin, q, alpha_o_ref, alpha_o_ref_0
 
             if rank == 0 :
-                bar.animate(r_range*theta_number+theta_range)
+                bar.animate(r_range*theta_all+theta_range+1)
 
     return p_grid,q_grid,z_grid,n_level_rank
 
@@ -1951,7 +1951,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
                 len_ref = len
 
             if rank == 0 :
-                bar.animate(i*theta_size+j)
+                bar.animate(i*theta_size+j+1)
 
     dx_grid = dx_init[:,:,0:len_ref]
     order_grid = order_init[:,:,:,0:len_ref]

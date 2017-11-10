@@ -427,9 +427,6 @@ if Parameters == True :
                 comm.Recv([sh_dx,MPI.INT],source=r_n,tag=0)
                 length[r_n] = sh_dx[0]
 
-        if rank == 0 :
-            print length
-
         comm.Barrier()
 
         if rank == 0 :
@@ -841,7 +838,7 @@ if Parameters == True :
 
 ########################################################################################################################
 
-        convertator (P_rmd,T_rmd,gen_rmd,c_species,Q_rmd,composit_rmd,ind_active,k_corr_data_grid,K_cont,\
+        convertator (P_rmd,T_rmd,gen_rmd,c_species,Q_rmd,composit_rmd,ind_active,ind_cross,k_corr_data_grid,K_cont,\
                      Q_cloud,P_sample,T_sample,Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,direc,\
                      t,phi_rot,phi_obli,n_species,domain,ratio,path,name_exo,reso_long,reso_lat,rank,rank_ref,\
                      Tracer,Molecular,Cont,Cl,Scatt,Kcorr,Optimal)
