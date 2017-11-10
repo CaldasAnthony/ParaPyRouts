@@ -202,7 +202,7 @@ Ord = False             ###### Si Discreet == False, Ord permet de calculer les 
 
 Matrix = True          ###### Transposition de la maille spherique dans la maille cylindrique
 
-Convert = False         ###### Lance la fonction convertator qui assure l'interpolation des sections efficaces
+Convert = True         ###### Lance la fonction convertator qui assure l'interpolation des sections efficaces
 Kcorr = False           ###### Sections efficaces ou k-correles
 Molecular = True       ###### Effectue les calculs pour l'absorption moleculaire
 Cont = False            ###### Effectue les calculs pour l'absorption par les collisions

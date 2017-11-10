@@ -157,7 +157,6 @@ if Profil == True :
         M_mean = np.nansum(M_molar[:,pss-1,:,:])/(tss*loss*lass)
         T_mean, T_max, T_min = T_var[0], T_var[1], T_var[2]
         P_mean = np.exp(np.nansum(np.log(P[:,pss-1,:,:]))/(tss*loss*lass))
-        print P_mean
 
         if TopPressure == 'Mean' or TopPressure == 'No' :
             M_mean = np.nansum(M_molar[:,pss-1,:,:])/(tss*loss*lass)
@@ -168,7 +167,6 @@ if Profil == True :
             wh_up = np.where(z_sphe[:,pss-1,:,:] == np.amax(z_sphe))
             z_t = np.amax(z_sphe)
             g_roof = g0*1/(1.+z_t/Rp)**2
-            print g_roof, z_t
             H_mean = R_gp*T[wh_up[0],pss-1,wh_up[1],wh_up[2]][0]/(M_molar[wh_up[0],pss-1,wh_up[1],wh_up[2]][0]*g_roof)
         if TopPressure == 'Down' :
             wh_dn = np.where(z_sphe[:,pss-1,:,:] == np.amin(z_sphe[:,pss-1,:,:]))
@@ -198,7 +196,6 @@ if Profil == True :
         print "The final thickness of the atmosphere is %i m"%((dim-2)*delta_z)
         print "The final thickness of a layer is %i m"%(delta_z)
         print 'Conversion of the dataset will start soon'
-        print z_h, dim, delta_z, h
 
         info = np.array([h,hmax,dim,delta_z,r_step,x_step,n_layers,T_mean,T_max,T_min], dtype=np.float64)
 
@@ -401,7 +398,6 @@ if Parameters == True :
         p_grid = np.load("%s%s/%s/p_%i_%i%i%i_%i_%.2f_%.2f.npy"%(path,name_file,stitch_file,theta_number,reso_long,\
                         reso_lat,reso_alt,r_step,phi_rot,phi_obli))
         p_grid = p_grid[n_lay_rank,:,:]
-        print n_lay_rank, np.shape(p_grid)
         q_grid = np.load("%s%s/%s/q_%i_%i%i%i_%i_%.2f_%.2f.npy"%(path,name_file,stitch_file,theta_number,reso_long,\
                         reso_lat,reso_alt,r_step,phi_rot,phi_obli))
         q_grid = q_grid[n_lay_rank,:,:]
@@ -509,7 +505,7 @@ if Parameters == True :
             if rank == 0 :
                 pdx_grid = np.zeros((n_layers+1,theta_number,x_size),dtype=np.float64)
                 pdx_grid[n_lay_rank,:,:length[0]] = pdx_grid_n
-                
+
             for r_n in range(number_rank) :
                 if r_n == rank and rank != 0 :
                     pdx_grid_n = np.array(pdx_grid_n, dtype=np.float64)
@@ -795,17 +791,6 @@ if Parameters == True :
             gauss = np.arange(0,dim_gauss,1)
             gauss_val = np.load("%s%s/gauss_sample.npy"%(path,name_source))
             P_sample = np.load("%s%s/P_sample.npy"%(path,name_source))
-            '''
-            wh_p, = np.where((np.log10(P_sample)>=P_rmd[0])*(np.log10(P_sample)>=P_rmd[P_rmd.size-1]))
-            if wh_p.size == 0 :
-                wh_p = np.array([0,1])
-            elif wh_p.size == 1 :
-                if wh_p[0] != P_sample.size-1 :
-                wh_p = np.array([wh_p[0],wh_p[0]+1])
-            else :
-                wh_p = np.array([wh_p[0]-1,wh_p[0]])
-            P_sample = P_sample[wh_p]
-            '''
             T_sample = np.load("%s%s/T_sample.npy"%(path,name_source))
             if Tracer == True :
                 Q_sample = np.load("%s%s/Q_sample.npy"%(path,name_source))
@@ -820,16 +805,6 @@ if Parameters == True :
             gauss = np.array([])
             gauss_val = np.array([])
             P_sample = np.load("%s%s/P_sample_%s.npy"%(path,name_source,source))
-            '''
-            wh_p, = np.where((np.log10(P_sample)>=P_rmd[0])*(np.log10(P_sample)>=P_rmd[P_rmd.size-1]))
-            if wh_p.size == 0 :
-                wh_p = np.array([0,1])
-            elif wh_p.size == 1 :
-                if wh_p[0] != P_sample.size-1 :
-                wh_p = np.array([wh_p[0],wh_p[0]+1])
-            else :
-                wh_p = np.array([wh_p[0]-1,wh_p[0]])
-                '''
             T_sample = np.load("%s%s/T_sample_%s.npy"%(path,name_source,source))
             if Tracer == True :
                 Q_sample = np.load("%s%s/Q_sample_%s.npy"%(path,name_source,source))
@@ -866,11 +841,9 @@ if Parameters == True :
 
 ########################################################################################################################
 
-        wh_p = 0
-
         convertator (P_rmd,T_rmd,gen_rmd,c_species,Q_rmd,composit_rmd,ind_active,k_corr_data_grid,K_cont,\
                      Q_cloud,P_sample,T_sample,Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,direc,\
-                     t,phi_rot,phi_obli,n_species,domain,ratio,path,name_exo,reso_long,reso_lat,wh_p,rank,rank_ref,\
+                     t,phi_rot,phi_obli,n_species,domain,ratio,path,name_exo,reso_long,reso_lat,rank,rank_ref,\
                      Tracer,Molecular,Cont,Cl,Scatt,Kcorr,Optimal)
 
 ########################################################################################################################

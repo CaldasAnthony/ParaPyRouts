@@ -742,8 +742,6 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h,t,reso_long,reso_lat,n_lay_rank,Middle=False,\
                       Integral=True,Discret=True,Gravity=False,Ord=False) :
 
-    print x_step,r_step,theta_step,Rp,g0,h,t,reso_long,n_lay_rank
-
     rank = n_lay_rank[0]
     r_size,theta_size,x_size = np.shape(p_grid)
     number,t_size,z_size,lat_size,long_size = np.shape(data)
