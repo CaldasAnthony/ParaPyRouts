@@ -2206,3 +2206,32 @@ def nanarrsum(X,type) :
 
     return X_arr
 
+########################################################################################################################
+
+def H2HeO(cont_species) :
+
+    if cont_species.size <= 2 :
+        if cont_species[0] == 'H2' :
+            H2 = True
+            if cont_species.size == 2 :
+                if cont_species[1] == 'He' :
+                    He, Other = True, False
+                else :
+                    He, Other = False, True
+            else :
+                He, Other = False, False
+        else :
+            H2, He, Other = False, False, True
+    else :
+        if cont_species[0] == 'H2' :
+            H2 = True
+            if cont_species[1] == 'He' :
+                He = True
+            else :
+                He = False
+        else :
+            H2, He = False, False
+        Other = True
+
+    return H2, He, Other
+

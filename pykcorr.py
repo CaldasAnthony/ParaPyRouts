@@ -188,9 +188,12 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
 
         dim_bande = bande_sample.size
         cont_species = K_cont.species
+        H2, He, Other = H2HeO(cont_species)
+        amagat = 2.69578e-3*P_rmd/T_rmd
+        k_cont_rmd = np.zeros((dim_bande,P_rmd.size))
         decont = 0
 
-        if cont_species[0] == 'H2' :
+        if H2 == True and He == False :
 
             decont += 1
             K_cont_h2h2 = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[0]))
@@ -200,62 +203,64 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
             k_interp_h2h2 = k_cont_interp_h2h2_integration(K_cont_h2h2,K_cont_nu_h2h2,\
                                             T_rmd,bande_sample,T_cont_h2h2,rank,rank_ref,Kcorr)
 
-            amagat = 2.69578e-3*P_rmd/T_rmd
-            amagat_self = amagat*composit_rmd[0,:]
 
-            k_cont_rmd = np.zeros((dim_bande,P_rmd.size))
+            amagat_h2h2 = amagat*composit_rmd[0,:]
 
             for i_bande in range(dim_bande) :
-                k_cont_rmd[i_bande,:] = amagat_self*k_interp_h2h2[i_bande,:]
+                k_cont_rmd[i_bande,:] = amagat_h2h2**2*k_interp_h2h2[i_bande,:]
 
-            del amagat_self,k_interp_h2h2,K_cont_h2h2
+            del amagat_h2h2,k_interp_h2h2,K_cont_h2h2
 
-            if cont_species[1] == 'He' :
+        if H2 == True and He == True :
 
-                decont += 1
-                K_cont_h2he = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[1]))
-                K_cont_nu_h2he = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[1]))
-                T_cont_h2he = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[1]))
+            decont += 2
+            K_cont_h2he = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[1]))
+            K_cont_nu_h2he = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[1]))
+            T_cont_h2he = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[1]))
 
 
-                k_interp_h2he = k_cont_interp_h2he_integration(K_cont_h2he,K_cont_nu_h2he,\
+            k_interp_h2he = k_cont_interp_h2he_integration(K_cont_h2he,K_cont_nu_h2he,\
                                             T_rmd,bande_sample,T_cont_h2he,rank,rank_ref,Kcorr)
 
-                amagat_foreign = amagat*composit_rmd[1,:]
+            amagat_self = amagat*composit_rmd[0,:]
+            amagat_foreign = amagat*composit_rmd[1,:]
 
-                for i_bande in range(dim_bande) :
-                    k_cont_rmd[i_bande,:] += amagat_foreign*k_interp_h2he[i_bande,:]
+            for i_bande in range(dim_bande) :
+                k_cont_rmd[i_bande,:] += amagat_foreign*amagat_self*k_interp_h2he[i_bande,:]
 
-                del amagat_foreign,k_interp_h2he,K_cont_h2he
+            del amagat_foreign,k_interp_h2he,K_cont_h2he
 
-        if cont_species.size == 1 or cont_species.size == 2 :
+        if Other == False :
             del k_cont_rmd,amagat
         else :
             for i_cont in range(decont,cont_species.size) :
-
-                if i_cont == decont :
-                    if cont_species[0] != 'H2' :
-                        k_cont_rmd = np.zeros((P_rmd.size,dim_bande))
 
                 K_cont_spespe = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
                 K_cont_nu_spespe = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[i_cont]))
                 T_cont_spespe = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
 
-                k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
-                                            T_rmd,bande_sample,T_cont_spespe,rank,rank_ref,K_cont.associations[i_cont],Kcorr)
-
-                if cont_species[i_cont] != 'H2Os' :
+                if cont_species[i_cont] != 'H2O' and cont_species[i_cont] != 'H2Os':
                     wh_c, = np.where(n_species == cont_species[i_cont])
-                    amagat_foreign = amagat*composit_rmd[wh_c[0],:]
+                    amagat_spefor = amagat*composit_rmd[0,:]
+                    amagat_speself = amagat*composit_rmd[wh_c[0],:]
+                    amagat_spe = amagat_spefor*amagat_speself
                 else :
                     wh_c, = np.where(n_species == 'H2O')
-                    amagat_foreign = amagat*(1.-composit_rmd[wh_c[0],:])
+                    H2O = True
+                    N_mol = P_rmd/(k_B*T_rmd)
+                    if cont_species[i_cont] == 'H2O' :
+                        amagat_spe = amagat*(1.-composit_rmd[wh_c[0],:])*composit_rmd[wh_c[0],:]*N_mol
+                    if cont_species[i_cont] == 'H2Os' :
+                        amagat_spe = amagat*composit_rmd[wh_c[0],:]**2*N_mol
+
+                    k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
+                                T_rmd,bande_sample,T_cont_spespe,rank,rank_ref,K_cont.associations[i_cont],Kcorr,H2O)
 
                 for i_bande in range(dim_bande) :
 
-                    k_cont_rmd[i_bande,:] += amagat_foreign*k_interp_spespe[i_bande,:]
+                    k_cont_rmd[i_bande,:] += amagat_spe*k_interp_spespe[i_bande,:]
 
-                del amagat_foreign,k_interp_spespe
+                del amagat_spe,k_interp_spespe
 
         if rank != 0 :
             sh_k = np.array(np.shape(k_cont_rmd),dtype=np.int)
@@ -463,69 +468,79 @@ def convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,K,K_
     if Continuum == True :
 
         cont_species = K_cont.species
+        H2, He, Other = H2HeO(cont_species)
+
         decont = 0
+        amagat = 2.69578e-3*P_rmd/T_rmd
+        k_cont_rmd = np.zeros((dim_bande,P_rmd.size))
 
-        if n_species[0] == 'H2' :
+        if H2 == True and He == False :
 
+            decont += 1
             K_cont_h2h2 = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[0]))
             K_cont_nu_h2h2 = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[0]))
             T_cont_h2h2 = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[0]))
-            decont += 1
 
             k_interp_h2h2 = k_cont_interp_h2h2_integration(K_cont_h2h2,K_cont_nu_h2h2,\
-                            T_rmd,bande_sample,T_cont_h2h2,1,1,Kcorr)
+                                        T_rmd,bande_sample,T_cont_h2h2,1,1,Kcorr)
 
-            amagat = 2.69578e-3*P_rmd/T_rmd
-            amagat_self = amagat*compo_rmd[0,:]
-
-            k_cont_rmd = np.zeros((dim_bande,P_rmd.size))
+            amagat_h2h2 = amagat*compo_rmd[0,:]
 
             for i_bande in range(dim_bande) :
-                k_cont_rmd[i_bande,:] = amagat_self*k_interp_h2h2[i_bande,:]
 
-            del amagat_self,k_interp_h2h2
+                k_cont_rmd[i_bande,:] = amagat_h2h2**2*k_interp_h2h2[i_bande,:]
 
-            if n_species[1] == 'He' :
+            del amagat_h2h2,k_interp_h2h2
 
-                K_cont_h2he = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[0]))
-                K_cont_nu_h2he = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[0]))
-                T_cont_h2he = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[0]))
-                decont += 1
+        if H2 == True and He == True :
 
-                k_interp_h2he = k_cont_interp_h2he_integration(K_cont_h2he,K_cont_nu_h2he,\
+            decont += 2
+            K_cont_h2he = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[1]))
+            K_cont_nu_h2he = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[1]))
+            T_cont_h2he = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[1]))
+
+            k_interp_h2he = k_cont_interp_h2he_integration(K_cont_h2he,K_cont_nu_h2he,\
                                     T_rmd,bande_sample,T_cont_h2he,1,1,Kcorr)
 
-                amagat_foreign = amagat*compo_rmd[1,:]
-
-                for i_bande in range(dim_bande) :
-                    k_cont_rmd[i_bande,:] += amagat_foreign*k_interp_h2he[i_bande,:]
-
-                del amagat_foreign,amagat,k_interp_h2he
-
-        for i_cont in range(decont,cont_species.size) :
-
-            if i_cont == decont :
-                if cont_species[0] != 'H2' :
-                    k_cont_rmd = np.zeros((P_rmd.size,dim_bande))
-
-            K_cont_spespe = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
-            K_cont_nu_spespe = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[i_cont]))
-            T_cont_spespe = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
-
-            k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
-                                            T_rmd,bande_sample,T_cont_spespe,P_rmd.size,1,K_cont.associations[i_cont],Kcorr)
-
-            if cont_species[i_cont] != 'H2Os' :
-                wh_c, = np.where(n_species == cont_species[i_cont])
-                amagat_foreign = amagat*compo_rmd[wh_c[0],:]
-            else :
-                wh_c, = np.where(n_species == 'H2O')
-                amagat_foreign = amagat*(1.-compo_rmd[wh_c[0],:])
+            amagat_self = amagat*compo_rmd[0,:]
+            amagat_foreign = amagat*compo_rmd[1,:]
 
             for i_bande in range(dim_bande) :
-                k_cont_rmd[i_bande,:] += amagat_foreign*k_interp_spespe[i_bande,:]
 
-            del amagat_foreign,k_interp_spespe
+                k_cont_rmd[i_bande,:] += amagat_foreign*amagat_self*k_interp_h2he[i_bande,:]
+
+            del amagat_foreign,amagat_self,k_interp_h2he
+
+        if Other == True :
+
+            for i_cont in range(decont,cont_species.size) :
+
+                K_cont_spespe = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
+                K_cont_nu_spespe = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[i_cont]))
+                T_cont_spespe = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
+
+                if cont_species[i_cont] != 'H2O' and cont_species[i_cont] != 'H2Os':
+                    wh_c, = np.where(n_species == cont_species[i_cont])
+                    amagat_spefor = amagat*compo_rmd[0,:]
+                    amagat_speself = amagat*compo_rmd[wh_c[0],:]
+                    amagat_spe = amagat_spefor*amagat_speself
+                else :
+                    wh_c, = np.where(n_species == 'H2O')
+                    H2O = True
+                    N_mol = P_rmd/(k_B*T_rmd)
+                    if cont_species[i_cont] == 'H2O' :
+                        amagat_spe = amagat*(1.-compo_rmd[wh_c[0],:])*compo_rmd[wh_c[0],:]*N_mol
+                    if cont_species[i_cont] == 'H2Os' :
+                        amagat_spe = amagat*compo_rmd[wh_c[0],:]**2*N_mol
+
+                k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
+                            T_rmd,bande_sample,T_cont_spespe,1,1,K_cont.associations[i_cont],Kcorr,H2O)
+
+                for i_bande in range(dim_bande) :
+
+                    k_cont_rmd[i_bande,:] += amagat_spe*k_interp_spespe[i_bande,:]
+
+                del amagat_spe,k_interp_spespe
 
         k_cont_rmd = np.transpose(k_cont_rmd)
 
@@ -2611,7 +2626,7 @@ def k_cont_interp_h2h2_integration(K_cont_h2h2,wavelength_cont_h2h2,T_array,band
         if rank == rank_ref :
             bar.animate(i_bande+1)
 
-    return k_interp_h2h2*0.0001*losch
+    return k_interp_h2h2*100*losch**2
 
 
 ########################################################################################################################
@@ -2873,13 +2888,13 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
         if rank == rank_ref :
             bar.animate(i_bande+1)
 
-    return k_interp_h2he*0.0001*losch
+    return k_interp_h2he*100*losch**2
 
 
 ########################################################################################################################
 
 
-def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_array,bande_array,T_cont_spespe,rank,rank_ref,species,Kcorr=True) :
+def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_array,bande_array,T_cont_spespe,rank,rank_ref,species,Kcorr=True,H2O=False) :
 
     losch = 2.6867774e19
     size = T_array.size
@@ -3135,4 +3150,7 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
         if rank == rank_ref :
             bar.animate(i_bande+1)
 
-    return k_interp_spespe*0.0001*losch
+    if H2O == True :
+        return k_interp_spespe*0.0001*losch
+    else :
+        return k_interp_spespe*100*losch**2

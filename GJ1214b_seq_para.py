@@ -107,7 +107,7 @@ if Profil == True :
                                     ###### Parallele encoding end ######
 
     compo_i, M_i, z_i = Boxes_interpolation(P_n,T_n,Q_n,Rp,g0,number,P_comp,T_comp,Q_comp,n_species,X_species,M_species,\
-            c_species,ratio_HeH2,Tracer,Cloudy,LogInterp)
+            c_species,ratio_HeH2,Tracer,Cloudy,LogInterp,MassAtm,NoH2)
 
                                     ###### Parallele encoding init ######
 
@@ -239,7 +239,7 @@ if Profil == True :
                                     ###### Parallele encoding end ######
 
             data_convert_part = Boxes_conversion(P,T,Q,gen,z_sphe,composition,delta_z,Rp,h,hmax,dim,g0,M_molar,number,T_comp,P_comp,\
-                 Q_comp,X_species,M_species,ratio_HeH2,rank,Upper,Tracer,Cloudy,Middle,LogInterp)
+                 Q_comp,X_species,M_species,ratio_HeH2,rank,Upper,Tracer,Cloudy,Middle,LogInterp,MassAtm,NoH2)
 
                                     ###### Parallele encoding init ######
 

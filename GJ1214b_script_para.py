@@ -90,9 +90,9 @@ ind_cross, ind_active = index_active (n_species,n_species_cross,n_species_active
 
 # Informations generale sur les donnees continuum
 
-cont_tot = np.array(['H2-H2_2011.cia','H2-He_2011.cia','H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat','H2-CH4_eq_2011.cia','N2-H2_2011.cia'])
+cont_tot = np.array(['H2-He_2011.cia','H2-He_2011.cia','H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat','H2-CH4_eq_2011.cia','N2-H2_2011.cia'])
 cont_species = np.array(['H2','He','H2Os','H2O','CH4','N2'])
-cont_associations = np.array(['h2h2','h2he','h2oh2o','h2ofor','h2ch4','h2n2'])
+cont_associations = np.array(['h2he','h2he','h2oh2o','h2ofor','h2ch4','h2n2'])
 
 ########################################################################################################################
 
@@ -176,6 +176,7 @@ else :
 Tracer = False          ###### S'il y a des marqueurs
 Cloudy = True          ###### S'il y a des nuages
 Middle = True          ###### Construction de la maille sur le milieu des couches
+NoH2 = False            ###### Une atmosphere sans H2 et He ou avec
 
 ########################################################################################################################
 
@@ -188,6 +189,7 @@ Surf = True            ###### Si des donnees de surface sont accessibles
 LogInterp = False       ###### Interpolation de la pression via le logarithme
 N_fixe = True          ###### Si nous voulons imposer le nombre de couche atmospherique
 TopPressure = 'Up'    ###### Si nous voulons fixer le toit de l'atmosphere par rapport a une pression minimale
+MassAtm = False         ###### Si on tient compte de la masse atmospherique
 
 Parameters = True
 
