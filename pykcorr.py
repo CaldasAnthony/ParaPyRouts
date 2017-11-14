@@ -46,7 +46,7 @@ number_rank = comm.size
 ########################################################################################################################
 
 def convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,directory,name,reso_long,reso_lat,name_exo,t,\
-                    x_step,phi_rot,phi_obli,domain,dim_bande,dim_gauss,Kcorr=True,Tracer=False,Clouds=False) :
+                    x_step,phi_rot,phi_obli,domain,dim_bande,dim_gauss,Kcorr=True,Tracer=False,Clouds=False,Script=True) :
 
     if Kcorr == True :
         np.save("%s%s/P_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
@@ -254,7 +254,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                         amagat_spe = amagat*composit_rmd[wh_c[0],:]**2*N_mol
 
                     k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
-                                T_rmd,bande_sample,T_cont_spespe,rank,rank_ref,K_cont.associations[i_cont],Kcorr,H2O)
+                                T_rmd,bande_sample,T_cont_spespe,rank,rank_ref,K_cont.associations[i_cont],Kcorr,Script,H2O)
 
                 for i_bande in range(dim_bande) :
 
@@ -534,7 +534,7 @@ def convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,K,K_
                         amagat_spe = amagat*compo_rmd[wh_c[0],:]**2*N_mol
 
                 k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
-                            T_rmd,bande_sample,T_cont_spespe,1,1,K_cont.associations[i_cont],Kcorr,H2O)
+                            T_rmd,bande_sample,T_cont_spespe,1,1,K_cont.associations[i_cont],Kcorr,Script,H2O)
 
                 for i_bande in range(dim_bande) :
 
