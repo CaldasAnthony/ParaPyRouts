@@ -474,7 +474,7 @@ def radiative_transfert_remind3D(dx_ref,pdx_ref,Cn_ref,K,K_cont,K_sca,K_cloud,ga
 
             if continuum == True :
 
-                t_cont = np.dot(Cn_ref*dx_ref,k_cont)
+                t_cont = np.dot(dx_ref,k_cont)
 
             if clouds == True :
 
@@ -502,7 +502,7 @@ def radiative_transfert_remind3D(dx_ref,pdx_ref,Cn_ref,K,K_cont,K_sca,K_cloud,ga
 
             if continuum == True :
 
-                t_cont = np.dot(Cn_ref*dx_ref,k_cont)
+                t_cont = np.dot(dx_ref,k_cont)
 
             if clouds == True :
 
@@ -558,7 +558,7 @@ def radiative_transfert_remind3D(dx_ref,pdx_ref,Cn_ref,K,K_cont,K_sca,K_cloud,ga
 
                 k_cont = K_cont[g,:]
 
-                t_cont = np.dot(Cn_ref*dx_ref,k_cont)
+                t_cont = np.dot(dx_ref,k_cont)
 
             if clouds == True :
 
@@ -582,7 +582,7 @@ def radiative_transfert_remind3D(dx_ref,pdx_ref,Cn_ref,K,K_cont,K_sca,K_cloud,ga
 
                 k_cont = K_cont[g,:]
 
-                t_cont = np.dot(Cn_ref*dx_ref,k_cont)
+                t_cont = np.dot(dx_ref,k_cont)
 
             if scattering == True :
 
