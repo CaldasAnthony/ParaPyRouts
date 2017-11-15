@@ -235,16 +235,16 @@ def k_correlated_interp_remind3D(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P_r
 
             wh, = np.where(rmind[1] > pp)
             if len(wh) == 0 :
-	        if rmind[1,rmind[1].size-1] == pp :
-		    ind = rmind[1].size-1
-	    else : 
-	        ind = wh[0]
+                if rmind[1,rmind[1].size-1] == pp :
+                    ind = rmind[1].size-1
+            else :
+                ind = wh[0]
 
             index, = np.where((P_rmd[np.int(rmind[0,ind-1]):np.int(rmind[0,ind])+1] == P)*(T_rmd[np.int(rmind[0,ind-1]):np.int(rmind[0,ind])+1] == T))
 
         if len(index) != 0 and P != 0 :
 
-	    index = np.int(rmind[0,ind-1])+index[0]
+            :index = np.int(rmind[0,ind-1])+index[0]
 
             if Kcorr == True :
                 if Isolated == False :
