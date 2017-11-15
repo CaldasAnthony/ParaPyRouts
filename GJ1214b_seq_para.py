@@ -1001,11 +1001,11 @@ if Cylindric_transfert_3D == True :
 
         if Continuum == True :
             if Kcorr == True :
-                k_cont_rmd = np.load("%s%s/%s/k_cont_h2heFS_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                k_cont_rmd = np.load("%s%s/%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain))
                 k_cont_rmd = np.transpose(k_cont_rmd[dom_rank,:])
             else :
-                k_cont_rmd = np.load("%s%s/%s/k_cont_h2heFS_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                k_cont_rmd = np.load("%s%s/%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
                 k_cont_rmd = np.transpose(k_cont_rmd[dom_rank,:])
         else :
