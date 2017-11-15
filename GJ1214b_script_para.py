@@ -193,16 +193,16 @@ MassAtm = False         ###### Si on tient compte de la masse atmospherique
 
 Parameters = True
 
-Cylindre = False        ###### Construit la maille cylindrique
+Cylindre = True        ###### Construit la maille cylindrique
 Obliquity = False       ###### Si l'exoplanete est inclinee
 
-Corr = False            ###### Traite les parcours optiques
+Corr = True            ###### Traite les parcours optiques
 Gravity = False         ###### Pour travailler a gravite constante
 Discret = True         ###### Calcul les distances discretes
 Integral = True        ###### Effectue l'integration sur les chemins optiques
 Ord = False             ###### Si Discreet == False, Ord permet de calculer les indices avec l'integration
 
-Matrix = False          ###### Transposition de la maille spherique dans la maille cylindrique
+Matrix = True          ###### Transposition de la maille spherique dans la maille cylindrique
 
 Convert = True         ###### Lance la fonction convertator qui assure l'interpolation des sections efficaces
 Kcorr = False           ###### Sections efficaces ou k-correles

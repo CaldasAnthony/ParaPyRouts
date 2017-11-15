@@ -244,7 +244,7 @@ def k_correlated_interp_remind3D(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P_r
 
         if len(index) != 0 and P != 0 :
 
-            :index = np.int(rmind[0,ind-1])+index[0]
+            index = np.int(rmind[0,ind-1])+index[0]
 
             if Kcorr == True :
                 if Isolated == False :
@@ -260,7 +260,6 @@ def k_correlated_interp_remind3D(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P_r
 
             if Clouds == True :
                 k_cloud_inter[:,i,:] = k_cloud_rmd[:,index,:]
-
 
         else :
 
