@@ -454,6 +454,7 @@ def aerosol_data_read(aerosol_file,dec_first,space,species,name,directory,Save=T
 
     return Q,bande,radius
 
+
 ########################################################################################################################
 
 
@@ -482,7 +483,40 @@ def line_search(line) :
                 i_f += 1
     return words
 
+
 ########################################################################################################################
+
+
+def flux_script(output,path,name_source,source,save_name,I,error,Rs,Rp,r_step,Kcorr=False,Middle=True,Noise=False) :
+
+    sh_I = np.shape(I)
+    if error.size == 1 :
+        error_cor = np.ones(sh_I[0])*error[0]
+        error = error_cor
+
+    bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
+    R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux = atmospectre(I,bande_sample,Rs,Rp,r_step,0,\
+                                                                                        False,Kcorr,Middle)
+    file_name = '%s.dat'%(save_name)
+
+    output = open(file_name,'w')
+
+    for i_wr in range(bande_sample.size) :
+        if bande_sample[bande_sample.size - i_wr - 1] != 0 :
+            if str(error[bande_sample.size - i_wr - 2]) != 'nan' :
+                output.write('%.18E '%(1/(100.*bande_sample[bande_sample.size - i_wr - 1])*10**6))
+                if Noise == False :
+                    output.write('%.18E '%(flux[bande_sample.size - i_wr - 1]))
+                else :
+                    output.write('%.18E '%(flux[bande_sample.size - i_wr - 1]+\
+                                           np.random.normal(0,error[bande_sample.size - i_wr - 2])))
+                output.write('%.18E \n'%(error[bande_sample.size - i_wr - 2]))
+
+
+########################################################################################################################
+
+
+
 
 
 

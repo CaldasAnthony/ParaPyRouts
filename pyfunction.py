@@ -2235,3 +2235,50 @@ def H2HeO(cont_species) :
 
     return H2, He, Other
 
+
+########################################################################################################################
+
+
+def stellar_noise(star,detection,gamme) :
+
+    R, T, d = star.radius, star.temperature, star.distance
+    tau, D, delta_t, bande = detection.tau, detection.diameter, detection.integration, detection.bande
+    sh_b = np.shape(bande)
+    noise = np.zeros((gamme[0].size))
+    for i_bande in range(gamme[0].size) :
+        if gamme[0,i_bande] >= bande[0,0] and gamme[1,i_bande] <= bande[sh_b[0]-1,1]:
+            i_t = 0
+            if gamme[0,i_bande] <= bande[sh_b[0]-1,0] :
+                while gamme[0,i_bande] > bande[i_t,0] :
+                    i_t += 1
+            else :
+                i_t = 4
+            if gamme[0,i_bande] >= bande[i_t-1,0] and gamme[1,i_bande] <= bande[i_t-1,1] :
+
+                fac = np.pi**2*tau[i_t-1]*delta_t*c*R**2*D[i_t-1]**2/(2*d**2)
+                N_phot = integrate.quad(lambda wl:fac*1/(wl**4*(np.exp(h_P*c/(k_B*wl*T))-1)),gamme[0,i_bande]*1.e-6,gamme[1,i_bande]*1.e-6)
+                noise[i_bande] = 1./np.sqrt(N_phot[0])
+            else :
+                noise[i_bande] = 'nan'
+        else :
+            noise[i_bande] = 'nan'
+
+    for i_b in range(sh_b[0]) :
+        fac = np.pi**2*tau[i_b]*delta_t*c*R**2*D[i_b]**2/(2*d**2)
+        N_phot = integrate.quad(lambda wl:fac*1./(wl**4*(np.exp(h_P*c/(k_B*wl*T))-1)),bande[i_b,0]*1.e-6,bande[i_b,1]*1.e-6)
+        print 1/np.sqrt(N_phot[0])
+    return noise
+
+
+########################################################################################################################
+
+
+class JWST :
+    def __init__(self):
+        self.diameter = np.array([6.5,6.5,6.5,6.5])
+        self.integration = 3600.
+        self.bande = np.array([[0.6,1.],[1.,9.],[9.,23.5],[23.5,27.5]])
+        self.tau = np.array([0.30,0.40,0.36,0.18])
+
+
+
