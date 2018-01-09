@@ -883,3 +883,880 @@ def lightcurve_maker_opt(Rs,Rp,h,Ms,cDcorr,cPcorr,inc_0,U_limb,Itot_plan,r_step,
         I_star_time[:,i] = 1
 
     return I_star_time
+
+
+########################################################################################################################
+########################################################################################################################
+
+"""
+    TRANS2FERT1D_ALL
+
+    Cette fonction exploite l'ensemble des outils developpes precedemment afin de produire une carte de transmittance
+    dans une maille cylindrique. Si la maille n'est necessaire en soit, une seule longitude est utile dans la production
+    des transits ou dans les estimations du rayon effectif (au premier ordre). Cette routine peut effectuer une
+    interpolation sur les donnees, toutefois le temps de calcul est tres nettement augmente (plusieurs dizaines d'heure)
+    L'utilisation des donnees brutes peut etre traite en utilisant ou non les tables dx_grid et order_grid pre-etablie.
+    En fonction de la resolution initiale adoptee pour les donnees GCM, les tables dx et order permettent un petit gain
+    de temps (pour les resolutions elevees).
+
+    La production de la colonne peut etre effectuee en amont eventuellement.
+
+    Cette fonction retourne la grille de transmittance dans une maille cylindrique I[bande,r,theta].
+
+"""
+
+########################################################################################################################
+########################################################################################################################
+
+
+def trans2fert1D_all (k_corr_data_grid,k_cont,Q_cloud,Rp,h,g0,r_step,theta_step,\
+                  x_step,gauss,gauss_val,dim_bande,data,P_col,T_col,gen_col,Q_col,compo_col,ind_active,dx_grid,order_grid,pdx_grid,\
+                  P_sample,T_sample,Q_sample,bande_sample,name_file,n_species,c_species,lat,long,single,\
+                  bande_cloud,r_eff,r_cloud,rho_p,t,phi_rot,domain,ratio,lim_alt,rupt_alt,directory,z_grid,type,\
+                  Tracer=False,Continuum=True,Isolated=False,Scattering=True,Clouds=False,Kcorr=True,Rupt=False,\
+                  Middle=False,Integral=False,Module=False,Optimal=False,D3Maille=False) :
+
+    r_size,theta_size,x_size = np.shape(dx_grid)
+    number_size,z_size,lat_size,long_size = np.shape(data)
+
+    Composition = True
+
+    if Kcorr == True :
+
+        k_rmd = np.zeros((T_col.size,dim_bande,gauss.size))
+
+    else :
+
+        k_rmd = np.zeros((T_col.size,dim_bande))
+
+    Itot = np.ones((dim_bande,r_size,theta_size))
+
+    bar = ProgressBar(theta_size,'Radiative transfert progression')
+
+    for i in range(theta_size) :
+
+        theta_line = i
+
+        if Rupt == True :
+
+            dep = int(rupt_alt/r_step)
+
+            Itot[:, 0:dep, theta_line] = np.zeros((dim_bande,dep))
+
+        else :
+
+            dep = 0
+
+        for j in range(dep,r_size) :
+
+            if Middle == False :
+
+                r = Rp + j*r_step
+
+            else :
+
+                r = Rp + (j+0.5)*r_step
+            r_line = j
+
+            dx = dx_grid[r_line,theta_line,:]
+            order = order_grid[:,r_line,theta_line,:]
+            pdx = pdx_grid[r_line,theta_line,:]
+
+            if r < Rp + lim_alt :
+
+                if j == 0 and i == 0 :
+
+                    P_rmd,T_rmd,Q_rmd,k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd = \
+                    convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,\
+                        k_corr_data_grid,k_cont,Q_cloud,P_sample,\
+                        T_sample,Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,name_file,t,phi_rot,\
+                        n_species,domain,ratio,directory,Tracer,Composition,Continuum,Scattering,Clouds,Kcorr,Optimal)
+
+                zone, = np.where(dx >= 0)
+                cut, = np.where(order[0,zone] < z_size)
+                dx_ref = dx[zone[cut]]
+                #data_ref = data[:,order[0,zone[cut]],order[1,zone[cut]],order[2,zone[cut]]]
+                data_ref = data[:,order[0,zone[cut]],lat,long]
+                P_ref, T_ref = data_ref[0], data_ref[1]
+
+                if Tracer == True :
+
+                    Q_ref = data_ref[2]
+
+                    k_inter,k_cont_inter,k_sca_inter,k_cloud_inter = \
+                    k_correlated_interp_remind_M(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,\
+                        P_ref.size,P_rmd,P_ref,T_rmd,T_ref,Q_rmd,Q_ref,Continuum,Scattering,Clouds,Kcorr)
+
+                else :
+
+                    k_inter,k_cont_inter,k_sca_inter,k_cloud_inter = \
+                    k_correlated_interp_remind(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,\
+                        P_ref.size,P_rmd,P_ref,T_rmd,T_ref,Continuum,Scattering,Clouds,Kcorr)
+
+                if Module == True :
+                    z_ref = z_grid[r_line,theta_line,order[3,zone[cut]]]
+                    P_ref = module_density(P_ref,T_ref,z_ref,Rp,g0,data_ref[number_size-1],r_step,type,Middle)
+                Cn_mol_ref = P_ref/(R_gp*T_ref)*N_A
+
+                I_out = radiative_transfert_remind3D(dx_ref,pdx[zone[cut]],Cn_mol_ref,k_inter,k_cont_inter,k_sca_inter,\
+                        k_cloud_inter,gauss_val,single,Continuum,Isolated,Scattering,Clouds,Kcorr,Integral)
+
+                Itot[:, r_line, theta_line] = I_out[:]
+
+        bar.animate(i)
+
+    return Itot
+
+
+########################################################################################################################
+########################################################################################################################
+
+
+def generator_1D_isoc(P,T,M,compo,dim_bande,Rp,h,r_step,g0,cross,ind_active, Discret=True,Integral=False,Gravity=False) :
+
+    bar = ProgressBar(P.size-1,'Computation of the optical path')
+
+    tau = np.zeros((dim_bande,P.size-2))
+    tau3 = np.zeros((dim_bande,P.size-2))
+
+    for i_r in range(1,P.size-1) :
+
+        r = (i_r - 0.5)*r_step
+        L = np.sqrt((Rp+h)**2 - (Rp+r)**2)
+        x_pre = 0
+        dist = 0
+
+        for i_z in range(i_r,P.size-1) :
+
+            if i_z != P.size-1 :
+                z = (i_z)*r_step
+                x = np.sqrt((Rp+z)**2 - (Rp+r)**2) - x_pre
+                x_pre = np.sqrt((Rp+z)**2 - (Rp+r)**2)
+                dist += x
+
+                if i_z != i_r :
+                    z_min = (i_z-1)*r_step
+                    z_max = i_z*r_step
+                    if Integral == True :
+                        if Gravity == False :
+                            g = g0*(1./(1.+(i_z-0.5)*r_step/Rp))**2
+                            P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*(0.5*r_step)/(1+(-0.5*r_step)/(Rp+(i_z-0.5)*r_step)))
+                            g_min = g0*(1./(1.+(i_z-1)*r_step/Rp))**2
+                        else :
+                            P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(0.5*r_step))
+                else :
+                    z_min = r
+                    z_max = i_z*r_step
+                    if Integral == True :
+                        if Gravity == False :
+                            g = g0*(1./(1.+(i_z-0.5)*r_step/Rp))**2
+                            P_min = P[i_z]
+                            g_min = g
+                        else :
+                            P_min = P[i_z]
+            else :
+                x = L - x_pre
+                dist += x
+
+                if i_z != i_r :
+                    z_min = (i_z-1)*r_step
+                    z_max = h
+                    if Integral == True :
+                        if Gravity == False :
+                            g = g0*(1./(1.+(i_z-0.5)*r_step/Rp))**2
+                            P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*(0.5*r_step)/(1+(-0.5*r_step)/(Rp+(i_z-0.5)*r_step)))
+                            g_min = g0*(1./(1.+(i_z-1)*r_step/Rp))**2
+                        else :
+                            P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(0.5*r_step))
+                else :
+                    z_min = r
+                    z_max = h
+                    if Integral == True :
+                        if Gravity == False :
+                            g = g0*(1./(1.+(i_z-0.5)*r_step/Rp))**2
+                            P_min = P[i_z]
+                            g_min = g
+                        else :
+                            P_min = P[i_z]
+
+            Cn = P[i_z]/(R_gp*T[i_z])*N_A
+
+            if Discret == True :
+                for i_n in range(ind_active.size) :
+                    tau[:,i_r-1] += 2*x*cross[i_n]*Cn*compo[ind_active[i_n],i_z]
+
+            if Integral == True :
+                if Gravity == False :
+                    INT = integrate.quad(lambda z:P_min/(R_gp*T[i_z])*np.exp(-M[i_z]*g_min/(R_gp*T[i_z])*z*(1./(1.+z/(Rp+z_min))))*(Rp+z+z_min)/(np.sqrt((Rp+z+z_min)**2-(Rp+r)**2)),0,z_max-z_min)
+                else :
+                    INT = integrate.quad(lambda z:P_min/(R_gp*T[i_z])*np.exp(-M[i_z]*g0/(R_gp*T[i_z])*z)*(Rp+z+z_min)/(np.sqrt((Rp+z+z_min)**2-(Rp+r)**2)),0,z_max-z_min)
+
+                for i_n in range(ind_active.size) :
+                    tau3[:,i_r-1] += 2*cross[i_n]*INT[0]*N_A*compo[ind_active[i_n],i_z]
+
+        bar.animate(i_r)
+
+    I_dis = np.exp(-tau)
+    I_int = np.exp(-tau3)
+
+    return I_dis, I_int
+
+########################################################################################################################
+########################################################################################################################
+
+
+def generator_1D_isoc_pressure(P,T,M,compo,dim_bande,Rp,h,alt_array,g0,cross,ind_active, Discret=True,Integral=False,Gravity=False) :
+
+    bar = ProgressBar(P.size-1,'Computation of the optical path')
+
+    tau = np.zeros((dim_bande,P.size-2))
+    tau3 = np.zeros((dim_bande,P.size-2))
+    print alt_array.size, P.size
+
+    for i_r in range(1,P.size-2) :
+
+        r = (alt_array[i_r]+alt_array[i_r-1])/2.
+        L = np.sqrt((Rp+h)**2 - (Rp+r)**2)
+        x_pre = 0
+        dist = 0
+
+        for i_z in range(i_r,P.size-2) :
+
+            if i_z != P.size-1 :
+                z = alt_array[i_z]
+                z_mid = (alt_array[i_z]+alt_array[i_z-1])/2.
+                x_mid = (alt_array[i_z]-alt_array[i_z-1])/2.
+                x = np.sqrt((Rp+z)**2 - (Rp+r)**2) - x_pre
+                x_pre = np.sqrt((Rp+z)**2 - (Rp+r)**2)
+                dist += x
+
+                if i_z != i_r :
+                    z_min = alt_array[i_z-1]
+                    z_max = alt_array[i_z]
+                    if Integral == True :
+                        if Gravity == False :
+                            g = g0*(1./(1.+z_mid/Rp))**2
+                            P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*x_mid/(1+(-x_mid)/(Rp+z_mid)))
+                            g_min = g0*(1./(1.+z_min/Rp))**2
+                        else :
+                            P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(x_mid))
+                else :
+                    z_min = r
+                    z_max = alt_array[i_z]
+                    if Integral == True :
+                        if Gravity == False :
+                            g = g0*(1./(1.+z_mid/Rp))**2
+                            P_min = P[i_z]
+                            g_min = g
+                        else :
+                            P_min = P[i_z]
+            else :
+                x = L - x_pre
+                dist += x
+                z_mid = (h+alt_array[i_z-1])/2.
+                x_mid = (h-alt_array[i_z-1])/2.
+
+                if i_z != i_r :
+                    z_min = alt_array[i_z-1]
+                    z_max = h
+                    if Integral == True :
+                        if Gravity == False :
+                            g = g0*(1./(1.+z_mid/Rp))**2
+                            P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*x_mid/(1+(-x_mid)/(Rp+z_mid)))
+                            g_min = g0*(1./(1.+z_min/Rp))**2
+                        else :
+                            P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(x_mid))
+                else :
+                    z_min = r
+                    z_max = h
+                    z_mid = r
+                    if Integral == True :
+                        if Gravity == False :
+                            g = g0*(1./(1.+z_mid/Rp))**2
+                            P_min = P[i_z]
+                            g_min = g
+                        else :
+                            P_min = P[i_z]
+
+            Cn = P[i_z]/(R_gp*T[i_z])*N_A
+
+            if Discret == True :
+                for i_n in range(ind_active.size) :
+                    tau[:,i_r-1] += 2*x*cross[i_n]*Cn*compo[ind_active[i_n],i_z]
+
+            if Integral == True :
+                if Gravity == False :
+                    INT = integrate.quad(lambda z:P_min/(R_gp*T[i_z])*np.exp(-M[i_z]*g_min/(R_gp*T[i_z])*z*(1./(1.+z/(Rp+z_min))))*(Rp+z+z_min)/(np.sqrt((Rp+z+z_min)**2-(Rp+r)**2)),0,z_max-z_min)
+                else :
+                    INT = integrate.quad(lambda z:P_min/(R_gp*T[i_z])*np.exp(-M[i_z]*g0/(R_gp*T[i_z])*z)*(Rp+z+z_min)/(np.sqrt((Rp+z+z_min)**2-(Rp+r)**2)),0,z_max-z_min)
+
+                for i_n in range(ind_active.size) :
+                    tau3[:,i_r-1] += 2*cross[i_n]*INT[0]*N_A*compo[ind_active[i_n],i_z]
+
+        bar.animate(i_r)
+
+    I_dis = np.exp(-tau)
+    I_int = np.exp(-tau3)
+
+    return I_dis, I_int
+
+
+########################################################################################################################
+########################################################################################################################
+
+
+def generator_1D(data,n_species,m_species,c_species,dim_bande,Rp,h,r_step,g0,cross,ind_active,k_cont,\
+                 Q_cloud,P_sample,T_sample,Q_sample,bande_sample,bande_cloud,r_eff,r_cloud,rho_p,name_file,t,phi_rot,\
+                 domain,ratio,directory,Tracer=False,Continuum=False,Scattering=False,Clouds=False,Kcorr=False,\
+                 Optimal=False,Discret=True,Integral=False,Gravity=False,Molecular=False,Pressure=True,Script=True,Middle=True) :
+
+    P_col,T_col = data[0,:],data[1,:]
+    if Tracer == True :
+        Q_col = data[2,:]
+    else :
+        Q_col = np.array([])
+    if Clouds == True :
+        gen_col = data[2+m_species.size:2+m_species.size+c_species.size,:]
+    else :
+        gen_col = np.array([])
+    compo = data[2+m_species.size+c_species.size:2+m_species.size+c_species.size+n_species.size+1,:]
+    M = data[2+m_species.size+c_species.size+n_species.size,:]
+
+    P,T,Q,cross_mol,cross_cont,cross_sca,cross_cloud = \
+    convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo,ind_active,\
+                cross,k_cont,Q_cloud,P_sample,\
+                T_sample,Q_sample,bande_sample,bande_cloud,r_step,r_eff,r_cloud,rho_p,name_file,t,phi_rot,\
+                n_species,domain,ratio,directory,Tracer,Continuum,Scattering,Clouds,Kcorr,Optimal,Script)
+
+    if Script == True :
+        bar = ProgressBar(P.size-1,'Computation of the optical path')
+
+    if Middle == True :
+        tau = np.zeros((dim_bande,P.size-2))
+        tau3 = np.zeros((dim_bande,P.size-2))
+    else :
+        tau = np.zeros((dim_bande,P.size))
+        tau3 = np.zeros((dim_bande,P.size))
+
+    for i_r in range(1,P.size-1) :
+
+        if Middle == True :
+            if Pressure == False :
+                r = (i_r - 0.5)*r_step
+            else :
+                alt_array = r_step
+                r = (alt_array[i_r]+alt_array[i_r-1])/2.
+        else :
+            if Pressure == False :
+                r = (i_r - 1)*r_step
+            else :
+                alt_array = r_step
+                r = alt_array[i_r-1]
+
+        L = np.sqrt((Rp+h)**2 - (Rp+r)**2)
+        x_pre = 0
+        dist = 0
+
+        for i_z in range(i_r,P.size-1) :
+
+            if Pressure == False :
+
+                if i_z != P.size-1 :
+                    z = (i_z)*r_step
+                    x = np.sqrt((Rp+z)**2 - (Rp+r)**2) - x_pre
+                    x_pre = np.sqrt((Rp+z)**2 - (Rp+r)**2)
+                    dist += x
+
+                    if i_z != i_r :
+                        z_min = (i_z-1)*r_step
+                        z_max = i_z*r_step
+                        if Integral == True :
+                            if Gravity == False :
+                                g = g0*(1./(1.+(i_z-0.5)*r_step/Rp))**2
+                                P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*(0.5*r_step)/(1+(-0.5*r_step)/(Rp+(i_z-0.5)*r_step)))
+                                g_min = g0*(1./(1.+(i_z-1)*r_step/Rp))**2
+                            else :
+                                P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(0.5*r_step))
+                    else :
+                        z_min = r
+                        z_max = i_z*r_step
+                        if Integral == True :
+                            if Gravity == False :
+                                g = g0*(1./(1.+(i_z-0.5)*r_step/Rp))**2
+                                P_min = P[i_z]
+                                g_min = g
+                            else :
+                                P_min = P[i_z]
+                else :
+                    x = L - x_pre
+                    dist += x
+
+                    if i_z != i_r :
+                        z_min = (i_z-1)*r_step
+                        z_max = h
+                        if Integral == True :
+                            if Gravity == False :
+                                g = g0*(1./(1.+(i_z-0.5)*r_step/Rp))**2
+                                P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*(0.5*r_step)/(1+(-0.5*r_step)/(Rp+(i_z-0.5)*r_step)))
+                                g_min = g0*(1./(1.+(i_z-1)*r_step/Rp))**2
+                            else :
+                                P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(0.5*r_step))
+                    else :
+                        z_min = r
+                        z_max = h
+                        if Integral == True :
+                            if Gravity == False :
+                                g = g0*(1./(1.+(i_z-0.5)*r_step/Rp))**2
+                                P_min = P[i_z]
+                                g_min = g
+                            else :
+                                P_min = P[i_z]
+
+            else :
+
+                if Middle == True :
+
+                    if i_z != P.size-1 :
+                        z = alt_array[i_z]
+                        z_mid = (alt_array[i_z]+alt_array[i_z-1])/2.
+                        x_mid = (alt_array[i_z]-alt_array[i_z-1])/2.
+                        x = np.sqrt((Rp+z)**2 - (Rp+r)**2) - x_pre
+                        x_pre = np.sqrt((Rp+z)**2 - (Rp+r)**2)
+                        dist += x
+
+                        if i_z != i_r :
+                            z_min = alt_array[i_z-1]
+                            z_max = alt_array[i_z]
+                            if Integral == True :
+                                if Gravity == False :
+                                    g = g0*(1./(1.+z_mid/Rp))**2
+                                    P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*x_mid/(1+(-x_mid)/(Rp+z_mid)))
+                                    g_min = g0*(1./(1.+z_min/Rp))**2
+                                else :
+                                    P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(x_mid))
+                        else :
+                            z_min = r
+                            z_max = alt_array[i_z]
+                            if Integral == True :
+                                if Gravity == False :
+                                    g = g0*(1./(1.+z_mid/Rp))**2
+                                    P_min = P[i_z]
+                                    g_min = g
+                                else :
+                                    P_min = P[i_z]
+                    else :
+                        x = L - x_pre
+                        dist += x
+                        z_mid = (h+alt_array[i_z-1])/2.
+                        x_mid = (h-alt_array[i_z-1])/2.
+
+                        if i_z != i_r :
+                            z_min = alt_array[i_z-1]
+                            z_max = h
+                            if Integral == True :
+                                if Gravity == False :
+                                    g = g0*(1./(1.+z_mid/Rp))**2
+                                    P_min = P[i_z]*np.exp(M[i_z]*g/(R_gp*T[i_z])*x_mid/(1+(-x_mid)/(Rp+z_mid)))
+                                    g_min = g0*(1./(1.+z_min/Rp))**2
+                                else :
+                                    P_min = P[i_z]*np.exp(M[i_z]*g0/(R_gp*T[i_z])*(x_mid))
+                        else :
+                            z_min = r
+                            z_max = h
+                            z_mid = r
+                            if Integral == True :
+                                if Gravity == False :
+                                    g = g0*(1./(1.+z_mid/Rp))**2
+                                    P_min = P[i_z]
+                                    g_min = g
+                                else :
+                                    P_min = P[i_z]
+
+                else :
+
+                    if i_z != P.size-1 :
+                        z = alt_array[i_z-1]
+                        x = np.sqrt((Rp+z)**2 - (Rp+r)**2) - x_pre
+                        x_pre = np.sqrt((Rp+z)**2 - (Rp+r)**2)
+                        dist += x
+
+                        z_min = alt_array[i_z-1]
+                        z_max = alt_array[i_z]
+                        if Integral == True :
+                            if Gravity == False :
+                                P_min = P[i_z-1]
+                                g_min = g0*(1./(1.+z_min/Rp))**2
+                            else :
+                                P_min = P[i_z-1]
+
+            Cn = P[i_z]/(R_gp*T[i_z])*N_A
+
+            if Discret == True :
+                if Molecular == True :
+                    tau[:,i_r-1] += 2*x*cross_mol[i_z]*Cn
+                if Continuum == True :
+                    tau[:,i_r-1] += 2*x*cross_cont[i_z]
+                if Scattering == True :
+                    tau[:,i_r-1] += 2*x*cross_sca[i_z]
+                if Clouds == True :
+                    for i_c in range(c_species.size) :
+                        tau[:,i_r-1] += 2*x*cross_cloud[i_c,i_z]
+
+            if Integral == True :
+                if Gravity == False :
+                    INT = integrate.quad(lambda z:P_min/(R_gp*T[i_z])*np.exp(-M[i_z]*g_min/(R_gp*T[i_z])*z*(1./(1.+z/(Rp+z_min))))*(Rp+z+z_min)/(np.sqrt((Rp+z+z_min)**2-(Rp+r)**2)),0,z_max-z_min)
+                else :
+                    INT = integrate.quad(lambda z:P_min/(R_gp*T[i_z])*np.exp(-M[i_z]*g0/(R_gp*T[i_z])*z)*(Rp+z+z_min)/(np.sqrt((Rp+z+z_min)**2-(Rp+r)**2)),0,z_max-z_min)
+                if Molecular == True :
+                    tau3[:,i_r-1] += 2*cross_mol[i_z]*INT[0]*N_A
+                if Continuum == True :
+                    tau3[:,i_r-1] += 2*x*cross_cont[i_z]
+                if Scattering == True :
+                    tau3[:,i_r-1] += 2*x*cross_sca[i_z]
+                if Clouds == True :
+                    for i_c in range(c_species.size) :
+                        tau3[:,i_r-1] += 2*x*cross_cloud[i_c,i_z]
+
+        if Script == True :
+            bar.animate(i_r)
+
+    I_dis = np.exp(-tau)
+    I_int = np.exp(-tau3)
+
+    return I_dis, I_int
+
+
+########################################################################################################################
+########################################################################################################################
+
+
+def spectral_distribution(nest_out_path,output_file,dimension,live_number,Mp,Rs,P_surf,P_h,n_layers,n_species,number,\
+            m_species,c_species,cross,ind_active,k_cont,Q_cloud,P_sample,T_sample,\
+            Q_sample,bande_sample,bande_cloud,r_eff,r_cloud,rho_p,name_file,domain,path,x_species_inactive,\
+            Tracer,Composition,Continuum,Scattering,Clouds,Kcorr,Optimal,Discret,Integral,Gravity,Molecular) :
+
+    dim_bande = bande_sample.size
+    nest_out_summary = '%s1-stats.dat'%(nest_out_path)
+    data = open(nest_out_summary,'r')
+    summ = data.readlines()
+    x_ref = np.zeros(ind_active.size)
+    for i_n in range(ind_active.size) :
+        x_ref[i_n] = np.float(summ[13+dimension+3+i_n][7:32])
+
+    wh_N2, = np.where(n_species == 'N2')
+    if wh_N2.size != 0 :
+        x_ref_init = x_ref
+        x_ref = np.zeros(n_species.size-2)
+        dec = 0
+        for i_n in range(n_species.size-2) :
+            if i_n == wh_N2[0]-2 :
+                x_ref[i_n] = np.log10(x_species_inactive[0])
+                dec = 1
+            else :
+                x_ref[i_n] = x_ref_init[i_n-dec]
+    T_iso_ref = np.float(summ[13+dimension+i_n+3][7:32])
+    Rp_ref = np.float(summ[13+dimension+4+i_n][7:32])*R_J
+
+    sys.path.append('/Users/caldas/Desktop/Pytmosph3R/Tools/')
+    from Tool_pressure_generator import pressure_scaling_taurex
+
+    x_ratio_species_active = np.array([10**x_ref])
+    M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=True)
+    data,alt_array,alt_mid,H_array,g_array,h,delta_z,r_step,x_step,theta_number,reso_alt,z_lim,z_reso,z_array = \
+    pressure_scaling_taurex(T_iso_ref,Rp_ref,M,Mp,P_surf,P_h,n_layers,n_species,number,x_ratio_species,False,False)
+
+    r_step = alt_array
+    g0 = g_array[0]
+
+    I_dis, I_int = generator_1D(data,n_species,m_species,c_species,dim_bande,Rp_ref,h,r_step,g0,cross,ind_active,k_cont,\
+            Q_cloud,P_sample,T_sample,Q_sample,bande_sample,bande_cloud,r_eff,r_cloud,rho_p,name_file,0,0.00,\
+            domain,ratio_HeH2,path,Tracer,Composition,Continuum,Scattering,Clouds,Kcorr,\
+            Optimal,Discret,Integral,Gravity,Molecular,True,False)
+
+    Alt = np.zeros(n_layers+2)
+    I = np.zeros((dim_bande,n_layers+2))
+    Alt[0] = 0
+    Alt[n_layers+1] = alt_array[n_layers-1]
+    I[:,n_layers+1] = I_dis[:,n_layers-1]
+    Alt[1:n_layers+1] = alt_mid
+    I[:,1:n_layers+1] += I_dis
+    flux_ref = np.zeros(dim_bande)
+    for i_b in range(dim_bande) :
+        x = Alt
+        alpha = 2*integrate.trapz((Rp_ref+x)*(1-I[i_b]),x)
+        flux_ref[i_b] = (Rp_ref**2+alpha)/Rs**2
+
+    phys = np.zeros((2,dimension),dtype=np.float64)
+
+    for i_dim in range(dimension) :
+        phys[0,i_dim] = np.float(summ[13+i_dim][7:32]) - np.float(summ[13+i_dim][36:60])
+        phys[1,i_dim] = np.float(summ[13+i_dim][7:32]) + np.float(summ[13+i_dim][36:60])
+
+    nest_out_file = '%s1-phys_live.points'%(nest_out_path)
+    data = open(nest_out_file,'r')
+    points = data.readlines()
+
+    phys_nest = np.zeros((live_number,dimension+1))
+
+    for i_num in range(live_number) :
+        no = 0
+        for i_dim in range(dimension) :
+            i_deb = np.int(3+i_dim*28)
+            i_fin = np.int(3+(i_dim+1)*28)
+            if np.float(points[i_num][i_deb:i_fin]) <= phys[0,i_dim] or np.float(points[i_num][i_deb:i_fin]) >= phys[1,i_dim] :
+                no = 1
+        if no == 0 :
+            for i_dim in range(dimension) :
+                i_deb = np.int(3+i_dim*28)
+                i_fin = np.int(3+(i_dim+1)*28)
+                phys_nest[i_num,i_dim] = np.float(points[i_num][i_deb:i_fin])
+
+    wh_nz, = np.where(phys_nest[:,0] != 0)
+    phys_nest = phys_nest[wh_nz,:]
+
+    live_point = wh_nz.size
+    phys_spectrum = np.zeros((live_point,dim_bande))
+
+    bar = ProgressBar(live_point,'Build of the spectral distribution : ')
+
+    for i_p in range(live_point) :
+        x_ratio_species_active = 10**phys_nest[i_p,:ind_active.size]
+        if wh_N2.size != 0 :
+            x_ref_init = x_ratio_species_active
+            x_ratio_species_active = np.zeros(n_species.size-2)
+            dec = 0
+            for i_n in range(n_species.size-2) :
+                if i_n == wh_N2[0]-2 :
+                    x_ratio_species_active[i_n] = x_species_inactive[0]
+                    dec = 1
+                else :
+                    x_ratio_species_active[i_n] = x_ref_init[i_n-dec]
+        M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=True)
+        M = 0.00281
+        T_iso = phys_nest[i_p,ind_active.size]
+        Rp = phys_nest[i_p,ind_active.size+1]*R_J
+
+        data,alt_array,alt_mid,H_array,g_array,h,delta_z,r_step,x_step,theta_number,reso_alt,z_lim,z_reso,z_array = \
+        pressure_scaling_taurex(T_iso,Rp,M,Mp,P_surf,P_h,n_layers,n_species,number,x_ratio_species,False,False)
+
+        r_step = alt_array
+        g0 = g_array[0]
+
+        I_dis, I_int = generator_1D(data,n_species,m_species,c_species,dim_bande,Rp,h,r_step,g0,cross,ind_active,k_cont,\
+                Q_cloud,P_sample,T_sample,Q_sample,bande_sample,bande_cloud,r_eff,r_cloud,rho_p,name_file,0,0.00,\
+                domain,ratio_HeH2,path,Tracer,Composition,Continuum,Scattering,Clouds,Kcorr,\
+                Optimal,Discret,Integral,Gravity,Molecular,True,False)
+
+        Alt = np.zeros(n_layers+2)
+        I = np.zeros((dim_bande,n_layers+2))
+        Alt[0] = 0
+        Alt[n_layers+1] = alt_array[n_layers-1]
+        I[:,n_layers+1] = I_dis[:,n_layers-1]
+        Alt[1:n_layers+1] = alt_mid
+        I[:,1:n_layers+1] += I_dis
+        flux_dis = np.zeros(dim_bande)
+        for i_b in range(dim_bande) :
+            x = Alt
+            alpha = 2*integrate.trapz((Rp+x)*(1-I[i_b]),x)
+            flux_dis[i_b] = (Rp**2+alpha)/Rs**2
+
+        phys_spectrum[i_p,:] = flux_dis
+
+        bar.animate(i_p+1)
+
+    wh_ri, = np.where(bande_sample!=0)
+    wl_ref = 1./bande_sample*10000.
+    wl = 1./bande_sample[wh_ri]*10000.
+    phys_spectrum = phys_spectrum[:,wh_ri]
+
+    dim_bande = wl.size
+
+    plt.figure()
+    plt.semilogx()
+    plt.grid(True)
+    for i_p in range(live_point) :
+        plt.plot(wl,phys_spectrum[i_p,:],'r-')
+    plt.draw()
+
+    distrib_spectrum = np.zeros((2,dim_bande))
+
+    for i_bande in range(dim_bande) :
+        wh_min, = np.where(phys_spectrum[:,i_bande] == np.amin(phys_spectrum[:,i_bande]))
+        wh_max, = np.where(phys_spectrum[:,i_bande] == np.amax(phys_spectrum[:,i_bande]))
+
+        distrib_spectrum[0,i_bande] = phys_spectrum[wh_min[0],i_bande]
+        distrib_spectrum[1,i_bande] = phys_spectrum[wh_max[0],i_bande]
+
+    data = pickle.load(open('%sOutput/%s/nest_out.pickle'%(path,output_file),'rb'))
+    data.keys()
+
+    wvl = data['solutions'][0]['obs_spectrum'][:,0]
+    flux_obs = data['solutions'][0]['obs_spectrum'][:,1]
+    wvl_fit = data['solutions'][0]['fit_spectrum_xsecres'][:,0]
+    flux_fit = data['solutions'][0]['fit_spectrum_xsecres'][:,1]
+
+    plt.figure()
+    plt.semilogx()
+    plt.grid(True)
+    plt.errorbar(wvl,flux_obs, yerr=5.e-5,color='k')
+    plt.plot(wvl_fit,flux_fit,'+-')
+    plt.fill_between(wl,distrib_spectrum[1],facecolor='blue')
+    plt.fill_between(wl,distrib_spectrum[0],facecolor='white')
+    plt.plot(wl_ref,flux_ref,'+-y')
+    plt.axis([0.3,50,np.amin(flux_fit),np.amax(flux_fit)])
+    plt.ylabel('Relative flux')
+    plt.xlabel('Wavelength (micron)')
+    plt.draw()
+
+
+########################################################################################################################
+
+
+def parameters_signature(I,theta,theta_number,crit,bande_sample,Rs,Rp,r_step,n_layers,data_convert,reso_long,reso_lat,reso_alt,\
+                phi_obli,phi_rot,path,name_file,stitch_file,Kcorr,Middle,D3maille=False) :
+
+    dim_bande = bande_sample.size
+
+    R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux = atmospectre(I,bande_sample,Rs,Rp,r_step,0,\
+                                                                                False,Kcorr,Middle)
+    bande_max, = np.where(flux == np.amax(flux))
+    bande_min, = np.where(flux == np.amin(flux))
+    flux_max = flux[bande_max]
+    flux_min = flux[bande_min]
+
+    sign = np.zeros((n_layers,dim_bande))
+    sign_up = np.zeros((n_layers,dim_bande))
+    sign_down = np.zeros((n_layers,dim_bande))
+    ind = np.zeros((n_layers,dim_bande),dtype='int')
+    bar = ProgressBar(dim_bande,'Progression : ')
+    for i_bande in range(dim_bande) :
+        stop = 0
+        init = 0
+        for i_r in range(1,n_layers) :
+            if stop == 0 and init == 1 and I[i_bande,n_layers-i_r,theta] <= 0.999 :
+                I_s = np.ones((1,n_layers,1))
+                I_s[0,:n_layers-i_r,0] = I[i_bande,:n_layers-i_r,theta]
+                R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux = atmospectre(I_s,np.array([1]),Rs,Rp,r_step,0,\
+                                                                                        False,Kcorr,Middle)
+                contrib = np.abs(flux - flux_ref)/flux_ref
+                flux_ref = flux
+                if contrib <= crit :
+                    sign_up[n_layers-i_r-1,i_bande] = 0.
+                    ind[n_layers-i_r-1,i_bande] = 0
+                    stop = 1
+                else :
+                    sign_up[n_layers-i_r-1,i_bande] = np.abs(contrib)*100.
+                    ind[n_layers-i_r-1,i_bande] = i_r
+
+            if stop == 0 and init == 0 and I[i_bande,n_layers-i_r,theta] >= 0.001 :
+                I_s = np.ones((1,n_layers,1))
+                I_s[0,:n_layers-i_r,0] = I[i_bande,:n_layers-i_r,theta]
+                R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux = atmospectre(I_s,np.array([1]),Rs,Rp,r_step,0,\
+                                                                                        False,Kcorr,Middle)
+                if i_r == 1 :
+                    I_s = np.zeros((1,n_layers,1))
+                    I_s[0,:,0] = I[i_bande,:n_layers,theta]
+                    R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux_ref = atmospectre(I_s,np.array([1]),Rs,Rp,r_step,0,\
+                                                                                        False,Kcorr,Middle)
+                contrib = np.abs(flux - flux_ref)/flux_ref
+                flux_ref = flux
+                if contrib <= crit :
+                    sign_up[n_layers-i_r-1,i_bande] = 0.
+                    ind[n_layers-i_r-1,i_bande] = 0
+                else :
+                    sign_up[n_layers-i_r-1,i_bande] = np.abs(contrib)*100.
+                    ind[n_layers-i_r-1,i_bande] = i_r
+                    init = 1
+        stop = 0
+        init = 0
+        for i_r in range(1,n_layers) :
+            if stop == 0 and init == 1 and I[i_bande,i_r,theta] >= 0.001:
+                I_s = np.zeros((1,n_layers,1))
+                I_s[0,:i_r,0] = I[i_bande,:i_r,theta]
+                R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux = atmospectre(I_s,np.array([1]),Rs,Rp,r_step,0,\
+                                                                                        False,Kcorr,Middle)
+                contrib = np.abs(flux - flux_ref)/flux_ref
+                flux_ref = flux
+                if contrib <= crit :
+                    sign_down[i_r,i_bande] = 0.
+                    ind[i_r,i_bande] = 0
+                    stop = 1
+                else :
+                    sign_down[i_r,i_bande] = np.abs(contrib)*100.
+                    ind[i_r,i_bande] = i_r
+
+            if stop == 0 and init == 0 and I[i_bande,i_r,theta] <= 0.999 :
+                I_s = np.zeros((1,n_layers,1))
+                I_s[0,:i_r,0] = I[i_bande,:i_r,theta]
+                R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux = atmospectre(I_s,np.array([1]),Rs,Rp,r_step,0,\
+                                                                                        False,Kcorr,Middle)
+                if i_r == 1 :
+                    I_s = np.zeros((1,n_layers,1))
+                    I_s[0,0,0] = I[i_bande,0,theta]
+                    R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux_ref = atmospectre(I_s,np.array([1]),Rs,Rp,r_step,0,\
+                                                                                        False,Kcorr,Middle)
+                contrib = np.abs(flux - flux_ref)/flux_ref
+                flux_ref = flux
+                if contrib <= crit :
+                    sign_down[i_r,i_bande] = 0.
+                    ind[i_r,i_bande] = 0
+                else :
+                    sign_down[i_r,i_bande] = np.abs(contrib)*100.
+                    ind[i_r,i_bande] = i_r
+                    init = 1
+
+        for i_r in range(n_layers-1) :
+            sign[i_r,i_bande] = np.amin([sign_up[i_r,i_bande],sign_down[i_r,i_bande]])
+        bar.animate(i_bande+1)
+
+    wh_ze, = np.where(bande_sample != 0)
+    wl = np.log10(1./bande_sample[wh_ze]*10000.)
+    x = np.linspace(0,100,n_layers)
+    y = np.linspace(np.amin(wl),np.amax(wl),100000)
+    def f(X,Y,S,wl):
+        P = np.zeros((X.size,Y.size))
+        for i in range(Y.size) :
+            wh, = np.where(wl <= Y[i])
+            P[:,i] = S[:,wh[0]]
+        return P
+    plt.figure(4)
+    if D3maille == False :
+        plt.imshow(f(x,y,sign,wl),origin='lower',aspect='auto',extent=[np.amin(wl), np.amax(wl),\
+        np.log10(data_convert[0,0,0,reso_lat/2,reso_long/2]/100.),np.log10(data_convert[0,0,n_layers+1,reso_lat/2,reso_long/2]/100.)],cmap='hot')
+    else :
+        plt.imshow(f(x,y,sign,wl),origin='lower',aspect='auto',extent=[np.amin(wl), np.amax(wl),\
+        np.log10(data_convert[0,0,0,reso_lat/2,reso_long/2]/100.),np.log10(data_convert[0,0,n_layers,reso_lat/2,reso_long/2]/100.)],cmap='hot')
+    plt.ylabel('Pressure (mBar)')
+    plt.xlabel('Wavelenth (power of 10, micron)')
+    plt.colorbar()
+
+    wh_max, = np.where(ind[:,bande_max[0]] != 0)
+    ind_max = ind[wh_max,bande_max]
+    wh_min, = np.where(ind[:,bande_min[0]] != 0)
+    ind_min = ind[wh_min,bande_min]
+
+    order_grid = np.load("%s%s/%s/order_grid_%i_%i%i%i_%i_%.2f_%.2f.npy"%(path,name_file,stitch_file,theta_number,\
+                reso_long,reso_lat,reso_alt,r_step,phi_rot,phi_obli))
+    dx_grid = np.load("%s%s/%s/dx_grid_opt_%i_%i%i%i_%i_%.2f_%.2f.npy"\
+                %(path,name_file,stitch_file,theta_number,reso_long,reso_lat,reso_alt,r_step,phi_rot,phi_obli))
+
+    plt.figure(5)
+    plt.grid(True)
+    for i_ind in ind_max :
+        wh_nu, = np.where(dx_grid[i_ind+1,theta,:] > 0)
+        dx = np.zeros(wh_nu.size)
+        for i_nu in range(wh_nu.size) :
+            dx[i_nu] = np.nansum(dx_grid[i_ind,theta,wh_nu[:i_nu+1]])
+        plt.plot(dx/1000.,\
+            data_convert[1,0,order_grid[0,i_ind+1,theta,wh_nu],order_grid[1,i_ind+1,theta,wh_nu],order_grid[2,i_ind+1,theta,wh_nu]],'r-',linewidth=4)
+
+    for i_ind in ind_min :
+        wh_nu, = np.where(dx_grid[i_ind+1,theta,:] > 0)
+        dx = np.zeros(wh_nu.size)
+        for i_nu in range(wh_nu.size) :
+            dx[i_nu] = np.nansum(dx_grid[i_ind,theta,wh_nu[:i_nu+1]])
+        plt.plot(dx/1000.,\
+            data_convert[1,0,order_grid[0,i_ind+1,theta,wh_nu],order_grid[1,i_ind+1,theta,wh_nu],order_grid[2,i_ind+1,theta,wh_nu]],'g-',linewidth=4)
+    plt.ylabel('Temperature (K)')
+    plt.xlabel('Position (km)')
+    plt.draw()
