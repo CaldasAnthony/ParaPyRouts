@@ -975,6 +975,7 @@ if Cylindric_transfert_3D == True :
                 k_rmd = np.load("%s%s/%s/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain))
                 k_rmd = k_rmd[:,dom_rank,:]
+                print dom_rank, np.shape(k_rmd)
                 gauss_val = np.load("%s%s/gauss_sample.npy"%(path,name_source))
             else :
                 if Optimal == True :
@@ -1004,6 +1005,7 @@ if Cylindric_transfert_3D == True :
                 k_cont_rmd = np.load("%s%s/%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain))
                 k_cont_rmd = np.transpose(k_cont_rmd[dom_rank,:])
+                print dom_rank, np.shape(k_cont_rmd)
             else :
                 k_cont_rmd = np.load("%s%s/%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
@@ -1016,6 +1018,7 @@ if Cylindric_transfert_3D == True :
                 k_sca_rmd = np.load("%s%s/%s/k_sca_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain))
                 k_sca_rmd = k_sca_rmd[:,dom_rank]
+                print dom_rank, np.shape(k_sca_rmd)
             else :
                 k_sca_rmd = np.load("%s%s/%s/k_sca_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
@@ -1029,6 +1032,7 @@ if Cylindric_transfert_3D == True :
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
                 r_eff*10**6,domain))
                 k_cloud_rmd = k_cloud_rmd[:,:,dom_rank]
+                print dom_rank, np.shape(k_cloud_rmd)
             else :
                 k_cloud_rmd = np.load("%s%s/%s/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain))
