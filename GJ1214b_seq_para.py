@@ -681,19 +681,23 @@ if Parameters == True :
 
             P_rmd, T_rmd, Q_rmd, gen_cond_rmd, composit_rmd, wher, indices, liste = sort_set_param(P,T,Q,gen,comp,Tracer,Cloudy)
             p = np.log10(P_rmd)
-            p_min = np.amin(p)
-            p_max = np.amax(p)
-            step_rmd = P_rmd.size/n_rmd
-            rmind = np.zeros((2,n_rmd+1),dtype=np.float64)
+            p_min = int(np.amin(p)-1)
+            p_max = int(np.amax(p)+1)
+            rmind = np.zeros((2,p_max - p_min+1),dtype=np.float64)
             rmind[0,0] = 0
 
-            for i in xrange(n_rmd) :
-                if i != n_rmd-1 :
-                    rmind[0,i+1] = (i+1)*step_rmd
+            for i_r in xrange(p_max - p_min) :
+
+                wh, = np.where((p >= p_min + i_r)*(p <= p_min + (i_r+1)))
+
+                if wh.size != 0 :
+                    rmind[0,i_r+1] = wh[wh.size-1]
+                    rmind[1,i_r] = p_min + i_r
                 else :
-                    rmind[0,i+1] = P_rmd.size
-                rmind[1,i] = p[np.int(rmind[0,i])]
-            rmind[1,i+1] = p_max
+                    rmind[0,i_r+1] = 0
+                    rmind[1,i_r] = p_min + i_r
+
+            rmind[1,i_r+1] = p_max
 
                                     ###### Parallele encoding end ######
 
