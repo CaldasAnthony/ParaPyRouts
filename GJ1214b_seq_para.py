@@ -713,7 +713,7 @@ if Parameters == True :
 
         facto = rmind.size/(2*number_rank)+1
         lim_rank = rmind.size/2%number_rank
-        print lim_rank
+        print lim_rank, rmind.size/2
 
         rank_ref = 0
 
