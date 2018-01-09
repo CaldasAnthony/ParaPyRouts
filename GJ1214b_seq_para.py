@@ -724,14 +724,12 @@ if Parameters == True :
             else :
                 i_p_deb = facto*(lim_rank) + (facto-1)*(rank-lim_rank)
         if rank != number_rank-1 and rank < lim_rank :
-            i_p_fin = facto*(rank+1)
+            i_p_fin = facto*(rank+1)+1
         else :
             if rank == number_rank-1 :
                 i_p_fin = rmind.size/2
             else :
-                i_p_fin = facto*(lim_rank) + (facto-1)*(rank-lim_rank+1)
-        if i_p_fin == i_p_deb + 1 :
-            remake = True
+                i_p_fin = facto*(lim_rank) + (facto-1)*(rank-lim_rank+1)+1
 
         comm.Barrier()
 
@@ -739,12 +737,7 @@ if Parameters == True :
 
         if Kcorr == True :
 
-            if remake == False :
-                rmind = np.array(rmind[:,i_p_deb:i_p_fin],dtype=np.int)
-            else :
-                rm = np.zeros((2,1),dtype=np.int)
-                rm[:,0] = np.array(rmind[:,i_p_deb],dtype=np.int)
-                rmind = rm
+            rmind = np.array(rmind[:,i_p_deb:i_p_fin],dtype=np.int)
             T_rmd = np.load("%s%s/%s/T_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
                       domain))
@@ -774,12 +767,7 @@ if Parameters == True :
 
         else :
 
-            if remake == False :
-                rmind = np.array(rmind[:,i_p_deb:i_p_fin],dtype=np.int)
-            else :
-                rm = np.zeros((2,1),dtype=np.int)
-                rm[:,0] = np.array(rmind[:,i_p_deb],dtype=np.int)
-                rmind = rm
+            rmind = np.array(rmind[:,i_p_deb:i_p_fin],dtype=np.int)
             T_rmd = np.load("%s%s/%s/T_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
             T_rmd = T_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]]
