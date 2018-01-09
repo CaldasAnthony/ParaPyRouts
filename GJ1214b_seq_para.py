@@ -713,7 +713,6 @@ if Parameters == True :
 
         facto = rmind.size/(2*number_rank)+1
         lim_rank = rmind.size/2%number_rank
-        print lim_rank, rmind.size/2
 
         rank_ref = 0
 
@@ -731,8 +730,6 @@ if Parameters == True :
                 i_p_fin = rmind.size/2
             else :
                 i_p_fin = facto*(lim_rank) + (facto-1)*(rank-lim_rank+1)
-
-        print rank,i_p_deb,i_p_fin
 
         comm.Barrier()
 
@@ -795,6 +792,7 @@ if Parameters == True :
 
         data_convert = np.load("%s%s/%s/%s_data_convert_%i%i%i.npy"%(path,name_file,param_file,name_exo,reso_alt,reso_long,\
                     reso_lat))
+        print rank,T_rmd.size
 
 
 ########################################################################################################################
@@ -937,9 +935,6 @@ if Cylindric_transfert_3D == True :
             Q_rmd = np.array([])
         rmind = np.load("%s%s/%s/rmind_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
-        if rank == 0 :
-            print rmind.size
-            print rmind
 
 ########################################################################################################################
     
@@ -1004,7 +999,6 @@ if Cylindric_transfert_3D == True :
                     k_rmd = np.load("%s%s/%s/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
                     k_rmd = k_rmd[:,dom_rank]
-                    print dom_rank, np.shape(k_rmd)
                 gauss_val = np.array([])
         else :
             if Kcorr == True :
@@ -1024,7 +1018,6 @@ if Cylindric_transfert_3D == True :
                 k_cont_rmd = np.load("%s%s/%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain))
                 k_cont_rmd = np.transpose(k_cont_rmd[dom_rank,:])
-                print dom_rank, np.shape(k_cont_rmd)
             else :
                 k_cont_rmd = np.load("%s%s/%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
@@ -1051,7 +1044,6 @@ if Cylindric_transfert_3D == True :
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
                 r_eff*10**6,domain))
                 k_cloud_rmd = k_cloud_rmd[:,:,dom_rank]
-                print dom_rank, np.shape(k_cloud_rmd)
             else :
                 k_cloud_rmd = np.load("%s%s/%s/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain))
