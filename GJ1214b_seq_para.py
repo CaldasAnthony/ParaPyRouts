@@ -674,9 +674,6 @@ if Parameters == True :
 
         direc = "%s/%s/"%(name_file,opac_file)
 
-        facto = 2
-        n_rmd = number_rank*facto
-
         if rank == 0 :
 
             P_rmd, T_rmd, Q_rmd, gen_cond_rmd, composit_rmd, wher, indices, liste = sort_set_param(P,T,Q,gen,comp,Tracer,Cloudy)
@@ -706,16 +703,36 @@ if Parameters == True :
 
             del P,T,Q,gen,comp,P_rmd,T_rmd,Q_rmd,gen_cond_rmd,composit_rmd,rmind
 
+        if Kcorr == True :
+            rmind = np.load("%s%s/%s/rmind_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
+                      domain))
+        else :
+            rmind = np.load("%s%s/%s/rmind_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
+
+        facto = rmind.size/(2*number_rank)+1
+        lim_rank = rmind.size/2%number_rank
+        print lim_rank
+
         rank_ref = 0
 
-        if rank != 0 :
+        if rank != 0 and rank < lim_rank :
             i_p_deb = facto*rank
         else :
-            i_p_deb = 0
-        if rank != number_rank-1 :
-            i_p_fin = facto*(rank+1)+1
+            if rank == 0 :
+                i_p_deb = 0
+            else :
+                i_p_deb = facto*(lim_rank) + (facto-1)*(rank-lim_rank)
+        if rank != number_rank-1 and rank < lim_rank :
+            i_p_fin = facto*(rank+1)
         else :
-            i_p_fin = n_rmd+1
+            if rank == number_rank-1 :
+                i_p_fin = rmind.size/2
+            else :
+                i_p_fin = facto*(lim_rank) + (facto-1)*(rank-lim_rank+1)
+
+        print rank,i_p_deb,i_p_fin
 
         comm.Barrier()
 
@@ -723,9 +740,6 @@ if Parameters == True :
 
         if Kcorr == True :
 
-            rmind = np.load("%s%s/%s/rmind_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
-                      domain))
             rmind = np.array(rmind[:,i_p_deb:i_p_fin],dtype=np.int)
             T_rmd = np.load("%s%s/%s/T_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
@@ -756,8 +770,6 @@ if Parameters == True :
 
         else :
 
-            rmind = np.load("%s%s/%s/rmind_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
             rmind = np.array(rmind[:,i_p_deb:i_p_fin],dtype=np.int)
             T_rmd = np.load("%s%s/%s/T_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
