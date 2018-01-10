@@ -95,6 +95,8 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
     
     if rank_max != comm.size :
         number_rank = rank_max
+    else:
+        number_rank = comm.size
 
     zero, = np.where(P_rmd == 0.)
     
