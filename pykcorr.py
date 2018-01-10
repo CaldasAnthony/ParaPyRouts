@@ -122,6 +122,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
             else :
                 k_rmd = Ksearcher_M(T_rmd,P_rmd,Q_rmd,dim_gauss,dim_bande,K,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,Optimal)
 
+            if rank_max == comm.size :
+                comm.Barrier()
+
             if rank != 0 :
                 sh_k = np.array(np.shape(k_rmd),dtype=np.int)
                 comm.Send([sh_k,MPI.INT],dest=0,tag=0)
@@ -147,6 +150,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 k_rmd = Ssearcher(T_rmd,P_rmd,compo_active,K,P_sample,T_sample,rank,rank_ref,Kcorr,Optimal)
             else :
                 k_rmd = Ssearcher_M(T_rmd,P_rmd,Q_rmd,compo_active,K,P_sample,T_sample,rank,rank_ref,Kcorr,Optimal)
+
+            if rank_max == comm.size :
+                comm.Barrier()
 
             if rank != 0 :
                 sh_k = np.array(np.shape(k_rmd),dtype=np.int)
@@ -186,6 +192,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
     else :
 
         del K
+
+    if rank_max == comm.size :
+        comm.Barrier()
 
     if Continuum == True :
 
@@ -265,6 +274,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
 
                 del amagat_spe,k_interp_spespe
 
+        if rank_max == comm.size :
+            comm.Barrier()
+
         if rank != 0 :
             sh_k = np.array(np.shape(k_cont_rmd),dtype=np.int)
             comm.Send([sh_k,MPI.INT],dest=0,tag=0)
@@ -301,11 +313,17 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         if rank == rank_ref :
             print "There is no continuum"
 
+    if rank_max == comm.size :
+        comm.Barrier()
+
     x_mol_species = composit_rmd[0:n_species.size,:]
 
     if Scattering == True :
 
         k_sca_rmd = Rayleigh_scattering(P_rmd,T_rmd,bande_sample,x_mol_species,n_species,zero,rank,rank_ref,Kcorr)
+
+        if rank_max == comm.size :
+            comm.Barrier()
 
         if rank != 0 :
             sh_k = np.array(np.shape(k_sca_rmd),dtype=np.int)
@@ -341,6 +359,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         if rank == rank_ref :
             print "There is no scattering"
 
+    if rank_max == comm.size :
+        comm.Barrier()
+
     if Clouds == True :
 
         zer_n, = np.where(bande_sample != 0.)
@@ -360,6 +381,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         c_number = c_species.size
 
         Qext = np.load(Qext)
+
+        if rank_max == comm.size :
+            comm.Barrier()
 
         if rank == 0 :
             bar = ProgressBar(c_number*number_rank,"Reconstruction of clouds scattering absorptions will begin")
@@ -410,6 +434,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
 
         if rank == 0 :
             print "There is no clouds"
+
+    if rank_max == comm.size :
+        comm.Barrier()
 
 
 ########################################################################################################################
