@@ -714,7 +714,7 @@ if Parameters == True :
         #rank_max = (rmind.size/2)/3
         rank_max = number_rank
         facto = rmind.size/(2*rank_max)+1
-        lim_rank = rmind.size/2%rank_max
+        lim_rank = rmind.size/2%rank_max-1
 
         rank_ref = rank_max/2
 
