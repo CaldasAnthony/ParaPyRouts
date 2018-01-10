@@ -181,13 +181,12 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                     np.save("%s%s/k_cross_opt_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
                 del k_rmd_tot
-        del k_rmd,K
 
-        if rank == rank_ref :
-            if Kcorr == True :
-                print "Ksearcher finished with success"
-            else :
-                print "Ssearcher finished with success"
+                if Kcorr == True :
+                    print "Ksearcher finished with success"
+                else :
+                    print "Ssearcher finished with success"
+        del k_rmd,K
 
     else :
 
@@ -299,14 +298,10 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 np.save("%s%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd_tot))
 
+            print "Integration of the continuum finished with success"
+
             del k_cont_rmd_tot
         del k_cont_rmd
-
-        if rank == rank_ref :
-            print "Integration of the continuum finished with success"
-        else :
-            if rank == rank_ref :
-                print "There is no continuum"
 
     else :
 
@@ -347,10 +342,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 np.save("%s%s/k_sca_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_sca_rmd_tot)
 
-            del k_sca_rmd_tot
-
-        if rank == rank_ref :
             print "Rayleigh_scattering finished with success"
+
+            del k_sca_rmd_tot
 
         del k_sca_rmd,x_mol_species
 
@@ -416,9 +410,6 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                     k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd_tot
                     del k_cloud_rmd_tot
 
-        if rank == rank_ref :
-            print "Cloud scattering finished with success, process are beginning to save data remind"
-
         if rank == 0 : 
             if Kcorr == True :
                 np.save("%s%s/k_cloud_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
@@ -427,6 +418,8 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 np.save("%s%s/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
                 %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd_fin)
             del k_cloud_rmd_fin
+
+            print "Cloud scattering finished with success, process are beginning to save data remind"
 
         del Qext,k_cloud_rmd
 
