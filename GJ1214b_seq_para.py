@@ -711,11 +711,12 @@ if Parameters == True :
             rmind = np.load("%s%s/%s/rmind_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
 
-        rank_max = (rmind.size/2)/3
+        #rank_max = (rmind.size/2)/3
+        rank_max = number_rank
         facto = rmind.size/(2*rank_max)+1
         lim_rank = rmind.size/2%rank_max
 
-        rank_ref = 5
+        rank_ref = rank_max/2
 
         if rank < rank_max :
 
@@ -866,6 +867,8 @@ if Parameters == True :
 
         else :
             comm.Barrier()
+
+comm.Barrier()
 
 print 'yeah %i'%(rank)
 
