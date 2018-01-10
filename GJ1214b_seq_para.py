@@ -715,7 +715,7 @@ if Parameters == True :
         facto = rmind.size/(2*rank_max)+1
         lim_rank = rmind.size/2%rank_max
 
-        rank_ref = 0
+        rank_ref = 5
 
         if rank < rank_max :
 
