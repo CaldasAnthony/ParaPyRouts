@@ -217,7 +217,7 @@ TimeSelec = True       ###### Si nous etudions un temps precis de la simulation
 
 # Cylindric transfert
 
-Cylindric_transfert_3D = True
+Cylindric_transfert_3D = False
 
 Isolated = False        ###### Ne tiens pas compte de l'absorption moleculaire
 Continuum = True       ###### Tiens compte de l'absorption par les collisions
