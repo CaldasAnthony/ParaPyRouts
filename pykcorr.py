@@ -91,8 +91,11 @@ def convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,directory
 
 def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_active,ind_cross,K,K_cont,Qext,P_sample,T_sample,\
                  Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,name,t,phi_rot,phi_obli,n_species,domain,ratio,directory,name_exo,reso_long,reso_lat,\
-                 rank,rank_ref,Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,Script=True) :
+                 rank,rank_ref,rank_max,Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,Script=True) :
     
+    if rank_max != number_rank :
+        number_rank = rank_max
+
     zero, = np.where(P_rmd == 0.)
     
     if Molecular == True :

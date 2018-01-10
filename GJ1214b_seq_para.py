@@ -859,7 +859,7 @@ if Parameters == True :
 
             convertator (P_rmd,T_rmd,gen_rmd,c_species,Q_rmd,composit_rmd,ind_active,ind_cross,k_corr_data_grid,K_cont,\
                          Q_cloud,P_sample,T_sample,Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,direc,\
-                         t,phi_rot,phi_obli,n_species,domain,ratio,path,name_exo,reso_long,reso_lat,rank,rank_ref,\
+                         t,phi_rot,phi_obli,n_species,domain,ratio,path,name_exo,reso_long,reso_lat,rank,rank_ref,rank_max,\
                          Tracer,Molecular,Cont,Cl,Scatt,Kcorr,Optimal)
 
 ########################################################################################################################
