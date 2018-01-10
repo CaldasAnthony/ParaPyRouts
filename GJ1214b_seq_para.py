@@ -1001,6 +1001,7 @@ if Cylindric_transfert_3D == True :
                     k_rmd = np.load("%s%s/%s/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
                     k_rmd = k_rmd[:,dom_rank]
+                print np.shape(k_rmd)
                 gauss_val = np.array([])
         else :
             if Kcorr == True :

@@ -191,7 +191,7 @@ N_fixe = True          ###### Si nous voulons imposer le nombre de couche atmosp
 TopPressure = 'Up'    ###### Si nous voulons fixer le toit de l'atmosphere par rapport a une pression minimale
 MassAtm = False         ###### Si on tient compte de la masse atmospherique
 
-Parameters = True
+Parameters = False
 
 Cylindre = False        ###### Construit la maille cylindrique
 Obliquity = False       ###### Si l'exoplanete est inclinee
