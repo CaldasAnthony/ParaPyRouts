@@ -733,6 +733,8 @@ if Parameters == True :
                     i_p_fin = rmind.size/2+1
                 else :
                     i_p_fin = facto*(lim_rank) + (facto-1)*(rank-lim_rank+1)+1
+            
+            print rank, i_p_deb, i_p_fin
 
             comm.Barrier()
 
