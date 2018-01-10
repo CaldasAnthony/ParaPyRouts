@@ -185,8 +185,6 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
 
         del K
 
-    comm.Barrier()
-
     if Continuum == True :
 
         dim_bande = bande_sample.size
@@ -303,8 +301,6 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
 
     x_mol_species = composit_rmd[0:n_species.size,:]
 
-    comm.Barrier()
-
     if Scattering == True :
 
         k_sca_rmd = Rayleigh_scattering(P_rmd,T_rmd,bande_sample,x_mol_species,n_species,zero,rank,rank_ref,Kcorr)
@@ -342,8 +338,6 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
 
         if rank == rank_ref :
             print "There is no scattering"
-
-    comm.Barrier()
 
     if Clouds == True :
 
