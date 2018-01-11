@@ -866,7 +866,7 @@ if Parameters == True :
             convertator (P_rmd,T_rmd,gen_rmd,c_species,Q_rmd,composit_rmd,ind_active,ind_cross,k_corr_data_grid,K_cont,\
                          Q_cloud,P_sample,T_sample,Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,direc,\
                          t,phi_rot,phi_obli,n_species,domain,ratio,path,name_exo,reso_long,reso_lat,rank,rank_ref,rank_max,\
-                         Tracer,Molecular,Cont,Cl,Scatt,Kcorr,Optimal)
+                         Tracer,Molecul,Cont,Cl,Scatt,Kcorr,Optimal)
 
 ########################################################################################################################
 
@@ -961,40 +961,29 @@ if Cylindric_transfert_3D == True :
     
     cases = np.zeros(4,dtype=np.int)
     cases_names = ['molecular','continuum','scattering','clouds']
-    if Isolated == False : 
+    if Molecular == True :
         cases[0] = 1
-        if Continuum == True :
-            cases[1] = 1
-        if Scattering == True :
-            cases[2] = 1
-        if Clouds == True :
-            cases[3] = 1
-    else :
-        cases[0] = 0
-        if Continuum == True : 
-            cases[1] = 1
-        if Scattering == True :
-            cases[2] = 1
-        if Clouds == True :
-            cases[3] = 1
-    
+    if Continuum == True :
+        cases[1] = 1
+    if Scattering == True :
+        cases[2] = 1
+    if Clouds == True :
+        cases[3] = 1
+
     wh_ca, = np.where(cases == 1)
     
     for i_ca in range(wh_ca.size) : 
         
-        proc = np.array([True,False,False,False])
-        if wh_ca[i_ca] != 0 :
-            proc[wh_ca[i_ca]] = True
-        else :
-            proc[wh_ca[i_ca]] = False
-        Isolated, Continuum, Scattering, Clouds = proc[0],proc[1],proc[2],proc[3]
+        proc = np.array([False,False,False,False])
+        proc[wh_ca[i_ca]] = True
+        Molecular, Continuum, Scattering, Clouds = proc[0],proc[1],proc[2],proc[3]
 
         if rank == 0 :
-            stud = stud_type(r_eff,Single,Continuum,Isolated,Scattering,Clouds)
+            stud = stud_type(r_eff,Single,Continuum,Molecular,Scattering,Clouds)
             save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
                 phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
 
-        if Isolated == False :
+        if Molecular == True :
             if Kcorr == True :
                 k_rmd = np.load("%s%s/%s/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain))
@@ -1028,11 +1017,9 @@ if Cylindric_transfert_3D == True :
             if Kcorr == True :
                 k_cont_rmd = np.load("%s%s/%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain))
-                k_cont_rmd = np.transpose(k_cont_rmd[dom_rank,:])
             else :
                 k_cont_rmd = np.load("%s%s/%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
-                k_cont_rmd = np.transpose(k_cont_rmd[dom_rank,:])
         else :
             k_cont_rmd = np.array([])
 
@@ -1070,7 +1057,7 @@ if Cylindric_transfert_3D == True :
         I_n = trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dom_rank.size,data_convert,\
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
                   name_file,n_species,Single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
-                  Tracer,Continuum,Isolated,Scattering,Clouds,Kcorr,Rupt,Module,Integration,TimeSel)
+                  Tracer,Continuum,Molecular,Scattering,Clouds,Kcorr,Rupt,Module,Integration,TimeSel)
     
         if rank == 0 : 
             sh_I = np.shape(I_n)
@@ -1099,8 +1086,8 @@ if Cylindric_transfert_3D == True :
             for i_ca in range(wh_ca.size) :
                 proc = np.array([False,False,False,False])
                 proc[wh_ca[i_ca]] = True
-                Isolated, Continuum, Scattering, Clouds = proc[0],proc[1],proc[2],proc[3]
-                stud = stud_type(r_eff,Single,Continuum,Isolated,Scattering,Clouds)
+                Molecular, Continuum, Scattering, Clouds = proc[0],proc[1],proc[2],proc[3]
+                stud = stud_type(r_eff,Single,Continuum,Molecular,Scattering,Clouds)
                 save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
                         phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
                 I_step = np.load(save_name_3D_step)

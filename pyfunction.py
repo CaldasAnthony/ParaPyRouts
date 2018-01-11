@@ -89,11 +89,11 @@ def resolution_convertator(I,wavenumber_ref,bande_ref,R_s,Rp,r_step,extra,trans,
 ########################################################################################################################
 
 
-def stud_type(r_eff,single,Continuum=False,Isolated=False,Scattering=False,Clouds=False) :
+def stud_type(r_eff,single,Continuum=False,Molecular=False,Scattering=False,Clouds=False) :
 
     stu = np.array([])
 
-    if Isolated == True :
+    if Molecular == False :
 
         if Continuum == True :
             stu = np.append(stu,np.array(["cont"]))
@@ -127,7 +127,7 @@ def stud_type(r_eff,single,Continuum=False,Isolated=False,Scattering=False,Cloud
 
     if link == 1 :
 
-        if Isolated == True :
+        if Molecular == False :
             if Clouds == True :
                 stud = "%.2f_%s"%(r_eff*10**6,stu[0])
             else :

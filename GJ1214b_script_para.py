@@ -191,7 +191,7 @@ N_fixe = True          ###### Si nous voulons imposer le nombre de couche atmosp
 TopPressure = 'Up'    ###### Si nous voulons fixer le toit de l'atmosphere par rapport a une pression minimale
 MassAtm = False         ###### Si on tient compte de la masse atmospherique
 
-Parameters = True
+Parameters = False
 
 Cylindre = False        ###### Construit la maille cylindrique
 Obliquity = False       ###### Si l'exoplanete est inclinee
@@ -206,7 +206,7 @@ Matrix = False          ###### Transposition de la maille spherique dans la mail
 
 Convert = True         ###### Lance la fonction convertator qui assure l'interpolation des sections efficaces
 Kcorr = False           ###### Sections efficaces ou k-correles
-Molecular = True       ###### Effectue les calculs pour l'absorption moleculaire
+Molecul = True       ###### Effectue les calculs pour l'absorption moleculaire
 Cont = True            ###### Effectue les calculs pour l'absorption par les collisions
 Scatt = True           ###### Effectue les calculs pour l'absorption par diffusion Rayleigh
 Cl = True              ###### Effectue les calculs pour l'absorption par les nuages
@@ -219,7 +219,7 @@ TimeSelec = True       ###### Si nous etudions un temps precis de la simulation
 
 Cylindric_transfert_3D = True
 
-Isolated = False        ###### Ne tiens pas compte de l'absorption moleculaire
+Molecular = True         ###### Ne tiens pas compte de l'absorption moleculaire
 Continuum = True       ###### Tiens compte de l'absorption par les collisions
 Scattering = True      ###### Tiens compte de l'absorption par la diffusion
 Clouds = True          ###### Tiens compte de l'absoprtion par les nuages
