@@ -303,7 +303,8 @@ def sort_set_param(P,T,Q,gen,compo,rank,Marker=False,Clouds=False) :
     P_rmd = np.zeros(sh[0]*sh[1]*sh[2])
     T_rmd = np.zeros(sh[0]*sh[1]*sh[2])
 
-    bar = ProgressBar(sh[0],'Reduction of the parameters')
+    if rank == 0 :
+        bar = ProgressBar(sh[0],'Reduction of the parameters')
 
     if Marker == True :
         Q_rmd = np.zeros(sh[0]*sh[1]*sh[2])
@@ -338,7 +339,8 @@ def sort_set_param(P,T,Q,gen,compo,rank,Marker=False,Clouds=False) :
 
             ind += wh.size
 
-        bar.animate(i + 1)
+        if rank == 0 :
+            bar.animate(i + 1)
 
     del P,T,Q,compo,gen
 
