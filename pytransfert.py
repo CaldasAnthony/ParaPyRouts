@@ -211,7 +211,7 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
                   name_file,n_species,single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
                   Marker=False,Continuum=True,Molecular=False,Scattering=True,Clouds=True,Kcorr=True,\
-                  Rupt=False,Module=False,Integral=False,TimeSel=False,ByLay=False) :
+                  Rupt=False,Module=False,Integral=False,TimeSel=False) :
 
     r_size,theta_size,x_size = np.shape(dx_grid)
     number_size,t_size,z_size,lat_size,long_size = np.shape(data)
