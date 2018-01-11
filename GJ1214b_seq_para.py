@@ -696,6 +696,8 @@ if Parameters == True :
 
             rmind[1,i_r+1] = p_max
 
+            print rmind
+
                                     ###### Parallele encoding end ######
 
             convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,path,direc,reso_long,reso_lat,name_exo,t,\
