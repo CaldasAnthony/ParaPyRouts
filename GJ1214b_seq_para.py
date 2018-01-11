@@ -1077,13 +1077,13 @@ if Cylindric_transfert_3D == True :
             comm.Send([I_n,MPI.DOUBLE],dest=0,tag=0)
 
         if rank == 0 :
-            for i_n in range(1,number_rank) : 
+            bar = ProgressBar(number_rank,'Reconstitution of transmitivity for the %s contribution'%(cases_names[wh_ca[i_ca]]))
+            for r_n in range(1,number_rank) :
                 new_dom_rank = repartition(dim_bande,number_rank,r_n,True)
                 I_rn = np.zeros((new_dom_rank.size,r_size,theta_size),dtype=np.float64)
-                comm.Recv([I_rn,MPI.DOUBLE],source=i_n,tag=0)
-                print I_rn
+                comm.Recv([I_rn,MPI.DOUBLE],source=r_n,tag=0)
                 Itot[new_dom_rank,:,:] = I_rn
-                print i_n
+                bar.animate(r_n+1)
 
         if rank == 0 :
             np.save('%s.npy'%(save_name_3D_step),Itot)
