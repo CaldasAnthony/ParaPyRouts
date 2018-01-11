@@ -743,33 +743,38 @@ if Parameters == True :
 
 ########################################################################################################################  
 
+            if rank == rank_max-1 :
+                mod = 1
+            else :
+                mod = 0
+
             if Kcorr == True :
 
                 rmind = np.array(rmind[:,i_p_deb:i_p_fin],dtype=np.int)
                 T_rmd = np.load("%s%s/%s/T_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                         %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
                           domain))
-                T_rmd = T_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]]
+                T_rmd = T_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]+mod]
                 P_rmd = np.load("%s%s/%s/P_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                         %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
                           domain))
-                P_rmd = P_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]]
+                P_rmd = P_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]+mod]
                 composit_rmd = np.load("%s%s/%s/compo_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                         %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
                           domain))
-                composit_rmd = composit_rmd[:,rmind[0,0]:rmind[0,rmind[0].size-1]]
+                composit_rmd = composit_rmd[:,rmind[0,0]:rmind[0,rmind[0].size-1]+mod]
                 if Cl == True :
                     gen_rmd = np.load("%s%s/%s/gen_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                         %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
                           domain))
-                    gen_rmd = gen_rmd[:,rmind[0,0]:rmind[0,rmind[0].size-1]]
+                    gen_rmd = gen_rmd[:,rmind[0,0]:rmind[0,rmind[0].size-1]+mod]
                 else :
                     gen_rmd = np.array([])
                 if Tracer == True :
                     Q_rmd = np.load("%s%s/%s/Q_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                         %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
                           domain))
-                    Q_rmd = Q_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]]
+                    Q_rmd = Q_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]+mod]
                 else :
                     Q_rmd = np.array([])
 
@@ -778,23 +783,23 @@ if Parameters == True :
                 rmind = np.array(rmind[:,i_p_deb:i_p_fin],dtype=np.int)
                 T_rmd = np.load("%s%s/%s/T_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                         %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
-                T_rmd = T_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]]
+                T_rmd = T_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]+mod]
                 P_rmd = np.load("%s%s/%s/P_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                         %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
-                P_rmd = P_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]]
+                P_rmd = P_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]+mod]
                 composit_rmd = np.load("%s%s/%s/compo_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                         %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
-                composit_rmd = composit_rmd[:,rmind[0,0]:rmind[0,rmind[0].size-1]]
+                composit_rmd = composit_rmd[:,rmind[0,0]:rmind[0,rmind[0].size-1]+mod]
                 if Cl :
                     gen_rmd = np.load("%s%s/%s/gen_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                         %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
-                    gen_rmd = gen_rmd[:,rmind[0,0]:rmind[0,rmind[0].size-1]]
+                    gen_rmd = gen_rmd[:,rmind[0,0]:rmind[0,rmind[0].size-1]+mod]
                 else :
                     gen_rmd = np.array([])
                 if Tracer == True :
                     Q_rmd = np.load("%s%s/%s/Q_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                         %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
-                    Q_rmd = Q_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]]
+                    Q_rmd = Q_rmd[rmind[0,0]:rmind[0,rmind[0].size-1]+mod]
                 else :
                     Q_rmd = np.array([])
 
