@@ -1066,8 +1066,8 @@ if Cylindric_transfert_3D == True :
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
                   name_file,n_species,Single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
                   Tracer,Continuum,Molecular,Scattering,Clouds,Kcorr,Rupt,Module,Integration,TimeSel)
-    
-        if rank == 0 : 
+
+        if rank == 0 :
             sh_I = np.shape(I_n)
             r_size, theta_size = sh_I[1], sh_I[2]
             Itot = np.zeros((dim_bande,r_size,theta_size),dtype=np.float64)
@@ -1081,6 +1081,7 @@ if Cylindric_transfert_3D == True :
                 new_dom_rank = repartition(dim_bande,number_rank,r_n,True)
                 I_rn = np.zeros((new_dom_rank.size,r_size,theta_size),dtype=np.float64)
                 comm.Recv([I_rn,MPI.DOUBLE],source=i_n,tag=0)
+                print I_rn
                 Itot[new_dom_rank,:,:] = I_rn
                 print i_n
 
