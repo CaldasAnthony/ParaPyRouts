@@ -94,13 +94,13 @@ def convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,directory
 
 def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_active,ind_cross,K,K_cont,Qext,P_sample,T_sample,\
                  Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,name,t,phi_rot,phi_obli,n_species,domain,ratio,directory,name_exo,reso_long,reso_lat,\
-                 rank,rank_ref,rank_max,Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,Bylay=False) :
+                 rank,rank_ref,rank_max,Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,ByLay=False) :
     
     if rank_max != comm.size :
         number_rank = rank_max
     else:
         number_rank = comm.size
-    if Bylay == True :
+    if ByLay == True :
         domain += '_%i'%(rank)
 
     zero, = np.where(P_rmd == 0.)
@@ -130,25 +130,30 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
             if rank_max == comm.size :
                 comm.Barrier()
 
-            if rank != 0 :
-                sh_k = np.array(np.shape(k_rmd),dtype=np.int)
-                comm.Send([sh_k,MPI.INT],dest=0,tag=0)
-                comm.Send([k_rmd,MPI.DOUBLE],dest=0,tag=1)
-            if rank == 0 :
-                k_rmd_tot = k_rmd
-                print "Reconstruction of molecular absorptions will begin"
-                bar = ProgressBar(number_rank,"Reconstruction of k-correlated absorptions")
-                for i_n in range(1,number_rank) :
-                    sh_k = np.zeros(2,dtype=np.int)
-                    comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
-                    k_rmd_n = np.zeros((sh_k),dtype=np.float64)
-                    comm.Recv([k_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
-                    k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd_n))
-                    bar.animate(i_n+1)
+            if ByLay == False :
+                if rank != 0 :
+                    sh_k = np.array(np.shape(k_rmd),dtype=np.int)
+                    comm.Send([sh_k,MPI.INT],dest=0,tag=0)
+                    comm.Send([k_rmd,MPI.DOUBLE],dest=0,tag=1)
+                if rank == 0 :
+                    k_rmd_tot = k_rmd
+                    print "Reconstruction of molecular absorptions will begin"
+                    bar = ProgressBar(number_rank,"Reconstruction of k-correlated absorptions")
+                    for i_n in range(1,number_rank) :
+                        sh_k = np.zeros(2,dtype=np.int)
+                        comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
+                        k_rmd_n = np.zeros((sh_k),dtype=np.float64)
+                        comm.Recv([k_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
+                        k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd_n))
+                        bar.animate(i_n+1)
 
+                    np.save("%s%s/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                        %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
+                    del k_rmd_tot
+            else :
                 np.save("%s%s/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
-                del k_rmd_tot
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_rmd)
+
         else :
             compo_active = composit_rmd[ind_active,:]
             if Tracer == False :
@@ -159,35 +164,44 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
             if rank_max == comm.size :
                 comm.Barrier()
 
-            if rank != 0 :
-                sh_k = np.array(np.shape(k_rmd),dtype=np.int)
-                comm.Send([sh_k,MPI.INT],dest=0,tag=0)
-                comm.Send([k_rmd,MPI.DOUBLE],dest=0,tag=1)
-            if rank == 0 :
-                k_rmd_tot = k_rmd
-                if Optimal == False :
-                    print "Reconstruction of molecular absorptions will begin"
-                    bar = ProgressBar(number_rank,"Reconstruction of molecular absorptions")
-                else :
-                    print "Reconstruction of optimized molecular absorptions will begin"
-                    bar = ProgressBar(number_rank,"Reconstruction of optimized molecular absorptions")
-                for i_n in range(1,number_rank) :
-                    sh_k = np.zeros(2,dtype=np.int)
-                    comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
-                    k_rmd_n = np.zeros((sh_k),dtype=np.float64)
-                    comm.Recv([k_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
-                    k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd_n))
-                    bar.animate(i_n+1)
+            if ByLay == False :
+                if rank != 0 :
+                    sh_k = np.array(np.shape(k_rmd),dtype=np.int)
+                    comm.Send([sh_k,MPI.INT],dest=0,tag=0)
+                    comm.Send([k_rmd,MPI.DOUBLE],dest=0,tag=1)
+                if rank == 0 :
+                    k_rmd_tot = k_rmd
+                    if Optimal == False :
+                        print "Reconstruction of molecular absorptions will begin"
+                        bar = ProgressBar(number_rank,"Reconstruction of molecular absorptions")
+                    else :
+                        print "Reconstruction of optimized molecular absorptions will begin"
+                        bar = ProgressBar(number_rank,"Reconstruction of optimized molecular absorptions")
+                    for i_n in range(1,number_rank) :
+                        sh_k = np.zeros(2,dtype=np.int)
+                        comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
+                        k_rmd_n = np.zeros((sh_k),dtype=np.float64)
+                        comm.Recv([k_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
+                        k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd_n))
+                        bar.animate(i_n+1)
 
+                    if Optimal == False :
+                        np.save("%s%s/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                        %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
+                    else :
+                        np.save("%s%s/k_cross_opt_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                        %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
+
+                    del k_rmd_tot
+            else :
                 if Optimal == False :
                     np.save("%s%s/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd)
                 else :
                     np.save("%s%s/k_cross_opt_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd)
 
-                del k_rmd_tot
-
+            if rank == 0 :
                 if Kcorr == True :
                     print "Ksearcher finished with success"
                 else :
@@ -282,31 +296,41 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         if rank_max == comm.size :
             comm.Barrier()
 
-        if rank != 0 :
-            sh_k = np.array(np.shape(k_cont_rmd),dtype=np.int)
-            comm.Send([sh_k,MPI.INT],dest=0,tag=0)
-            comm.Send([k_cont_rmd,MPI.DOUBLE],dest=0,tag=1)
-        if rank == 0 :
-            bar = ProgressBar(number_rank,"Reconstruction of continuum absorptions will begin")
-            k_cont_rmd_tot = k_cont_rmd
-            for i_n in range(1,number_rank) :
-                sh_k = np.zeros(2,dtype=np.int)
-                comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
-                k_cont_rmd_n = np.zeros((sh_k),dtype=np.float64)
-                comm.Recv([k_cont_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
-                k_cont_rmd_tot = np.concatenate((k_cont_rmd_tot,k_cont_rmd_n),axis=1)
-                bar.animate(i_n+1)
+        if ByLay == False :
 
-            if Kcorr == True :
-                np.save("%s%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd_tot))
-            else :
-                np.save("%s%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd_tot))
+            if rank != 0 :
+                sh_k = np.array(np.shape(k_cont_rmd),dtype=np.int)
+                comm.Send([sh_k,MPI.INT],dest=0,tag=0)
+                comm.Send([k_cont_rmd,MPI.DOUBLE],dest=0,tag=1)
+            if rank == 0 :
+                bar = ProgressBar(number_rank,"Reconstruction of continuum absorptions will begin")
+                k_cont_rmd_tot = k_cont_rmd
+                for i_n in range(1,number_rank) :
+                    sh_k = np.zeros(2,dtype=np.int)
+                    comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
+                    k_cont_rmd_n = np.zeros((sh_k),dtype=np.float64)
+                    comm.Recv([k_cont_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
+                    k_cont_rmd_tot = np.concatenate((k_cont_rmd_tot,k_cont_rmd_n),axis=1)
+                    bar.animate(i_n+1)
 
-            print "Integration of the continuum finished with success"
+                if Kcorr == True :
+                    np.save("%s%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd_tot))
+                else :
+                    np.save("%s%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd_tot))
 
             del k_cont_rmd_tot
+        else :
+            if Kcorr == True :
+                np.save("%s%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd))
+            else :
+                np.save("%s%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd))
+
+        if rank == 0 :
+                print "Integration of the continuum finished with success"
         del k_cont_rmd
 
     else :
@@ -326,31 +350,39 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         if rank_max == comm.size :
             comm.Barrier()
 
-        if rank != 0 :
-            sh_k = np.array(np.shape(k_sca_rmd),dtype=np.int)
-            comm.Send([sh_k,MPI.INT],dest=0,tag=0)
-            comm.Send([k_sca_rmd,MPI.DOUBLE],dest=0,tag=1)
-        if rank == 0 :
-            bar = ProgressBar(number_rank,"Reconstruction of scattering absorptions will begin")
-            k_sca_rmd_tot = k_sca_rmd
-            for i_n in range(1,number_rank) :
-                sh_k = np.zeros(2,dtype=np.int)
-                comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
-                k_sca_rmd_n = np.zeros((sh_k),dtype=np.float64)
-                comm.Recv([k_sca_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
-                k_sca_rmd_tot = np.concatenate((k_sca_rmd_tot,k_sca_rmd_n))
-                bar.animate(i_n+1)
+        if ByLay == False :
+            if rank != 0 :
+                sh_k = np.array(np.shape(k_sca_rmd),dtype=np.int)
+                comm.Send([sh_k,MPI.INT],dest=0,tag=0)
+                comm.Send([k_sca_rmd,MPI.DOUBLE],dest=0,tag=1)
+            if rank == 0 :
+                bar = ProgressBar(number_rank,"Reconstruction of scattering absorptions will begin")
+                k_sca_rmd_tot = k_sca_rmd
+                for i_n in range(1,number_rank) :
+                    sh_k = np.zeros(2,dtype=np.int)
+                    comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
+                    k_sca_rmd_n = np.zeros((sh_k),dtype=np.float64)
+                    comm.Recv([k_sca_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
+                    k_sca_rmd_tot = np.concatenate((k_sca_rmd_tot,k_sca_rmd_n))
+                    bar.animate(i_n+1)
 
+                if Kcorr == True :
+                    np.save("%s%s/k_sca_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_sca_rmd_tot)
+                else :
+                    np.save("%s%s/k_sca_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_sca_rmd_tot)
+                del k_sca_rmd_tot
+        else :
             if Kcorr == True :
                 np.save("%s%s/k_sca_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_sca_rmd_tot)
+                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_sca_rmd)
             else :
                 np.save("%s%s/k_sca_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_sca_rmd_tot)
+                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_sca_rmd)
 
+        if rank == 0 :
             print "Rayleigh_scattering finished with success"
-
-            del k_sca_rmd_tot
 
         del k_sca_rmd,x_mol_species
 
@@ -392,31 +424,49 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
 
             k_cloud_rmd = cloud_scattering(Qext[c_num,:,:],bande_cloud,P_rmd,T_rmd,wl,composit_rmd[n_size-1,:],rho_p[c_num],gen_cond_rmd[c_num,:],r_eff,r_cloud,zero,rank,rank_ref,Kcorr)
 
-            if rank != 0 :
-                sh_k = np.array(np.shape(k_cloud_rmd),dtype=np.int)
-                comm.Send([sh_k,MPI.INT],dest=0,tag=0)
-                comm.Send([k_cloud_rmd,MPI.DOUBLE],dest=0,tag=1)
-            if rank == 0 :
-                k_cloud_rmd_tot = k_cloud_rmd
-                for i_n in range(1,number_rank) :
-                    sh_k = np.zeros(2,dtype=np.int)
-                    comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
-                    k_cloud_rmd_n = np.zeros((sh_k),dtype=np.float64)
-                    comm.Recv([k_cloud_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
-                    k_cloud_rmd_tot = np.concatenate((k_cloud_rmd_tot,k_cloud_rmd_n))
-                    bar.animate(c_num*number_rank+i_n+1)
+            if ByLay == False :
+                if rank != 0 :
+                    sh_k = np.array(np.shape(k_cloud_rmd),dtype=np.int)
+                    comm.Send([sh_k,MPI.INT],dest=0,tag=0)
+                    comm.Send([k_cloud_rmd,MPI.DOUBLE],dest=0,tag=1)
+                if rank == 0 :
+                    k_cloud_rmd_tot = k_cloud_rmd
+                    for i_n in range(1,number_rank) :
+                        sh_k = np.zeros(2,dtype=np.int)
+                        comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
+                        k_cloud_rmd_n = np.zeros((sh_k),dtype=np.float64)
+                        comm.Recv([k_cloud_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
+                        k_cloud_rmd_tot = np.concatenate((k_cloud_rmd_tot,k_cloud_rmd_n))
+                        bar.animate(c_num*number_rank+i_n+1)
 
-            if rank == 0 :
+                if rank == 0 :
+                    if c_num == 0 :
+                        sh_c = np.shape(k_cloud_rmd_tot)
+                        k_cloud_rmd_fin = np.zeros((c_number,sh_c[0],sh_c[1]),dtype=np.float64)
+                        k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd_tot
+                        del k_cloud_rmd_tot
+                    else :
+                        k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd_tot
+                        del k_cloud_rmd_tot
+            else :
                 if c_num == 0 :
-                    sh_c = np.shape(k_cloud_rmd_tot)
+                    sh_c = np.shape(k_cloud_rmd)
                     k_cloud_rmd_fin = np.zeros((c_number,sh_c[0],sh_c[1]),dtype=np.float64)
-                    k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd_tot
-                    del k_cloud_rmd_tot
+                    k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd
+                    del k_cloud_rmd
                 else :
-                    k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd_tot
-                    del k_cloud_rmd_tot
+                    k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd
 
-        if rank == 0 : 
+        if ByLay == False :
+            if rank == 0 :
+                if Kcorr == True :
+                    np.save("%s%s/k_cloud_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd_fin)
+                else :
+                    np.save("%s%s/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd_fin)
+                del k_cloud_rmd_fin
+        else :
             if Kcorr == True :
                 np.save("%s%s/k_cloud_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
                 %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd_fin)
@@ -425,6 +475,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd_fin)
             del k_cloud_rmd_fin
 
+        if rank == 0 :
             print "Cloud scattering finished with success, process are beginning to save data remind"
 
         del Qext,k_cloud_rmd
