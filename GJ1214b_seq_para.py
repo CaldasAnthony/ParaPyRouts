@@ -1012,16 +1012,20 @@ if Cylindric_transfert_3D == True :
                 k_rmd = k_rmd[:,dom_rank]
                 k_rmd = np.shape(k_rmd)
             gauss_val = np.array([])
+            print 'No molecular'
 
         if Continuum == True :
             if Kcorr == True :
                 k_cont_rmd = np.load("%s%s/%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain))
+                k_cont_rmd = k_cont_rmd[:,dom_rank]
             else :
                 k_cont_rmd = np.load("%s%s/%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
+                k_cont_rmd = k_cont_rmd[:,dom_rank]
         else :
             k_cont_rmd = np.array([])
+            print 'No continuum'
 
         if Scattering == True :
             if Kcorr == True :
@@ -1035,6 +1039,7 @@ if Cylindric_transfert_3D == True :
                 k_sca_rmd = k_sca_rmd[:,dom_rank]
         else :
             k_sca_rmd = np.array([])
+            print 'No scattering'
 
         if Clouds == True :
             if Kcorr == True :
@@ -1048,6 +1053,7 @@ if Cylindric_transfert_3D == True :
                 k_cloud_rmd = k_cloud_rmd[:,:,dom_rank]
         else :
             k_cloud_rmd = np.array([])
+            print 'No clouds'
 
 ########################################################################################################################
     
@@ -1077,12 +1083,11 @@ if Cylindric_transfert_3D == True :
                 print i_n
 
         if rank == 0 :
-            np.save(save_name_3D_step,Itot)
+            np.save('%s.npy'%(save_name_3D_step),Itot)
             del Itot
         del I_n
     
         if rank == 0 :
-            tau = 0
             for i_ca in range(wh_ca.size) :
                 proc = np.array([False,False,False,False])
                 proc[wh_ca[i_ca]] = True
@@ -1090,10 +1095,13 @@ if Cylindric_transfert_3D == True :
                 stud = stud_type(r_eff,Single,Continuum,Molecular,Scattering,Clouds)
                 save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
                         phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
-                I_step = np.load(save_name_3D_step)
-                tau += np.log(I_step)
+                I_step = np.load('%s.npy'%(save_name_3D_step))
+                if i_ca == 0 :
+                    tau = np.log(I_step)
+                else :
+                    tau += np.log(I_step)
             Itot = np.exp(tau)
-            np.save(save_name_3D,Itot)
+            np.save('%s.npy'%(save_name_3D),Itot)
 
 ########################################################################################################################
 
