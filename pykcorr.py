@@ -46,7 +46,10 @@ number_rank = comm.size
 ########################################################################################################################
 
 def convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,directory,name,reso_long,reso_lat,name_exo,t,\
-                    x_step,phi_rot,phi_obli,domain,dim_bande,dim_gauss,Kcorr=True,Tracer=False,Clouds=False,Script=True) :
+                    x_step,phi_rot,phi_obli,domain,dim_bande,dim_gauss,rank,Kcorr=True,Tracer=False,Clouds=False,ByLay=False) :
+
+    if ByLay == True :
+        domain += '_%i'%(rank)
 
     if Kcorr == True :
         np.save("%s%s/P_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
@@ -91,12 +94,14 @@ def convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,directory
 
 def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_active,ind_cross,K,K_cont,Qext,P_sample,T_sample,\
                  Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,name,t,phi_rot,phi_obli,n_species,domain,ratio,directory,name_exo,reso_long,reso_lat,\
-                 rank,rank_ref,rank_max,Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,Script=True) :
+                 rank,rank_ref,rank_max,Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,Bylay=False) :
     
     if rank_max != comm.size :
         number_rank = rank_max
     else:
         number_rank = comm.size
+    if Bylay == True :
+        domain += '_%i'%(rank)
 
     zero, = np.where(P_rmd == 0.)
     

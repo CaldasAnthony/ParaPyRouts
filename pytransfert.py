@@ -211,7 +211,10 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
                   name_file,n_species,single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
                   Marker=False,Continuum=True,Molecular=False,Scattering=True,Clouds=True,Kcorr=True,\
-                  Rupt=False,Module=False,Integral=False,TimeSel=False) :
+                  Rupt=False,Module=False,Integral=False,TimeSel=False,ByLay=False) :
+
+    if ByLay == True :
+        dom_rank = repartition(int(2*np.pi/theta_step),comm.size,rank,True)
 
     r_size,theta_size,x_size = np.shape(dx_grid)
     number_size,t_size,z_size,lat_size,long_size = np.shape(data)
@@ -244,10 +247,16 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
             r = Rp + j*r_step
             r_line = j
 
-            dx = dx_grid[r_line,theta_line,:]
-            order = order_grid[:,r_line,theta_line,:]
-            if Integral == True :
-                pdx = pdx_grid[r_line,theta_line,:]
+            if ByLay == False :
+                dx = dx_grid[r_line,theta_line,:]
+                order = order_grid[:,r_line,theta_line,:]
+                if Integral == True :
+                    pdx = pdx_grid[r_line,theta_line,:]
+            else :
+                dx = dx_grid[r_line,dom_rank[theta_line],:]
+                order = order_grid[:,r_line,dom_rank[theta_line],:]
+                if Integral == True :
+                    pdx = pdx_grid[r_line,dom_rank[theta_line],:]
 
             if r < Rp + lim_alt :
 
@@ -275,7 +284,10 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
                     P_rmd,P_ref,T_rmd,T_ref,n_species,fail,rmind,Continuum,Molecular,Scattering,Clouds,Kcorr)
 
                 if Module == True :
-                    z_ref = z_grid[r_line,theta_line,order[3,zone]]
+                    if ByLay == False :
+                        z_ref = z_grid[r_line,theta_line,order[3,zone]]
+                    else :
+                        z_ref = z_grid[r_line,dom_rank[theta_line],order[3,zone]]
                     P_ref = module_density(P_ref,T_ref,z_ref,Rp,g0,data_ref[number_size-1],r_step,type,True)
                 Cn_mol_ref = P_ref/(R_gp*T_ref)*N_A
 
@@ -285,7 +297,7 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
                 Itot[:, r_line, theta_line] = I_out
 
         if rank == rank_ref : 
-	    bar.animate(i+1)
+            bar.animate(i+1)
 
         if fail !=0 and rank == rank_ref :
 

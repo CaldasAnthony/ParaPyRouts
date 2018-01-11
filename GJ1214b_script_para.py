@@ -107,7 +107,7 @@ number = 3 + n_species.size + m_species.size + c_species.size
 
 # Choix dans la section de la maille
 
-lim_alt, rupt_alt = 5.7e+6, 0.e+0
+lim_alt, rupt_alt = 0.e+0, 0.e+0
 lat, long = 0, 0
 z_lim = int(lim_alt/delta_z)
 z_reso = int(h/delta_z) + 1
