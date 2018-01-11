@@ -678,7 +678,7 @@ if Parameters == True :
 
         if rank == 0 :
 
-            P_rmd, T_rmd, Q_rmd, gen_cond_rmd, composit_rmd, wher, indices, liste = sort_set_param(P,T,Q,gen,comp,Tracer,Cloudy)
+            P_rmd, T_rmd, Q_rmd, gen_cond_rmd, composit_rmd, wher, indices, liste = sort_set_param(P,T,Q,gen,comp,rank,Tracer,Cloudy)
             p = np.log10(P_rmd)
             p_min = int(np.amin(p)-1)
             p_max = int(np.amax(p)+1)

@@ -685,7 +685,7 @@ if Parameters == True :
             Q = Q[:,dom_rank,:]
         if Cloudy == True :
             gen = gen[:,:,dom_rank,:]
-        P_rmd, T_rmd, Q_rmd, gen_cond_rmd, composit_rmd, wher, indices, liste = sort_set_param(P,T,Q,gen,comp,Tracer,Cloudy)
+        P_rmd, T_rmd, Q_rmd, gen_cond_rmd, composit_rmd, wher, indices, liste = sort_set_param(P,T,Q,gen,comp,rank,Tracer,Cloudy)
         p = np.log10(P_rmd)
         p_min = int(np.amin(p)-1)
         p_max = int(np.amax(p)+1)
@@ -1063,7 +1063,7 @@ if Cylindric_transfert_3D == True :
                 tau += np.log(I_step)
         Itot = np.exp(tau)
         np.save('%s.npy'%(save_name_3D),Itot)
-        print 'Final save directory'%(save_name_3D)
+        print 'Final save directory : %s'%(save_name_3D)
 
 ########################################################################################################################
 

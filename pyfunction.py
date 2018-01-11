@@ -296,7 +296,7 @@ def diag(data_base) :
 ########################################################################################################################
 
 
-def sort_set_param(P,T,Q,gen,compo,Marker=False,Clouds=False) :
+def sort_set_param(P,T,Q,gen,compo,rank,Marker=False,Clouds=False) :
 
     sh = np.shape(P)
     ind = 0
@@ -367,7 +367,8 @@ def sort_set_param(P,T,Q,gen,compo,Marker=False,Clouds=False) :
 
     del P_rmd,T_rmd
 
-    bar = ProgressBar(wh.size, 'Sort and set of the parameters')
+    if rank == 0 :
+        bar = ProgressBar(wh.size, 'Sort and set of the parameters')
 
     list = []
 
@@ -380,8 +381,9 @@ def sort_set_param(P,T,Q,gen,compo,Marker=False,Clouds=False) :
             if P_s[ind] == P_s[ind - 1] and T_s[ind] == T_s[ind - 1] :
                 list.append(ind)
 
-        if ind%100000 == 0 or ind == wh.size - 1 :
-            bar.animate(ind +1)
+        if rank == 0 :
+            if ind%100000 == 0 or ind == wh.size - 1 :
+                bar.animate(ind +1)
 
     P_r = np.delete(P_s,list)
     T_r = np.delete(T_s,list)
