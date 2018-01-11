@@ -944,7 +944,6 @@ if Cylindric_transfert_3D == True :
             Q_rmd = np.array([])
         rmind = np.load("%s%s/%s/rmind_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
-        print T_rmd.size, P_rmd.size
 
 ########################################################################################################################
     
@@ -998,7 +997,6 @@ if Cylindric_transfert_3D == True :
                     k_rmd = np.load("%s%s/%s/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain))
                     k_rmd = k_rmd[:,dom_rank]
-                print np.shape(k_rmd)
                 gauss_val = np.array([])
         else :
             if Kcorr == True :
@@ -1012,7 +1010,8 @@ if Cylindric_transfert_3D == True :
                 k_rmd = k_rmd[:,dom_rank]
                 k_rmd = np.shape(k_rmd)
             gauss_val = np.array([])
-            print 'No molecular'
+            if rank == 0 :
+                print 'No molecular'
 
         if Continuum == True :
             if Kcorr == True :
@@ -1025,7 +1024,8 @@ if Cylindric_transfert_3D == True :
                 k_cont_rmd = k_cont_rmd[:,dom_rank]
         else :
             k_cont_rmd = np.array([])
-            print 'No continuum'
+            if rank == 0 :
+                print 'No continuum'
 
         if Scattering == True :
             if Kcorr == True :
@@ -1039,7 +1039,8 @@ if Cylindric_transfert_3D == True :
                 k_sca_rmd = k_sca_rmd[:,dom_rank]
         else :
             k_sca_rmd = np.array([])
-            print 'No scattering'
+            if rank == 0 :
+                print 'No scattering'
 
         if Clouds == True :
             if Kcorr == True :
@@ -1053,7 +1054,8 @@ if Cylindric_transfert_3D == True :
                 k_cloud_rmd = k_cloud_rmd[:,:,dom_rank]
         else :
             k_cloud_rmd = np.array([])
-            print 'No clouds'
+            if rank == 0 :
+                print 'No clouds'
 
 ########################################################################################################################
     
