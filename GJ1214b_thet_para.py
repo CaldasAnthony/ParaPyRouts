@@ -703,8 +703,6 @@ if Parameters == True :
 
         rmind[1,i_r+1] = p_max
 
-        print rmind
-
                                     ###### Parallele encoding end ######
 
         convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,path,direc,reso_long,reso_lat,name_exo,t,\
@@ -964,7 +962,6 @@ if Cylindric_transfert_3D == True :
                     k_rmd = np.load("%s%s/%s/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
                 gauss_val = np.array([])
-                print np.shape(k_rmd)
         else :
             if Kcorr == True :
                 k_rmd = np.load("%s%s/%s/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
@@ -1020,11 +1017,10 @@ if Cylindric_transfert_3D == True :
         if rank == 0 : 
             print 'Pytmosph3R will begin to compute the %s contribution'%(cases_names[wh_ca[i_ca]])
 
-        I_n = trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dom_rank.size,data_convert,\
+        I_n = trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dim_bande,data_convert,\
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
                   name_file,n_species,Single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
                   Tracer,Continuum,Molecular,Scattering,Clouds,Kcorr,Rupt,Module,Integration,TimeSel,True)
-        print np.shape(I_n)
 
         if rank == 0 :
             sh_I = np.shape(I_n)
