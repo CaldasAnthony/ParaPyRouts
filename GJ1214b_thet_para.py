@@ -1029,7 +1029,7 @@ if Cylindric_transfert_3D == True :
             sh_I = np.shape(I_n)
             r_size, theta_size = sh_I[1], sh_I[2]
             Itot = np.zeros((dim_bande,r_size,theta_number),dtype=np.float64)
-            Itot[dom_rank,:,:] = I_n
+            Itot[:,:,dom_rank] = I_n
         else : 
             I_n = np.array(I_n,dtype=np.float64)
             comm.Send([I_n,MPI.DOUBLE],dest=0,tag=0)
