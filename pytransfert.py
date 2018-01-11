@@ -87,7 +87,7 @@ def trans2fert1D (k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,T_cont,Q_cl
                   x_step,gauss,gauss_val,dim_bande,data,P_col,T_col,gen_col,Q_col,compo_col,ind_active,dx_grid,order_grid,pdx_grid,\
                   P_sample,T_sample,Q_sample,bande_sample,name_file,n_species,c_species,single,\
                   bande_cloud,r_eff,r_cloud,rho_p,t,phi_rot,domain,ratio,lim_alt,rupt_alt,directory,z_grid,type,\
-                  Marker=False,Continuum=True,Isolated=False,Scattering=True,Clouds=False,Kcorr=True,Rupt=False,\
+                  Marker=False,Continuum=True,Molecular=False,Scattering=True,Clouds=False,Kcorr=True,Rupt=False,\
                   Middle=False,Integral=False,Module=False,Optimal=False,D3Maille=False) :
 
     r_size,theta_size,x_size = np.shape(dx_grid)
@@ -175,7 +175,7 @@ def trans2fert1D (k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,T_cont,Q_cl
                     Cn_mol_ref = P_ref/(R_gp*T_ref)*N_A
 
                     I_out = radiative_transfert_remind3D(dx_ref,pdx[zone[cut]],Cn_mol_ref,k_inter,k_cont_inter,k_sca_inter,\
-                            k_cloud_inter,gauss_val,single,Continuum,Isolated,Scattering,Clouds,Kcorr,Integral)
+                            k_cloud_inter,gauss_val,single,Continuum,Molecular,Scattering,Clouds,Kcorr,Integral)
 
                     Itot[:, r_line, 0] = I_out[:]
 
@@ -210,7 +210,7 @@ def trans2fert1D (k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,T_cont,Q_cl
 def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dim_bande,data,\
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
                   name_file,n_species,single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
-                  Marker=False,Continuum=True,Isolated=False,Scattering=True,Clouds=True,Kcorr=True,\
+                  Marker=False,Continuum=True,Molecular=False,Scattering=True,Clouds=True,Kcorr=True,\
                   Rupt=False,Module=False,Integral=False,TimeSel=False) :
 
     r_size,theta_size,x_size = np.shape(dx_grid)
@@ -266,13 +266,13 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
 
                     k_inter,k_cont_inter,k_sca_inter,k_cloud_inter,fail = \
                     k_correlated_interp_remind3D_M(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,P_ref.size,\
-                    P_rmd,P_ref,T_rmd,T_ref,Q_rmd,Q_ref,n_species,fail,rmind,Continuum,Isolated,Scattering,Clouds,Kcorr)
+                    P_rmd,P_ref,T_rmd,T_ref,Q_rmd,Q_ref,n_species,fail,rmind,Continuum,Molecular,Scattering,Clouds,Kcorr)
 
                 else :
 
                     k_inter,k_cont_inter,k_sca_inter,k_cloud_inter,fail = \
                     k_correlated_interp_remind3D(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,P_ref.size,\
-                    P_rmd,P_ref,T_rmd,T_ref,n_species,fail,rmind,Continuum,Isolated,Scattering,Clouds,Kcorr)
+                    P_rmd,P_ref,T_rmd,T_ref,n_species,fail,rmind,Continuum,Molecular,Scattering,Clouds,Kcorr)
 
                 if Module == True :
                     z_ref = z_grid[r_line,theta_line,order[3,zone]]
@@ -280,7 +280,7 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
                 Cn_mol_ref = P_ref/(R_gp*T_ref)*N_A
 
                 I_out = radiative_transfert_remind3D(dx_ref,pdx_ref,Cn_mol_ref,k_inter,k_cont_inter,k_sca_inter,\
-                    k_cloud_inter,gauss_val,single,Continuum,Isolated,Scattering,Clouds,Kcorr,Integral)
+                    k_cloud_inter,gauss_val,single,Continuum,Molecular,Scattering,Clouds,Kcorr,Integral)
 
                 Itot[:, r_line, theta_line] = I_out
 

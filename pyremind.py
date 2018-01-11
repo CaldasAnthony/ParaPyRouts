@@ -184,20 +184,20 @@ def k_correlated_interp_remind_M(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P_r
 
 
 def k_correlated_interp_remind3D(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P_rmd,P_array,\
-                T_rmd,T_array,n_species,fail,rmind,Continuum=False,Isolated=False,Scattering=False,Clouds=False,Kcorr=False) :
+                T_rmd,T_array,n_species,fail,rmind,Continuum=False,Molecular=False,Scattering=False,Clouds=False,Kcorr=False) :
 
     from pykcorr import Ksearcher, k_cont_interp_h2h2_integration, k_cont_interp_h2he_integration
 
     sh = np.shape(k_cloud_rmd)
 
     if Kcorr == True :
-        if Isolated == False :
+        if Molecular == True :
             tot_size,dim_bande,dim_gauss = np.shape((k_rmd))
         else :
             tot_size,dim_bande,dim_gauss = k_rmd
         k_inter = np.zeros((size,dim_bande,dim_gauss))
     else :
-        if Isolated == False :
+        if Molecular == True :
             tot_size,dim_bande = np.shape((k_rmd))
         else :
             tot_size,dim_bande = k_rmd
@@ -247,10 +247,10 @@ def k_correlated_interp_remind3D(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P_r
             index = np.int(rmind[0,ind-1])+index[0]
 
             if Kcorr == True :
-                if Isolated == False :
+                if Molecular == True :
                     k_inter[i,:,:] = k_rmd[index,:,:]
             else :
-                if Isolated == False :
+                if Molecular == True :
                     k_inter[i,:] = k_rmd[index,:]
 
             if Continuum == True :
@@ -274,10 +274,10 @@ def k_correlated_interp_remind3D(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P_r
                 # les couples successifs sont tres proches les uns des autres
 
                 if Kcorr == True :
-                    if Isolated == True :
+                    if Molecular == True :
                         k_inter[i,:,:] = k_inter[i-1,:,:]
                 else :
-                    if Isolated == True :
+                    if Molecular == True :
                         k_inter[i,:] = k_inter[i-1,:]
 
                 if Continuum == True :
@@ -296,20 +296,20 @@ def k_correlated_interp_remind3D(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P_r
 
 
 def k_correlated_interp_remind3D_M(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P_rmd,P_array,\
-                T_rmd,T_array,Q_rmd,Q_array,n_species,fail,rmind,Continuum=False,Isolated=False,Scattering=False,Clouds=False,Kcorr=False) :
+                T_rmd,T_array,Q_rmd,Q_array,n_species,fail,rmind,Continuum=False,Molecular=False,Scattering=False,Clouds=False,Kcorr=False) :
 
     from pykcorr import Ksearcher, k_cont_interp_h2h2_integration, k_cont_interp_h2he_integration
 
     sh = np.shape(k_cloud_rmd)
 
     if Kcorr == True :
-        if Isolated == False :
+        if Molecular == True :
             tot_size,dim_bande,dim_gauss = np.shape((k_rmd))
         else :
             tot_size,dim_bande,dim_gauss = k_rmd
         k_inter = np.zeros((size,dim_bande,dim_gauss))
     else :
-        if Isolated == False :
+        if Molecular == True :
             tot_size,dim_bande = np.shape((k_rmd))
         else :
             tot_size,dim_bande = k_rmd
@@ -347,10 +347,10 @@ def k_correlated_interp_remind3D_M(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P
             index = np.int(rmind[0,ind-1])+index[0]
 
             if Kcorr == True :
-                if Isolated == False :
+                if Molecular == True :
                     k_inter[i,:,:] = k_rmd[index,:,:]
             else :
-                if Isolated == False :
+                if Molecular == True :
                     k_inter[i,:] = k_rmd[index,:]
 
             if Continuum == True :
@@ -375,10 +375,10 @@ def k_correlated_interp_remind3D_M(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P
                 # les couples successifs sont tres proches les uns des autres
 
                 if Kcorr == True :
-                    if Isolated == True :
+                    if Molecular == True :
                         k_inter[i,:,:] = k_inter[i-1,:,:]
                 else :
-                    if Isolated == True :
+                    if Molecular == True :
                         k_inter[i,:] = k_inter[i-1,:]
 
                 if Continuum == True :
@@ -416,7 +416,7 @@ def k_correlated_interp_remind3D_M(k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,size,P
 
 
 def radiative_transfert_remind3D(dx_ref,pdx_ref,Cn_ref,K,K_cont,K_sca,K_cloud,gauss_val,single,continuum=False,\
-                                 isolated=False,scattering=False,clouds=False,kcorr=False,integral=False) :
+                                 molecular=False,scattering=False,clouds=False,kcorr=False,integral=False) :
 
     if kcorr == True :
 
@@ -450,7 +450,7 @@ def radiative_transfert_remind3D(dx_ref,pdx_ref,Cn_ref,K,K_cont,K_sca,K_cloud,ga
 
         k_inter = K[g,:,:]
 
-        if isolated == False :
+        if molecular == True :
 
             t = np.zeros((dim_bande,dim_gauss))
             tau = np.zeros((dim_bande,dim_gauss))
@@ -535,7 +535,7 @@ def radiative_transfert_remind3D(dx_ref,pdx_ref,Cn_ref,K,K_cont,K_sca,K_cloud,ga
         if integral == True :
             pdx_ref = pdx_ref[g]
 
-        if isolated == False :
+        if molecular == True :
 
             k_inter = K[g,:]
 
