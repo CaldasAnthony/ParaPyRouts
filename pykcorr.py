@@ -50,6 +50,7 @@ def convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,directory
 
     if ByLay == True :
         domain += '_%i'%(rank)
+        name += '/Temp'
 
     if Kcorr == True :
         np.save("%s%s/P_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
@@ -102,6 +103,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         number_rank = comm.size
     if ByLay == True :
         domain += '_%i'%(rank)
+        name += '/Temp'
 
     zero, = np.where(P_rmd == 0.)
     
