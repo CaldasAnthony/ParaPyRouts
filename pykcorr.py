@@ -172,6 +172,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                     k_rmd_n = np.zeros((sh_k),dtype=np.float64)
                     comm.Recv([k_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
                     k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd))
+                    print np.shape(k_rmd_tot)
                     bar.animate(i_n+1)
 
                 if Optimal == False :
