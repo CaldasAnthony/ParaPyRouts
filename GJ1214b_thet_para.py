@@ -669,6 +669,7 @@ if Parameters == True :
 ########################################################################################################################
 
     dom_rank = (theta_number,number_rank,rank,True)
+    print dom_rank
 
     if Convert == True :
 
