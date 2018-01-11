@@ -87,7 +87,7 @@ def trans2fert1D (k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,T_cont,Q_cl
                   x_step,gauss,gauss_val,dim_bande,data,P_col,T_col,gen_col,Q_col,compo_col,ind_active,dx_grid,order_grid,pdx_grid,\
                   P_sample,T_sample,Q_sample,bande_sample,name_file,n_species,c_species,single,\
                   bande_cloud,r_eff,r_cloud,rho_p,t,phi_rot,domain,ratio,lim_alt,rupt_alt,directory,z_grid,type,\
-                  Marker=False,Continuum=True,Molecular=False,Scattering=True,Clouds=False,Kcorr=True,Rupt=False,\
+                  Tracer=False,Continuum=True,Molecular=False,Scattering=True,Clouds=False,Kcorr=True,Rupt=False,\
                   Middle=False,Integral=False,Module=False,Optimal=False,D3Maille=False) :
 
     r_size,theta_size,x_size = np.shape(dx_grid)
@@ -146,7 +146,7 @@ def trans2fert1D (k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,T_cont,Q_cl
                         convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,\
                         k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,Q_cloud,T_cont,P_sample,\
                         T_sample,Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,name_file,t,phi_rot,\
-                        n_species,domain,ratio,directory,Marker,Composition,Continuum,Scattering,Clouds,Kcorr,Optimal)
+                        n_species,domain,ratio,directory,Tracer,Composition,Continuum,Scattering,Clouds,Kcorr,Optimal)
 
                     zone, = np.where(dx >= 0)
                     cut, = np.where(order[0,zone] < z_size)
@@ -155,7 +155,7 @@ def trans2fert1D (k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,T_cont,Q_cl
                     data_ref = data[:,order[0,zone[cut]],0,0]
                     P_ref, T_ref = data_ref[0], data_ref[1]
 
-                    if Marker == True :
+                    if Tracer == True :
 
                         Q_ref = data_ref[2]
 
@@ -210,7 +210,7 @@ def trans2fert1D (k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,T_cont,Q_cl
 def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dim_bande,data,\
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
                   name_file,n_species,single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
-                  Marker=False,Continuum=True,Molecular=False,Scattering=True,Clouds=True,Kcorr=True,\
+                  Tracer=False,Continuum=True,Molecular=False,Scattering=True,Clouds=True,Kcorr=True,\
                   Rupt=False,Module=False,Integral=False,TimeSel=False) :
 
     r_size,theta_size,x_size = np.shape(dx_grid)
@@ -219,7 +219,7 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
     if TimeSel == True :
         data = data[:,t,:,:,:]
 
-    Itot = np.zeros((dim_bande,r_size,theta_size))
+    Itot = np.ones((dim_bande,r_size,theta_size))
 
     if rank == rank_ref : 
         bar = ProgressBar(theta_size,'Radiative transfert progression')
@@ -260,7 +260,7 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
                 data_ref = data[:,order[0,zone],order[1,zone],order[2,zone]]
                 P_ref, T_ref = data_ref[0], data_ref[1]
 
-                if Marker == True :
+                if Tracer == True :
 
                     Q_ref = data_ref[2]
 

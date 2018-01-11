@@ -204,7 +204,7 @@ def saving(dimension,type,special,save_adress,version,name,reso_long,reso_lat,t,
     if rupt_alt != 0 :
         h_range = '%i:%i'%(rupt_alt/r_step,lim_alt/r_step)
     else :
-        if lim_alt != 0. :
+        if lim_alt != 0. and lim_alt != h :
             h_range = '%i'%(lim_alt/r_step)
         else :
             h_range = '%i'%(h/r_step)
