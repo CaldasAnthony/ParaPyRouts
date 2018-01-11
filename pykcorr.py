@@ -138,7 +138,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                     comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
                     k_rmd_n = np.zeros((sh_k),dtype=np.float64)
                     comm.Recv([k_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
-                    k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd))
+                    k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd_n))
                     bar.animate(i_n+1)
 
                 np.save("%s%s/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
@@ -150,7 +150,6 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 k_rmd = Ssearcher(T_rmd,P_rmd,compo_active,K,P_sample,T_sample,rank,rank_ref,Kcorr,Optimal)
             else :
                 k_rmd = Ssearcher_M(T_rmd,P_rmd,Q_rmd,compo_active,K,P_sample,T_sample,rank,rank_ref,Kcorr,Optimal)
-            print np.shape(k_rmd)
 
             if rank_max == comm.size :
                 comm.Barrier()
@@ -172,8 +171,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                     comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
                     k_rmd_n = np.zeros((sh_k),dtype=np.float64)
                     comm.Recv([k_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
-                    k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd))
-                    print np.shape(k_rmd_tot)
+                    k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd_n))
                     bar.animate(i_n+1)
 
                 if Optimal == False :
@@ -182,7 +180,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 else :
                     np.save("%s%s/k_cross_opt_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
-                print np.shape(k_rmd_tot)
+                np.shape(k_rmd_tot)
                 del k_rmd_tot
 
                 if Kcorr == True :
@@ -302,6 +300,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd_tot))
 
             print "Integration of the continuum finished with success"
+            print np.shape(k_cont_rmd_tot)
 
             del k_cont_rmd_tot
         del k_cont_rmd
@@ -346,6 +345,8 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_sca_rmd_tot)
 
             print "Rayleigh_scattering finished with success"
+
+            print np.shape(k_sca_rmd_tot)
 
             del k_sca_rmd_tot
 
@@ -421,6 +422,8 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 np.save("%s%s/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
                 %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd_fin)
             del k_cloud_rmd_fin
+
+            print np.shape(k_cloud_rmd_fin)
 
             print "Cloud scattering finished with success, process are beginning to save data remind"
 
