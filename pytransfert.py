@@ -222,7 +222,7 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
     Itot = np.ones((dim_bande,r_size,theta_size))
 
     if rank == rank_ref : 
-        bar = ProgressBar(int(round(2*np.pi/theta_step)),'Radiative transfert progression')
+        bar = ProgressBar(theta_size,'Radiative transfert progression')
 
     for i in range(theta_size) :
 
