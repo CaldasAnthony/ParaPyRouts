@@ -1026,8 +1026,6 @@ if Cylindric_transfert_3D == True :
             sh_I = np.shape(I_n)
             r_size, theta_size = sh_I[1], sh_I[2]
             Itot = np.zeros((dim_bande,r_size,theta_number),dtype=np.float64)
-            print np.shape(I_n)
-            print np.shape(Itot)
             Itot[:,:,dom_rank] = I_n
         else : 
             I_n = np.array(I_n,dtype=np.float64)
@@ -1055,7 +1053,7 @@ if Cylindric_transfert_3D == True :
             stud = stud_type(r_eff,Single,Continuum,Molecular,Scattering,Clouds)
             save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
                     phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
-            print save_name_3D_step
+            print 'Save directory : %s'%(save_name_3D_step)
             I_step = np.load('%s.npy'%(save_name_3D_step))
             if i_ca == 0 :
                 tau = np.log(I_step)
@@ -1063,7 +1061,7 @@ if Cylindric_transfert_3D == True :
                 tau += np.log(I_step)
         Itot = np.exp(tau)
         np.save('%s.npy'%(save_name_3D),Itot)
-        print save_name_3D
+        print 'Final save directory'%(save_name_3D)
 
 ########################################################################################################################
 
