@@ -672,6 +672,8 @@ if Parameters == True :
 
     if Convert == True :
 
+        comm.Barrier()
+
                                     ###### Parallele encoding end ######
 
         direc = "%s/%s/"%(name_file,opac_file)
