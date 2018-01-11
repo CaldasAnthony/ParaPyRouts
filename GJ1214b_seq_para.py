@@ -1089,21 +1089,21 @@ if Cylindric_transfert_3D == True :
             del Itot
         del I_n
     
-        if rank == 0 :
-            for i_ca in range(wh_ca.size) :
-                proc = np.array([False,False,False,False])
-                proc[wh_ca[i_ca]] = True
-                Molecular, Continuum, Scattering, Clouds = proc[0],proc[1],proc[2],proc[3]
-                stud = stud_type(r_eff,Single,Continuum,Molecular,Scattering,Clouds)
-                save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
-                        phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
-                I_step = np.load('%s.npy'%(save_name_3D_step))
-                if i_ca == 0 :
-                    tau = np.log(I_step)
-                else :
-                    tau += np.log(I_step)
-            Itot = np.exp(tau)
-            np.save('%s.npy'%(save_name_3D),Itot)
+    if rank == 0 :
+        for i_ca in range(wh_ca.size) :
+            proc = np.array([False,False,False,False])
+            proc[wh_ca[i_ca]] = True
+            Molecular, Continuum, Scattering, Clouds = proc[0],proc[1],proc[2],proc[3]
+            stud = stud_type(r_eff,Single,Continuum,Molecular,Scattering,Clouds)
+            save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
+                    phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
+            I_step = np.load('%s.npy'%(save_name_3D_step))
+            if i_ca == 0 :
+                tau = np.log(I_step)
+            else :
+                tau += np.log(I_step)
+        Itot = np.exp(tau)
+        np.save('%s.npy'%(save_name_3D),Itot)
 
 ########################################################################################################################
 
