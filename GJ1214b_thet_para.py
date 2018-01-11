@@ -1027,7 +1027,6 @@ if Cylindric_transfert_3D == True :
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
                   name_file,n_species,Single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
                   Tracer,Continuum,Molecular,Scattering,Clouds,Kcorr,Rupt,Module,Integration,TimeSel)
-        print I_n
 
         if rank == 0 :
             sh_I = np.shape(I_n)
@@ -1046,6 +1045,7 @@ if Cylindric_transfert_3D == True :
                 comm.Recv([I_rn,MPI.DOUBLE],source=r_n,tag=0)
                 Itot[:,:,new_dom_rank] = I_rn
                 bar.animate(r_n+1)
+            print Itot
 
         if rank == 0 :
             np.save('%s.npy'%(save_name_3D_step),Itot)
