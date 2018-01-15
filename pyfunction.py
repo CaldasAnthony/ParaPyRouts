@@ -997,7 +997,6 @@ def latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,reso_lat,alpha,alpha_o
         else :
             alpha_norm = alpha - alpha%alpha_step + alpha_step
         q, = np.where(np.round(long_ref,7) == np.round(alpha_norm,7))
-        print p,q,alpha_norm,long_ref
         q = q[0]
 
         if q == reso_long :
