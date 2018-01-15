@@ -287,8 +287,7 @@ def diag(data_base) :
     g = controle[6]
     reso_long = controle[0]
     reso_lat = controle[1]
-    print np.amax(np.array([reso_long,reso_lat]))
-    long_lat = np.zeros((2,np.amax(np.array([reso_long,reso_lat]))))
+    long_lat = np.zeros((2,int(np.amax(np.array([reso_long,reso_lat])))+1))
     long_lat[0,0:reso_long] = variables['longitude'][:]*np.pi/180.
     long_lat[1,0:reso_lat] = variables['latitude'][:]*np.pi/180.
 
@@ -940,8 +939,8 @@ def latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,reso_lat,alpha,alpha_o
                x,x_range,x_reso,x_step,theta_range,theta_number,begin,inv,refrac,long_lat,\
                Theta_init=False,Middle=True,Obliquity=False) :
 
-    long_ref = long_lat[0]
-    lat_ref = long_lat[1]
+    long_ref = long_lat[0,0:reso_long+1]
+    lat_ref = long_lat[1,0:reso_lat+1]
 
     if Theta_init == True :
 
