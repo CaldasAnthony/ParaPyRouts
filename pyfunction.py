@@ -288,8 +288,8 @@ def diag(data_base) :
     reso_long = controle[0]
     reso_lat = controle[1]
     long_lat = np.zero((2,np.amax(reso_long,reso_lat)))
-    long_lat[0,0:reso_long] = variables['longitude'][:]
-    long_lat[1,0:reso_lat] = variables['latitude'][:]
+    long_lat[0,0:reso_long] = variables['longitude'][:]*np.pi/180.
+    long_lat[1,0:reso_lat] = variables['latitude'][:]*np.pi/180.
 
     return Rp,g,reso_long,reso_lat,long_lat
 
