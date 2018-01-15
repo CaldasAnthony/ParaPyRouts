@@ -386,6 +386,8 @@ if Parameters == True :
         if rank == 0 :
                 print 'Computation of the cylindrical stictch finished with success'
 
+    comm.Barrier()
+
 
 ########################################################################################################################
 
@@ -528,6 +530,8 @@ if Parameters == True :
         if rank == 0 :
             print 'Computation of optical pathes finished with success'
 
+    comm.Barrier()
+
 ########################################################################################################################
 
     if Matrix == True :
@@ -643,6 +647,7 @@ if Parameters == True :
 
         del result_n,order_grid
 
+    comm.Barrier()
 
 ########################################################################################################################
 
@@ -1045,7 +1050,6 @@ if Cylindric_transfert_3D == True :
                 comm.Recv([I_rn,MPI.DOUBLE],source=r_n,tag=0)
                 Itot[:,:,new_dom_rank] = I_rn
                 bar.animate(r_n+1)
-            print Itot
 
         if rank == 0 :
             np.save('%s.npy'%(save_name_3D_step),Itot)
