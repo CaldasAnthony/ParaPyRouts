@@ -287,7 +287,7 @@ if Parameters == True :
         z_array = np.arange(h/np.float(delta_z)+1)*float(delta_z)
 
         p_grid_n,q_grid_n,z_grid_n,n_level_rank = cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,theta_number,\
-                                x_step,z_array,phi_rot,phi_obli,reso_long,reso_lat,rank,number_rank,Obliquity,Middle)
+                                x_step,z_array,phi_rot,phi_obli,reso_long,reso_lat,long_lat,rank,number_rank,Obliquity,Middle)
 
                                     ###### Parallele encoding init ######
 
@@ -1061,6 +1061,10 @@ if Cylindric_transfert_3D == True :
     
         if rank == 0 : 
             print 'Pytmosph3R will begin to compute the %s contribution'%(cases_names[wh_ca[i_ca]])
+
+        if Rupt == False :
+            lim_alt = h
+            rupt_alt = 0
 
         I_n = trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dom_rank.size,data_convert,\
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\

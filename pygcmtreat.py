@@ -584,7 +584,7 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
 
 
 def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,theta_number,x_step,z_level,phi_rot,\
-                                   phi_obli,reso_long,reso_lat,rank,number_rank,Obliquity=False,Middle=False) :
+                                   phi_obli,reso_long,reso_lat,long_lat,rank,number_rank,Obliquity=False,Middle=False) :
 
     # On calcule la distance maximale que peut parcourir un rayon lumineux rasant comme un entier et un multiple du pas
     # en x
@@ -694,7 +694,7 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 
                         p, q, z, alpha_o_ref, alpha_o_ref_0, inv, refrac, begin = latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,\
                                                         reso_lat,alpha,alpha_o_ref,alpha_o_ref_0,alpha_step,reso_long,phi_obli,x,x_range,\
-                                                        x_reso,x_step,theta_range,theta_number,begin,inv,refrac,True,Middle,Obliquity)
+                                                        x_reso,x_step,theta_range,theta_number,begin,inv,refrac,long_lat,True,Middle,Obliquity)
 
                         if Obliquity == False :
 
