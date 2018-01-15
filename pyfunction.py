@@ -290,6 +290,10 @@ def diag(data_base) :
     long_lat = np.zeros((2,int(np.amax(np.array([reso_long,reso_lat])))+1))
     long_lat[0,0:reso_long+1] = variables['longitude'][:]*np.pi/180.
     long_lat[1,0:reso_lat+1] = variables['latitude'][:]*np.pi/180.
+    print variables['longitude'][:]
+    print variables['latitude'][:]
+    print variables['longitude'][:]*np.pi/180.
+    print variables['latitude'][:]*np.pi/180.
 
     return Rp,g,reso_long,reso_lat,long_lat
 
