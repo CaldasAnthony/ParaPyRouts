@@ -984,7 +984,8 @@ def latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,reso_lat,alpha,alpha_o
             delta_norm = delta - delta%delta_step
         else :
             delta_norm = delta - delta%delta_step + delta_step
-        p = np.where(lat_ref == delta_norm)[0]
+        p, = np.where(lat_ref == delta_norm)
+        p = p[0]
 
         # A partir de la longitude, on en deduit l'indice q correspondant dans la maille spherique, cet
         # indice doit evoluer entre 0 (alpha -pi) et reso_long (alpha pi), sachant que le premier et le
@@ -994,7 +995,8 @@ def latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,reso_lat,alpha,alpha_o
             alpha_norm = alpha - alpha%alpha_step
         else :
             alpha_norm = alpha - alpha%alpha_step + alpha_step
-        q = np.where(long_ref == alpha_norm)[0]
+        q, = np.where(long_ref == alpha_norm)
+        q = q[0]
 
         if q == reso_long :
             q = 0
@@ -1031,7 +1033,8 @@ def latlongalt(Rp,h,r,rho,r_step,z_level,delta,delta_step,reso_lat,alpha,alpha_o
             delta_norm = delta_o - delta_o%delta_step
         else :
             delta_norm = delta_o - delta_o%delta_step + delta_step
-        p = np.where(lat_ref == delta_norm)[0]
+        p, = np.where(lat_ref == delta_norm)
+        p = p[0]
 
     return p, q, z, alpha_o_ref, alpha_o_ref_0, inv, refrac, begin
 
@@ -1159,7 +1162,8 @@ def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o
             alpha_norm = alpha_o - alpha_o%alpha_step
         else :
             alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
-        q_o = np.where(long_ref == alpha_norm)[0]
+        q_o, = np.where(long_ref == alpha_norm)
+        q_o = q_o[0]
 
         if q_o == reso_long :
             q_o = 0
@@ -1172,7 +1176,8 @@ def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o
                 alpha_norm = alpha_o - alpha_o%alpha_step
             else :
                 alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
-            q_o = np.where(long_ref == alpha_norm)[0]
+            q_o, = np.where(long_ref == alpha_norm)
+            q_o = q_o[0]
 
             if q_o == reso_long :
                 q_o = 0
@@ -1188,7 +1193,8 @@ def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o
                 else :
                     alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
 
-                q_o = np.where(long_ref == alpha_norm)[0]
+                q_o, = np.where(long_ref == alpha_norm)
+                q_o = q_o[0]
 
                 if q_o == reso_long : q_o = 0
 
@@ -1198,8 +1204,8 @@ def qoblicator(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alpha_o
                     alpha_norm = alpha_o_ref_0 - alpha_o_ref_0%alpha_step
                 else :
                     alpha_norm = alpha_o_ref_0 - alpha_o_ref_0%alpha_step + alpha_step
-
-                q_o = np.where(long_ref == alpha_norm)[0]
+                q_o, = np.where(long_ref == alpha_norm)
+                q_o = q_o[0]
 
                 if q_o == reso_long : q_o = 0
 
@@ -1338,7 +1344,8 @@ def qoblicator_neg(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alp
             alpha_norm = alpha_o - alpha_o%alpha_step
         else :
             alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
-        q_o = np.where(long_ref == alpha_norm)[0]
+        q_o, = np.where(long_ref == alpha_norm)
+        q_o = q_o[0]
 
         if q_o == reso_long :
             q_o = 0
@@ -1366,7 +1373,8 @@ def qoblicator_neg(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alp
                     alpha_norm = alpha_o - alpha_o%alpha_step
                 else :
                     alpha_norm = alpha_o - alpha_o%alpha_step + alpha_step
-                q_o = np.where(long_ref == alpha_norm)[0]
+                q_o, = np.where(long_ref == alpha_norm)
+                q_o = q_o[0]
 
                 if q_o == reso_long : q_o = 0
 
@@ -1376,7 +1384,8 @@ def qoblicator_neg(theta_range,x,x_range,x_ref,theta_number,phi_obli,alpha_o,alp
                     alpha_norm = alpha_o_ref_0 - alpha_o_ref_0%alpha_step
                 else :
                     alpha_norm = alpha_o_ref_0 - alpha_o_ref_0%alpha_step + alpha_step
-                q_o = np.where(long_ref == alpha_norm)[0]
+                q_o, = np.where(long_ref == alpha_norm)
+                q_o = q_o[0]
 
                 if q_o == reso_long : q_o = 0
 
