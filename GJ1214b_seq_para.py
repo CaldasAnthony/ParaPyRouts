@@ -272,6 +272,12 @@ if Profil == True :
                                     ###### Parallele encoding end ######
 
         if rank == 0 :
+            if Inverse[0] == 'True' :
+                data_convert = reverse_dim(data_convert,4,np.float64)
+                print 'Data needs to be reverse on longitude.'
+            if Inverse[1] == 'True' :
+                data_convert = reverse_dim(data_convert,3,np.float64)
+                print 'Data needs to be reverse on latitude.'
             print 'Conversion of the dataset finished with success'
             np.save("%s%s/%s/%s_data_convert_%i%i%i.npy"%(path,name_file,param_file,name_exo,reso_alt,reso_long,reso_lat),\
                     data_convert)

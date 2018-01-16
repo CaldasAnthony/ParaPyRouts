@@ -239,7 +239,7 @@ if Profil == True :
                                     ###### Parallele encoding end ######
 
             data_convert_part = Boxes_conversion(P,T,Q,gen,z_sphe,composition,delta_z,Rp,h,hmax,dim,g0,M_molar,number,T_comp,P_comp,\
-                 Q_comp,X_species,M_species,ratio_HeH2,rank,Upper,Inverse,Tracer,Cloudy,Middle,LogInterp,MassAtm,NoH2)
+                 Q_comp,X_species,M_species,ratio_HeH2,rank,Upper,Tracer,Cloudy,Middle,LogInterp,MassAtm,NoH2)
 
                                     ###### Parallele encoding init ######
 
@@ -272,6 +272,12 @@ if Profil == True :
                                     ###### Parallele encoding end ######
 
         if rank == 0 :
+            if Inverse[0] == 'True' :
+                data_convert = reverse_dim(data_convert,4,np.float64)
+                print 'Data needs to be reverse on longitude.'
+            if Inverse[1] == 'True' :
+                data_convert = reverse_dim(data_convert,3,np.float64)
+                print 'Data needs to be reverse on latitude.'
             print 'Conversion of the dataset finished with success'
             np.save("%s%s/%s/%s_data_convert_%i%i%i.npy"%(path,name_file,param_file,name_exo,reso_alt,reso_long,reso_lat),\
                     data_convert)

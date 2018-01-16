@@ -357,7 +357,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
 
 
 def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_comp,P_comp,Q_comp,x_species,M_species,ratio,rank,Upper,\
-        Inverse,Tracer=False,Clouds=False,Middle=False,LogInterp=False,MassAtm=False,NoH2=False) :
+        Tracer=False,Clouds=False,Middle=False,LogInterp=False,MassAtm=False,NoH2=False) :
 
     n_t,n_l,n_lat,n_long = np.shape(P)
     data_convert = np.zeros((number,n_t,dim,n_lat,n_long),dtype=np.float64)
@@ -561,13 +561,6 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
 
     if rank == 0 :
         print 'Shape of the dataset :',np.shape(data_convert)
-
-    if Inverse[0] == 'True' :
-        data_convert = reverse_dim(data_convert,4,np.float64)
-        print 'Data needs to be reverse on longitude.'
-    if Inverse[1] == 'True' :
-        data_convert = reverse_dim(data_convert,3,np.float64)
-        print 'Data needs to be reverse on latitude.'
 
     return data_convert
 
