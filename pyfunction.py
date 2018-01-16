@@ -291,7 +291,7 @@ def diag(data_base) :
     degpi = np.pi/180.
     long_lat[0,0:reso_long+1] = np.linspace(-180.*degpi,180.*degpi,reso_long+1,dtype=np.float64)
     long_lat[1,0:reso_lat+1] = np.linspace(-90*degpi,90.*degpi,reso_lat+1,dtype=np.float64)
-    inverse = np.array(2,dtype=np.string)
+    inverse = np.array(2,dtype=str)
     inverse[:] = np.array(['False','False'])
     if variables['longitude'][0] == 180. :
         inverse[0] = 'True'
