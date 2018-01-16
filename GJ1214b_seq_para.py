@@ -239,7 +239,7 @@ if Profil == True :
                                     ###### Parallele encoding end ######
 
             data_convert_part = Boxes_conversion(P,T,Q,gen,z_sphe,composition,delta_z,Rp,h,hmax,dim,g0,M_molar,number,T_comp,P_comp,\
-                 Q_comp,X_species,M_species,ratio_HeH2,rank,Upper,Tracer,Cloudy,Middle,LogInterp,MassAtm,NoH2)
+                 Q_comp,X_species,M_species,ratio_HeH2,rank,Upper,Inverse,Tracer,Cloudy,Middle,LogInterp,MassAtm,NoH2)
 
                                     ###### Parallele encoding init ######
 

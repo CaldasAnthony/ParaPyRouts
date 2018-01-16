@@ -53,7 +53,7 @@ Ts = 3000.
 # Proprietes en cas de lecture d'un diagfi
 
 if data_base != '' :
-    Rp, g0, reso_long, reso_lat, long_lat = diag('%s%s'%(data_base,diag_file))
+    Rp, g0, reso_long, reso_lat, long_lat, Inverse = diag('%s%s'%(data_base,diag_file))
 alpha_step, delta_step = 2*np.pi/np.float(reso_long), np.pi/np.float(reso_lat)
 
 # Proprietes de l'atmosphere

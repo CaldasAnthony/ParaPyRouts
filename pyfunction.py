@@ -289,23 +289,30 @@ def diag(data_base) :
     reso_lat = int(controle[1])
     long_lat = np.zeros((2,int(np.amax(np.array([reso_long,reso_lat])))+1))
     degpi = np.pi/180.
-    long_lat[0,0:reso_long+1] = np.linspace(variables['longitude'][0]*degpi,variables['longitude'][reso_long]*degpi,reso_long+1,dtype=np.float64)
-    long_lat[1,0:reso_lat+1] = np.linspace(variables['latitude'][0]*degpi,variables['latitude'][reso_lat]*degpi,reso_lat+1,dtype=np.float64)
+    long_lat[0,0:reso_long+1] = np.linspace(-180.*degpi,180.*degpi,reso_long+1,dtype=np.float64)
+    long_lat[1,0:reso_lat+1] = np.linspace(-90*degpi,90.*degpi,reso_lat+1,dtype=np.float64)
+    inverse = np.array(2,dtype=np.string)
+    inverse[:] = np.array(['False','False'])
+    if variables['longitude'][0] == 180. :
+        inverse[0] = 'True'
+    if variables['latitude'][0] == 90. :
+        inverse[1] = 'True'
 
-    return Rp,g,reso_long,reso_lat,long_lat
+    return Rp,g,reso_long,reso_lat,long_lat,inverse
 
 
 ########################################################################################################################
 
 
-def sort_set_param(P,T,Q,gen,compo,Marker=False,Clouds=False) :
+def sort_set_param(P,T,Q,gen,compo,rank,Marker=False,Clouds=False) :
 
     sh = np.shape(P)
     ind = 0
     P_rmd = np.zeros(sh[0]*sh[1]*sh[2])
     T_rmd = np.zeros(sh[0]*sh[1]*sh[2])
 
-    bar = ProgressBar(sh[0],'Reduction of the parameters')
+    if rank == 0 :
+        bar = ProgressBar(sh[0],'Reduction of the parameters')
 
     if Marker == True :
         Q_rmd = np.zeros(sh[0]*sh[1]*sh[2])
@@ -340,7 +347,8 @@ def sort_set_param(P,T,Q,gen,compo,Marker=False,Clouds=False) :
 
             ind += wh.size
 
-        bar.animate(i + 1)
+        if rank == 0 :
+            bar.animate(i + 1)
 
     del P,T,Q,compo,gen
 
@@ -369,7 +377,8 @@ def sort_set_param(P,T,Q,gen,compo,Marker=False,Clouds=False) :
 
     del P_rmd,T_rmd
 
-    bar = ProgressBar(wh.size, 'Sort and set of the parameters')
+    if rank == 0 :
+        bar = ProgressBar(wh.size, 'Sort and set of the parameters')
 
     list = []
 
@@ -382,8 +391,9 @@ def sort_set_param(P,T,Q,gen,compo,Marker=False,Clouds=False) :
             if P_s[ind] == P_s[ind - 1] and T_s[ind] == T_s[ind - 1] :
                 list.append(ind)
 
-        if ind%100000 == 0 or ind == wh.size - 1 :
-            bar.animate(ind +1)
+        if rank == 0 :
+            if ind%100000 == 0 or ind == wh.size - 1 :
+                bar.animate(ind +1)
 
     P_r = np.delete(P_s,list)
     T_r = np.delete(T_s,list)
@@ -2116,6 +2126,34 @@ def reverse(x) :
     X = np.array([])
     for i in range(k) :
         X = np.append(X, [x[k - 1 - i]])
+    return X
+
+
+########################################################################################################################
+
+
+def reverse_dim(x,dim,dtyp) :
+    sh = np.shape(x)
+    size = sh[dim]
+    X = np.zeros((sh),dtype=dtyp)
+    if dim > 4 :
+        print 'Array too large to reverse'
+    else :
+        if dim == 0 :
+            for i in range(size) :
+                X[i] = x[size-i-1]
+        if dim == 1 :
+            for i in range(size) :
+                X[:,i] = x[:,size-i-1]
+        if dim == 2 :
+            for i in range(size) :
+                X[:,:,i] = x[:,:,size-i-1]
+        if dim == 3 :
+            for i in range(size) :
+                X[:,:,:,i] = x[:,:,:,size-i-1]
+        if dim == 4 :
+            for i in range(size) :
+                X[:,:,:,:,i] = x[:,:,:,:,size-i-1]
     return X
 
 
