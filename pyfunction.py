@@ -90,11 +90,11 @@ def resolution_convertator(I,wavenumber_ref,bande_ref,R_s,Rp,r_step,extra,trans,
 ########################################################################################################################
 
 
-def stud_type(r_eff,single,Continuum=False,Isolated=False,Scattering=False,Clouds=False) :
+def stud_type(r_eff,single,Continuum=False,Molecular=False,Scattering=False,Clouds=False) :
 
     stu = np.array([])
 
-    if Isolated == True :
+    if Molecular == False :
 
         if Continuum == True :
             stu = np.append(stu,np.array(["cont"]))
@@ -128,7 +128,7 @@ def stud_type(r_eff,single,Continuum=False,Isolated=False,Scattering=False,Cloud
 
     if link == 1 :
 
-        if Isolated == True :
+        if Molecular == False :
             if Clouds == True :
                 stud = "%.2f_%s"%(r_eff*10**6,stu[0])
             else :
@@ -472,10 +472,10 @@ def calibration(R,R_eff,spec,min,max,Rs) :
 
 
 def maker_contribution_HR(adress,version,name,dim_bande,lim_alt,reso_step,reso_theta,reso_alt,reso_long,reso_lat,phi_rot,reff,number,single,\
-                          Isolated=False,Continuum=False,Scattering=False,Clouds=False,Remove=False) :
+                          Molecular=False,Continuum=False,Scattering=False,Clouds=False,Remove=False) :
 
     reso_cut = dim_bande/number
-    type = stud_type(single,Continuum,Isolated,Scattering,Clouds)
+    type = stud_type(single,Continuum,Molecular,Scattering,Clouds)
     I = np.zeros((dim_bande,reso_alt,reso_theta),dtype=np.float64)
 
     for i in range(number) :
@@ -497,15 +497,15 @@ def maker_contribution_HR(adress,version,name,dim_bande,lim_alt,reso_step,reso_t
 
 
 def mixing_contribution_HR(adress,version,name,reso_long,reso_lat,dim_bande,lim_alt,reso_step,phi_rot,reff,c_name,\
-                           Isolated,Continuum,Scattering,Clouds,single) :
+                           Molecular,Continuum,Scattering,Clouds,single) :
 
-    stud = stud_type(single,Continuum,Isolated,Scattering,Clouds)
+    stud = stud_type(single,Continuum,Molecular,Scattering,Clouds)
     t_corr = 0
     t_cont = 0
     t_sca = 0
     t_cloud = 0
 
-    if Isolated == False :
+    if Molecular == True :
 
         I_corr = np.load('%s%s/I_%s_%s_3_%i%i_5_%i_%i_%i_%.2f_%.2f_nude_HR.npy'\
                          %(adress,name,version,name,reso_long,reso_lat,dim_bande,lim_alt,reso_step,phi_rot,reff))
