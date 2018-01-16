@@ -90,7 +90,7 @@ import time
 ########################################################################################################################
 
 
-def Boxes_spheric_data(data,t,c_species,m_species,Inverse,Surf=True,Tracer=False,Clouds=False,TimeSelec=False) :
+def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=False,TimeSelec=False) :
 
     file = Dataset("%s.nc"%(data))
     variables = file.variables
