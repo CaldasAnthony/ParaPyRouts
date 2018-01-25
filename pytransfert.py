@@ -87,7 +87,7 @@ def trans2fert1D (k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,T_cont,Q_cl
                   x_step,gauss,gauss_val,dim_bande,data,P_col,T_col,gen_col,Q_col,compo_col,ind_active,dx_grid,order_grid,pdx_grid,\
                   P_sample,T_sample,Q_sample,bande_sample,name_file,n_species,c_species,single,\
                   bande_cloud,r_eff,r_cloud,rho_p,t,phi_rot,domain,ratio,lim_alt,rupt_alt,directory,z_grid,type,\
-                  Tracer=False,Continuum=True,Molecular=False,Scattering=True,Clouds=False,Kcorr=True,Rupt=False,\
+                  Tracer=False,Continuum=True,Molecular=True,Scattering=True,Clouds=False,Kcorr=True,Rupt=False,\
                   Middle=False,Integral=False,Module=False,Optimal=False,D3Maille=False) :
 
     r_size,theta_size,x_size = np.shape(dx_grid)
@@ -210,7 +210,7 @@ def trans2fert1D (k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,T_cont,Q_cl
 def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dim_bande,data,\
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
                   name_file,n_species,single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
-                  Tracer=False,Continuum=True,Molecular=False,Scattering=True,Clouds=True,Kcorr=True,\
+                  Tracer=False,Continuum=True,Molecular=True,Scattering=True,Clouds=True,Kcorr=True,\
                   Rupt=False,Module=False,Integral=False,TimeSel=False) :
 
     r_size,theta_size,x_size = np.shape(dx_grid)
