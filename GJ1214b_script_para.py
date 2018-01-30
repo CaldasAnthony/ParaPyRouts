@@ -80,9 +80,9 @@ M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=F
 
 # Proprietes des nuages
 
-c_species = np.array(['',''])
-c_species_name = np.array([''])
-c_species_file = np.array([''])
+c_species = np.array([])
+c_species_name = np.array([])
+c_species_file = np.array([])
 rho_p = np.array([])
 r_eff = 0.5e-6
 
