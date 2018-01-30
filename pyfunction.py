@@ -2302,3 +2302,21 @@ class JWST :
         self.bande = np.array([[0.6,1.],[1.,9.],[9.,23.5],[23.5,27.5]])
         self.tau = np.array([0.30,0.40,0.36,0.18])
 
+class planet :
+    def __init__(self):
+        self.pressure_profile_data = '/data1/caldas/TauREx_4/Output/SPECTRUM_INSTANCE_out.pickle'
+        self.planet_radius_key = 'planet_radius'
+        self.planet_mass_key = 'planet_mass'
+        self.star_radius_key = 'star_radius'
+        self.star_temperature_key = 'star_temp'
+        self.pressure_profile_key = 'temperature_profile'
+        self.planet_active_ratio_key = 'atm_active_gases_mixratios'
+        self.planet_temperature_key = 'atm_tp_iso_temp'
+        self.extreme_pressure_key = np.array(['atm_max_pres','atm_min_pres'])
+        self.number_layer_key = 'atm_nlayers'
+        self.active_species_key = 'atm_active_gases'
+        self.hidrogen = True
+        self.reso_lat = 48
+        self.reo_long = 64
+
+

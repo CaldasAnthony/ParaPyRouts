@@ -3,6 +3,7 @@ from pyconstant import *
 from netCDF4 import Dataset
 import math as math
 import scipy.integrate as integrate
+import pickle
 import os,sys
 import time
 
@@ -92,88 +93,183 @@ import time
 
 def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=False,TimeSelec=False) :
 
-    file = Dataset("%s.nc"%(data))
-    variables = file.variables
+    if data != '' :
+        file = Dataset("%s.nc"%(data))
+        variables = file.variables
+    else :
+        planet = planet()
     c_number = c_species.size
     if Tracer == True :
         m_species = m_species[0]
 
     # Si nous avons l'information sur les parametres de surface
 
-    if Surf == True :
+    if data != '' :
+        if Surf == True :
+
+            # Si nous avons l'information sur la pression de surface, il nous faut donc rallonger les tableaux de parametres
+            # de 1
+
+            if TimeSelec == False :
+                T_file = variables["temp"][:]
+                n_t,n_l,n_lat,n_long = np.shape(T_file)
+                T_surf = variables["tsurf"][:]
+                P_file = variables["p"][:]
+                P_surf = variables["ps"][:]
+                P = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
+                T = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
+            else :
+                T_prefile = variables["temp"][:]
+                n_t,n_l,n_lat,n_long = np.shape(T_prefile)
+                T_file = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
+                T_surf = np.zeros((1,n_lat,n_long),dtype=np.float64)
+                P_file = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
+                P_surf = np.zeros((1,n_lat,n_long),dtype=np.float64)
+                T_file[0] = variables["temp"][t,:,:,:]
+                T_surf[0] = variables["tsurf"][t,:,:]
+                P_file[0] = variables["p"][t,:,:,:]
+                P_surf[0] = variables["ps"][t,:,:]
+                P = np.zeros((1,n_l+1,n_lat,n_long),dtype=np.float64)
+                T = np.zeros((1,n_l+1,n_lat,n_long),dtype=np.float64)
+
+            P[:,0,:,:] = P_surf
+            P[:,1:n_l+1,:,:] = P_file
+            T[:,0,:,:] = T_surf
+            T[:,1:n_l+1,:,:] = T_file
+
+            if Tracer == True :
+                if TimeSelec == False :
+                    Q_vap = variables["%s_vap"%(m_species)][:]
+                    Q_vap_surf = variables["%s_vap_surf"%(m_species)][:]
+                    Q = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
+
+                else :
+                    Q_vap = np.zeros((1,n_l,n_lat,n_long))
+                    Q_vap_surf = np.zeros((1,n_lat,n_long))
+                    Q_vap[0] = variables["%s_vap"%(m_species)][t,:,:,:]
+                    Q_vap_surf[0] = variables["%s_vap_surf"%(m_species)][t,:,:]
+                    Q = np.zeros((1,n_l+1,n_lat,n_long),dtype=np.float64)
+
+                Q[:,0,:,:] = Q_vap_surf
+                Q[:,1:n_l+1,:,:] = Q_vap
+
+            else :
+                Q = np.array([])
+
+            if Clouds == True :
+                if TimeSelec == False :
+                    gen_cond = np.zeros((c_number,n_t,n_l,n_lat,n_long),dtype=np.float64)
+                    gen_cond_surf = np.zeros((c_number,n_t,n_lat,n_long),dtype=np.float64)
+                    for c_num in range(c_number) :
+                        gen_cond_surf[c_num,:,:,:] = variables["%s_surf"%(c_species[c_num])][:]
+                        gen_cond[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][:]
+                    gen = np.zeros((c_species.size,n_t,n_l+1,n_lat,n_long))
+                else :
+                    gen_cond = np.zeros((c_number,1,n_l,n_lat,n_long),dtype=np.float64)
+                    gen_cond_surf = np.zeros((c_number,1,n_lat,n_long),dtype=np.float64)
+                    for c_num in range(c_number) :
+                        gen_cond_surf[c_num,:,:,:] = variables["%s_surf"%(c_species[c_num])][t,:,:]
+                        gen_cond[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][t,:,:,:]
+                    gen = np.zeros((c_species.size,1,n_l+1,n_lat,n_long),dtype=np.float64)
+
+                gen[:,:,0,:,:] = gen_cond_surf
+                gen[:,:,1:n_l+1,:,:] = gen_cond
+            else :
+                gen = np.array([])
+
+            if TimeSelec == True :
+                n_t = 1
+            T_mean = np.mean(T_file[:,n_l-1,:,:])
+            T_max = np.amax(T_file[:,n_l-1,:,:])
+            T_min = np.amin(T_file[:,n_l-1,:,:])
+            print('Mean temperature : %i K, Maximal temperature : %i K, Minimal temperature : %i K'%(T_mean,T_max,T_min))
+
+            P_mean = np.exp(np.nansum(np.log(P[:,n_l,:,:]))/(n_t*n_lat*n_long))
+            print('Mean roof pressure : %f Pa'%(P_mean))
+            T_var = np.array([T_mean,T_max,T_min])
+
+        # Si nous n'avons pas l'information sur les parametres de surface
+
+        else :
+
+            if TimeSelec == False :
+                T = variables["temp"][:]
+                n_t,n_l,n_lat,n_long = np.shape(T)
+                P = variables["p"][:]
+            else :
+                T_prefile = variables["temp"][:]
+                n_t,n_l,n_lat,n_long = np.shape(T_prefile)
+                T = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
+                P = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
+                T[0] = variables["temp"][t,:,:,:]
+                P[0] = variables["p"][t,:,:,:]
+
+            if Tracer == True :
+                if TimeSelec == False :
+                    Q = variables["%s_vap"%(m_species)][:]
+                else :
+                    Q = np.zeros((1,n_l,n_lat,n_long))
+                    Q[0] = variables["%s_vap"%(m_species)][t,:,:,:]
+            else :
+                Q = np.array([])
+
+            if Clouds == True :
+                if TimeSelec == False :
+                    gen = np.zeros((c_number,n_t,n_l,n_lat,n_long))
+                    for c_num in range(c_number) :
+                        gen[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][:]
+                else :
+                    gen = np.zeros((c_number,1,n_l,n_lat,n_long))
+                    for c_num in range(c_number) :
+                        gen[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][t,:,:,:]
+            else :
+                gen = np.array([])
+
+            if TimeSelec == True :
+                n_t = 1
+            T_mean = np.mean(T[:,n_l-1,:,:])
+            T_max = np.amax(T[:,n_l-1,:,:])
+            T_min = np.amin(T[:,n_l-1,:,:])
+            print('Mean temperature : %i K, Maximal temperature : %i K, Minimal temperature of the high atmosphere : %i K'\
+                  %(T_mean,T_max,T_min))
+            T_var = np.array([T_mean,T_max,T_min])
+
+            P_mean = np.exp(np.nansum(np.log(P[:,n_l-1,:,:]))/(n_t*n_lat*n_long))
+            print('Mean roof pressure : %f Pa'%(P_mean))
+
+    else :
 
         # Si nous avons l'information sur la pression de surface, il nous faut donc rallonger les tableaux de parametres
-        # de 1
-
-        if TimeSelec == False :
-            T_file = variables["temp"][:]
-            n_t,n_l,n_lat,n_long = np.shape(T_file)
-            T_surf = variables["tsurf"][:]
-            P_file = variables["p"][:]
-            P_surf = variables["ps"][:]
-            P = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
-            T = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
-        else :
-            T_prefile = variables["temp"][:]
-            n_t,n_l,n_lat,n_long = np.shape(T_prefile)
-            T_file = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
-            T_surf = np.zeros((1,n_lat,n_long),dtype=np.float64)
-            P_file = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
-            P_surf = np.zeros((1,n_lat,n_long),dtype=np.float64)
-            T_file[0] = variables["temp"][t,:,:,:]
-            T_surf[0] = variables["tsurf"][t,:,:]
-            P_file[0] = variables["p"][t,:,:,:]
-            P_surf[0] = variables["ps"][t,:,:]
-            P = np.zeros((1,n_l+1,n_lat,n_long),dtype=np.float64)
-            T = np.zeros((1,n_l+1,n_lat,n_long),dtype=np.float64)
+            # de 1
+        data = pickle.load(open(planet.pressure_profile_data))
+        T_file = data['data'][planet.pressure_profile_key][:,1]
+        n_t,n_l,n_lat,n_long = 1, data[planet.number_layer_key],data[planet.reso_lat],data[planet.reso_long]
+        T_surf = data[planet.planet_temperature_key]
+        P_file = data['data'[planet.pressure_profile_key]][:,0]
+        P_surf = data[planet.extreme_pressure_key[0]]
+        P = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
+        T = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
 
         P[:,0,:,:] = P_surf
         P[:,1:n_l+1,:,:] = P_file
         T[:,0,:,:] = T_surf
         T[:,1:n_l+1,:,:] = T_file
 
-        if Tracer == True :
-            if TimeSelec == False :
-                Q_vap = variables["%s_vap"%(m_species)][:]
-                Q_vap_surf = variables["%s_vap_surf"%(m_species)][:]
-                Q = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
-
-            else :
-                Q_vap = np.zeros((1,n_l,n_lat,n_long))
-                Q_vap_surf = np.zeros((1,n_lat,n_long))
-                Q_vap[0] = variables["%s_vap"%(m_species)][t,:,:,:]
-                Q_vap_surf[0] = variables["%s_vap_surf"%(m_species)][t,:,:]
-                Q = np.zeros((1,n_l+1,n_lat,n_long),dtype=np.float64)
-
-            Q[:,0,:,:] = Q_vap_surf
-            Q[:,1:n_l+1,:,:] = Q_vap
-
-        else :
-            Q = np.array([])
+        Q = np.array([])
 
         if Clouds == True :
-            if TimeSelec == False :
-                gen_cond = np.zeros((c_number,n_t,n_l,n_lat,n_long),dtype=np.float64)
-                gen_cond_surf = np.zeros((c_number,n_t,n_lat,n_long),dtype=np.float64)
-                for c_num in range(c_number) :
-                    gen_cond_surf[c_num,:,:,:] = variables["%s_surf"%(c_species[c_num])][:]
-                    gen_cond[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][:]
-                gen = np.zeros((c_species.size,n_t,n_l+1,n_lat,n_long))
-            else :
-                gen_cond = np.zeros((c_number,1,n_l,n_lat,n_long),dtype=np.float64)
-                gen_cond_surf = np.zeros((c_number,1,n_lat,n_long),dtype=np.float64)
-                for c_num in range(c_number) :
-                    gen_cond_surf[c_num,:,:,:] = variables["%s_surf"%(c_species[c_num])][t,:,:]
-                    gen_cond[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][t,:,:,:]
-                gen = np.zeros((c_species.size,1,n_l+1,n_lat,n_long),dtype=np.float64)
+            gen_cond = np.zeros((c_number,1,n_l,n_lat,n_long),dtype=np.float64)
+            gen_cond_surf = np.zeros((c_number,1,n_lat,n_long),dtype=np.float64)
+            for c_num in range(c_number) :
+                gen_cond_surf[c_num,:,:,:] = data['data'][planet.extreme_pressure_key][:,c_num]
+                gen_cond[c_num,:,:,:,:] = data['data'][planet.extreme_pressure_key][:,c_num]
+            gen = np.zeros((c_species.size,1,n_l+1,n_lat,n_long),dtype=np.float64)
 
             gen[:,:,0,:,:] = gen_cond_surf
             gen[:,:,1:n_l+1,:,:] = gen_cond
         else :
             gen = np.array([])
 
-        if TimeSelec == True :
-            n_t = 1
         T_mean = np.mean(T_file[:,n_l-1,:,:])
         T_max = np.amax(T_file[:,n_l-1,:,:])
         T_min = np.amin(T_file[:,n_l-1,:,:])
@@ -182,55 +278,6 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
         P_mean = np.exp(np.nansum(np.log(P[:,n_l,:,:]))/(n_t*n_lat*n_long))
         print('Mean roof pressure : %f Pa'%(P_mean))
         T_var = np.array([T_mean,T_max,T_min])
-
-    # Si nous n'avons pas l'information sur les parametres de surface
-
-    else :
-
-        if TimeSelec == False :
-            T = variables["temp"][:]
-            n_t,n_l,n_lat,n_long = np.shape(T)
-            P = variables["p"][:]
-        else :
-            T_prefile = variables["temp"][:]
-            n_t,n_l,n_lat,n_long = np.shape(T_prefile)
-            T = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
-            P = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
-            T[0] = variables["temp"][t,:,:,:]
-            P[0] = variables["p"][t,:,:,:]
-
-        if Tracer == True :
-            if TimeSelec == False :
-                Q = variables["%s_vap"%(m_species)][:]
-            else :
-                Q = np.zeros((1,n_l,n_lat,n_long))
-                Q[0] = variables["%s_vap"%(m_species)][t,:,:,:]
-        else :
-            Q = np.array([])
-
-        if Clouds == True :
-            if TimeSelec == False :
-                gen = np.zeros((c_number,n_t,n_l,n_lat,n_long))
-                for c_num in range(c_number) :
-                    gen[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][:]
-            else :
-                gen = np.zeros((c_number,1,n_l,n_lat,n_long))
-                for c_num in range(c_number) :
-                    gen[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][t,:,:,:]
-        else :
-            gen = np.array([])
-
-        if TimeSelec == True :
-            n_t = 1
-        T_mean = np.mean(T[:,n_l-1,:,:])
-        T_max = np.amax(T[:,n_l-1,:,:])
-        T_min = np.amin(T[:,n_l-1,:,:])
-        print('Mean temperature : %i K, Maximal temperature : %i K, Minimal temperature of the high atmosphere : %i K'\
-              %(T_mean,T_max,T_min))
-        T_var = np.array([T_mean,T_max,T_min])
-
-        P_mean = np.exp(np.nansum(np.log(P[:,n_l-1,:,:]))/(n_t*n_lat*n_long))
-        print('Mean roof pressure : %f Pa'%(P_mean))
 
     return P, T, Q, gen, T_var
 

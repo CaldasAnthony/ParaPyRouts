@@ -30,7 +30,10 @@ version = 6.2
 
 # Donnees de base
 
-data_base,diag_file = "/data1/caldas/Pytmosph3R/Simulations/GJ1214b/",'diagfi'
+#data_base,diag_file = "/data1/caldas/Pytmosph3R/Simulations/GJ1214b/",'diagfi'
+data_base,diag_file = '',''
+planet = planet()
+information = pickle.load(open(planet.pressure_profile_data))
 reso_long, reso_lat = 64, 48
 t, t_selec, phi_rot, phi_obli, inclinaison = 0, 5, 0.00, 0.00, 0.00
 if inclinaison != 0. :
@@ -41,14 +44,18 @@ Record = False
 
 # Proprietes de l'exoplanete
 
-Rp = 0.246384689105*R_J
-Mp = 0.0206006322445*M_J
+#Rp = 0.246384689105*R_J
+#Mp = 0.0206006322445*M_J
+Rp = information[planet.planet_radius_key]
+Mp = information[planet.planet_mass_key]
 g0 = G*Mp/(Rp**2)
 
 # Proprietes de l'etoile hote
 
-Rs = 0.206470165349*R_S
-Ts = 3000.
+#Rs = 0.206470165349*R_S
+#Ts = 3000.
+Rs = information[planet.star_radius_key]
+Ts = information[planet.star_temperature_key]
 
 # Proprietes en cas de lecture d'un diagfi
 
@@ -58,21 +65,23 @@ alpha_step, delta_step = 2*np.pi/np.float(reso_long), np.pi/np.float(reso_lat)
 
 # Proprietes de l'atmosphere
 
-n_species = np.array(['H2','He','H2O','CH4','N2','NH3','CO','CO2'])
-n_species_active = np.array(['H2O','CH4','NH3','CO','CO2'])
+#n_species = np.array(['H2','He','H2O','CH4','N2','NH3','CO','CO2'])
+#n_species_active = np.array(['H2O','CH4','NH3','CO','CO2'])
+n_species = np.array(['H2','He','H2O'])
+n_species_active = np.array([information[planet.active_species_key]])
 
 # Proprietes de l'atmosphere isotherme
 
-T_iso, P_surf = 500., 1.e+6
-x_ratio_species_active = np.array([0.01,0.01,0.01,0.01,0.01])
+T_iso, P_surf = information[planet.planet_temperature_key], information[planet.extreme_pressure_key[0]]
+x_ratio_species_active = np.array([information[planet.planet_active_ratio_key]])
 M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=False)
 
 # Proprietes des nuages
 
-c_species = np.array(['gen_cond','gen_cond2'])
-c_species_name = np.array(['KCl','ZnS'])
-c_species_file = np.array(['KCl','ZnS'])
-rho_p = np.array([1980.,4090.])
+c_species = np.array(['',''])
+c_species_name = np.array([''])
+c_species_file = np.array([''])
+rho_p = np.array([])
 r_eff = 0.5e-6
 
 ########################################################################################################################
@@ -90,15 +99,18 @@ ind_cross, ind_active = index_active (n_species,n_species_cross,n_species_active
 
 # Informations generale sur les donnees continuum
 
-cont_tot = np.array(['H2-He_2011.cia','H2-He_2011.cia','H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat','H2-CH4_eq_2011.cia','N2-H2_2011.cia'])
-cont_species = np.array(['H2','He','H2Os','H2O','CH4','N2'])
-cont_associations = np.array(['h2he','h2he','h2oh2o','h2ofor','h2ch4','h2n2'])
+#cont_tot = np.array(['H2-He_2011.cia','H2-He_2011.cia','H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat','H2-CH4_eq_2011.cia','N2-H2_2011.cia'])
+#cont_species = np.array(['H2','He','H2Os','H2O','CH4','N2'])
+#cont_associations = np.array(['h2he','h2he','h2oh2o','h2ofor','h2ch4','h2n2'])
+cont_tot = np.array(['H2-He_2011.cia','H2-He_2011.cia','H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat'])
+cont_species = np.array(['H2','He','H2Os','H2O'])
+cont_associations = np.array(['h2he','h2he','h2oh2o','h2ofor'])
 
 ########################################################################################################################
 
 # Proprietes de maille
 
-h, P_h, n_layers = 5.1e+6, 1.e-6, 100
+h, P_h, n_layers = 9.e+6, information[planet.extreme_pressure_key[1]], information[planet.number_layer_key]
 delta_z, r_step, x_step, theta_number = 3.0e+4, 3.0e+4, 3.0e+4, 96
 z_array = np.arange(h/np.float(delta_z)+1)*float(delta_z)
 theta_step = 2*np.pi/np.float(theta_number)
