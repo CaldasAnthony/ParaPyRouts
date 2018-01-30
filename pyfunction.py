@@ -2316,7 +2316,7 @@ class planet :
         self.number_layer_key = 'atm_nlayers'
         self.active_species_key = 'atm_active_gases'
         self.hidrogen = True
-        self.reso_lat = 48
-        self.reo_long = 64
+        self.latitude = 48
+        self.longitude = 64
 
 

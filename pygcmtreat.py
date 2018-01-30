@@ -245,7 +245,7 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
         data = pickle.load(open(planet.pressure_profile_data))
         param = data['params']
         T_file = data['data'][planet.pressure_profile_key][:,1]
-        n_t,n_l,n_lat,n_long = 1, param[planet.number_layer_key],param[planet.reso_lat],param[planet.reso_long]
+        n_t,n_l,n_lat,n_long = 1, param[planet.number_layer_key],int(planet.latitude),int(planet.longitude)
         T_surf = param[planet.planet_temperature_key]
         P_file = data['data'][planet.pressure_profile_key][:,0]
         P_surf = param[planet.extreme_pressure_key[0]]
