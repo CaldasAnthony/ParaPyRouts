@@ -21,7 +21,8 @@ number_rank = comm.size
 path = "/data1/caldas/Pytmosph3R/"
 name_file = "Files/Para"
 name_source = "Source"
-name_exo = "GJ1214b"
+#name_exo = "GJ1214b"
+name_exo = "Planet"
 opac_file, param_file, stitch_file = 'Opacity', 'Parameters', 'Stitch'
 version = 6.2
 
