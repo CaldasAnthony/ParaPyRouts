@@ -417,6 +417,8 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
     if Clouds == True : 
         sh_c = np.shape(gen)
         c_number = sh_c[0]
+    else :
+        c_number = 0
 
     if Tracer == True :
         m_number = 1
