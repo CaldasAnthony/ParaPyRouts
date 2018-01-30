@@ -97,6 +97,7 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
         file = Dataset("%s.nc"%(data))
         variables = file.variables
     else :
+        from pyfunction import planet
         planet = planet()
     c_number = c_species.size
     if Tracer == True :
