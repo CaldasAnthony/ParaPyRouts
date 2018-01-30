@@ -34,6 +34,7 @@ version = 6.2
 data_base,diag_file = '',''
 planet = planet()
 information = pickle.load(open(planet.pressure_profile_data))
+information = information['params']
 reso_long, reso_lat = 64, 48
 t, t_selec, phi_rot, phi_obli, inclinaison = 0, 5, 0.00, 0.00, 0.00
 if inclinaison != 0. :

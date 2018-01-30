@@ -242,11 +242,12 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
         # Si nous avons l'information sur la pression de surface, il nous faut donc rallonger les tableaux de parametres
             # de 1
         data = pickle.load(open(planet.pressure_profile_data))
+        param = data['params']
         T_file = data['data'][planet.pressure_profile_key][:,1]
-        n_t,n_l,n_lat,n_long = 1, data[planet.number_layer_key],data[planet.reso_lat],data[planet.reso_long]
-        T_surf = data[planet.planet_temperature_key]
-        P_file = data['data'[planet.pressure_profile_key]][:,0]
-        P_surf = data[planet.extreme_pressure_key[0]]
+        n_t,n_l,n_lat,n_long = 1, param[planet.number_layer_key],param[planet.reso_lat],param[planet.reso_long]
+        T_surf = param[planet.planet_temperature_key]
+        P_file = data['data'][planet.pressure_profile_key][:,0]
+        P_surf = param[planet.extreme_pressure_key[0]]
         P = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
         T = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
 
