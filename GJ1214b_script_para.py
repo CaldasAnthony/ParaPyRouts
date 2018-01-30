@@ -187,7 +187,7 @@ else :
 # Les options choisies lors de l'etude
 
 Tracer = False          ###### S'il y a des marqueurs
-Cloudy = True          ###### S'il y a des nuages
+Cloudy = False          ###### S'il y a des nuages
 Middle = True          ###### Construction de la maille sur le milieu des couches
 NoH2 = False            ###### Une atmosphere sans H2 et He ou avec
 
@@ -222,7 +222,7 @@ Kcorr = False           ###### Sections efficaces ou k-correles
 Molecul = True       ###### Effectue les calculs pour l'absorption moleculaire
 Cont = True            ###### Effectue les calculs pour l'absorption par les collisions
 Scatt = True           ###### Effectue les calculs pour l'absorption par diffusion Rayleigh
-Cl = True              ###### Effectue les calculs pour l'absorption par les nuages
+Cl = False              ###### Effectue les calculs pour l'absorption par les nuages
 Optimal = False         ###### Interpolation optimal (Waldmann et al.)
 TimeSelec = True       ###### Si nous etudions un temps precis de la simulation
 
@@ -235,7 +235,7 @@ Cylindric_transfert_3D = True
 Molecular = True         ###### Ne tiens pas compte de l'absorption moleculaire
 Continuum = True       ###### Tiens compte de l'absorption par les collisions
 Scattering = True      ###### Tiens compte de l'absorption par la diffusion
-Clouds = True          ###### Tiens compte de l'absoprtion par les nuages
+Clouds = False          ###### Tiens compte de l'absoprtion par les nuages
 Single = "no"           ###### Isole une espece de nuage
 Rupt = False            ###### Si l'atmosphere est tronquee
 Discreet = True        ###### Calcul discret
