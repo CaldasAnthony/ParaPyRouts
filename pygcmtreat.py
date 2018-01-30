@@ -252,10 +252,13 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
         P = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
         T = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
 
-        P[:,0,:,:] = P_surf
-        P[:,1:n_l+1,:,:] = P_file
-        T[:,0,:,:] = T_surf
-        T[:,1:n_l+1,:,:] = T_file
+        P[:,0,:,:] = np.ones((n_t,n_lat,n_long),dtype=np.float64)*P_surf
+        T[:,0,:,:] = np.ones((n_t,n_lat,n_long),dtype=np.float64)*T_surf
+        for i_n_t in range(n_t) :
+            for i_n_lat in range(n_lat) :
+                for i_n_long in range(n_long) :
+                    P[i_n_t,1:n_l+1,i_n_lat,i_n_long] = P_file
+                    T[i_n_t,1:n_l+1,i_n_lat,i_n_long] = T_file
 
         Q = np.array([])
 
