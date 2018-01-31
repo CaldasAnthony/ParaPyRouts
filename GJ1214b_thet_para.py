@@ -902,9 +902,12 @@ if Cylindric_transfert_3D == True :
         P_rmd = np.load("%s%s/%s/Temp/P_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
                   domain,rank))
-        gen_rmd = np.load("%s%s/%s/Temp/gen_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+        if Clouds == True :
+            gen_rmd = np.load("%s%s/%s/Temp/gen_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
                   domain,rank))
+        else :
+            gen_rmd = np.array([])
         if Tracer == True :
             Q_rmd = np.load("%s%s/%s/Temp/Q_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
@@ -919,8 +922,11 @@ if Cylindric_transfert_3D == True :
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
         P_rmd = np.load("%s%s/%s/Temp/P_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
-        gen_rmd = np.load("%s%s/%s/Temp/gen_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+        if Clouds == True :
+            gen_rmd = np.load("%s%s/%s/Temp/gen_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
+        else :
+            gen_rmd = np.array([])
         if Tracer == True :
             Q_rmd = np.load("%s%s/%s/Temp/Q_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
                 %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
