@@ -380,15 +380,19 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
                 g = g0 + Mass*G/(Rp + z[:,pres-1,:,:])**2
             else :
                 g = g0 + np.zeros((n_t,n_lat,n_long),dtype=np.float64)
-            if T[:,pres,:,:] != T[:,pres-1,:,:] :
-                a_z = -(1+z[:,pres-1,:,:]/Rp)*R_gp*(T[:,pres,:,:]-T[:,pres-1,:,:])/((M[:,pres,:,:]+M[:,pres-1,:,:])/2.*g*\
-                np.log(T[:,pres,:,:]/T[:,pres-1,:,:]))*np.log(P[:,pres,:,:]/P[:,pres-1,:,:])
-            else :
-                a_z = -(1+z[:,pres-1,:,:]/Rp)*R_gp*T[:,pres-1,:,:]/((M[:,pres,:,:]+M[:,pres-1,:,:])/2.*g)\
-                *np.log(P[:,pres,:,:]/P[:,pres-1,:,:])
-            dz = a_z*(1+z[:,pres-1,:,:]/Rp)/(1-a_z/Rp)
+            for i_n_t in range(n_t) :
+                for i_n_lat in range(n_lat) :
+                    for i_n_long in range(n_long) :
+                        if T[i_n_t,pres,:,:] != T[i_n_t,pres-1,:,:] :
+                            a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*(T[i_n_t,pres,i_n_lat,i_n_long]-T[i_n_t,pres-1,i_n_lat,i_n_long])\
+                                  /((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g*\
+                            np.log(T[i_n_t,pres,i_n_lat,i_n_long]/T[i_n_t,pres-1,i_n_lat,i_n_long]))*np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
+                        else :
+                            a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*T[i_n_t,pres-1,i_n_lat,i_n_long]/((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g)\
+                            *np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
+                        dz = a_z*(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)/(1-a_z/Rp)
 
-            z[:,pres,:,:] = z[:,pres-1,:,:] + dz
+                        z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
 
             # On incremente petit a petit la masse atmospherique
 
