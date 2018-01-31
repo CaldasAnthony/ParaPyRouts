@@ -203,6 +203,9 @@ if Profil == True :
     h, hmax, dim, delta_z, r_step, x_step, n_layers, T_mean, T_max, T_min = \
         info[0], info[1], np.int(info[2]), info[3], info[4], info[5], np.int(info[6]), info[7], info[8], info[9]
     reso_alt = int(h/1000)
+    if Rupt == False :
+        lim_alt = h
+        rupt_alt = 0
     Upper = np.array([Upper,T_mean,T_max,T_min])
 
     comm.Barrier()
@@ -961,9 +964,6 @@ if Cylindric_transfert_3D == True :
     
     for i_ca in range(wh_ca.size) :
 
-        if Rupt == False :
-            lim_alt = h
-            rupt_alt = 0
         proc = np.array([False,False,False,False])
         proc[wh_ca[i_ca]] = True
         Molecular, Continuum, Scattering, Clouds = proc[0],proc[1],proc[2],proc[3]
