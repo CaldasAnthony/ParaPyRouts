@@ -959,8 +959,11 @@ if Cylindric_transfert_3D == True :
 
     wh_ca, = np.where(cases == 1)
     
-    for i_ca in range(wh_ca.size) : 
-        
+    for i_ca in range(wh_ca.size) :
+
+        if Rupt == False :
+            lim_alt = h
+            rupt_alt = 0
         proc = np.array([False,False,False,False])
         proc[wh_ca[i_ca]] = True
         Molecular, Continuum, Scattering, Clouds = proc[0],proc[1],proc[2],proc[3]
@@ -1037,10 +1040,6 @@ if Cylindric_transfert_3D == True :
     
         if rank == 0 : 
             print 'Pytmosph3R will begin to compute the %s contribution'%(cases_names[wh_ca[i_ca]])
-
-        if Rupt == False :
-            lim_alt = h
-            rupt_alt = 0
 
         I_n = trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dim_bande,data_convert,\
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
