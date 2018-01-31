@@ -63,6 +63,11 @@ Ts = information[planet.star_temperature_key]
 
 if data_base != '' :
     Rp, g0, reso_long, reso_lat, long_lat, Inverse = diag('%s%s'%(data_base,diag_file))
+else :
+    long_lat = np.zeros((2,int(np.amax(np.array([reso_long,reso_lat])))+1))
+    degpi = np.pi/180.
+    long_lat[0,0:reso_long+1] = np.linspace(-180.*degpi,180.*degpi,reso_long+1,dtype=np.float64)
+    long_lat[1,0:reso_lat+1] = np.linspace(-90*degpi,90.*degpi,reso_lat+1,dtype=np.float64)
 alpha_step, delta_step = 2*np.pi/np.float(reso_long), np.pi/np.float(reso_lat)
 
 # Proprietes de l'atmosphere
