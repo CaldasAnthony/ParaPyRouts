@@ -380,19 +380,13 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
                 g = g0 + Mass*G/(Rp + z[:,pres-1,:,:])**2
             else :
                 g = g0 + np.zeros((n_t,n_lat,n_long),dtype=np.float64)
-            a_z = -(1+z[:,pres-1,:,:]/Rp)*R_gp*(T[:,pres,:,:]-T[:,pres-1,:,:])/((M[:,pres,:,:]+M[:,pres-1,:,:])/2.*g*\
+            if T[:,pres,:,:] != T[:,pres-1,:,:] :
+                a_z = -(1+z[:,pres-1,:,:]/Rp)*R_gp*(T[:,pres,:,:]-T[:,pres-1,:,:])/((M[:,pres,:,:]+M[:,pres-1,:,:])/2.*g*\
                 np.log(T[:,pres,:,:]/T[:,pres-1,:,:]))*np.log(P[:,pres,:,:]/P[:,pres-1,:,:])
+            else :
+                a_z = -(1+z[:,pres-1,:,:]/Rp)*R_gp*T[:,pres-1,:,:]/((M[:,pres,:,:]+M[:,pres-1,:,:])/2.*g)\
+                *np.log(P[:,pres,:,:]/P[:,pres-1,:,:])
             dz = a_z*(1+z[:,pres-1,:,:]/Rp)/(1-a_z/Rp)
-
-            wht,whla,whlo = np.where(T[:,pres,:,:]==T[:,pres-1,:,:])
-
-            if wht.size != 0 :
-
-                for tw in range(wht.size) :
-
-                    dz[wht[tw],whla[tw],whlo[tw]] = \
-                        -R_gp*T[wht[tw],pres,whla[tw],whlo[tw]]/(M[wht[tw],pres,whla[tw],whlo[tw]]*g[wht[tw],whla[tw],whlo[tw]])*\
-                                    np.log(P[wht[tw],pres,whla[tw],whlo[tw]]/P[wht[tw],pres-1,whla[tw],whlo[tw]])
 
             z[:,pres,:,:] = z[:,pres-1,:,:] + dz
 
