@@ -383,7 +383,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
             for i_n_t in range(n_t) :
                 for i_n_lat in range(n_lat) :
                     for i_n_long in range(n_long) :
-                        if T[i_n_t,pres,:,:] != T[i_n_t,pres-1,:,:] :
+                        if T[i_n_t,pres,i_n_lat,i_n_long] != T[i_n_t,pres-1,i_n_lat,i_n_long] :
                             a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*(T[i_n_t,pres,i_n_lat,i_n_long]-T[i_n_t,pres-1,i_n_lat,i_n_long])\
                                   /((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g*\
                             np.log(T[i_n_t,pres,i_n_lat,i_n_long]/T[i_n_t,pres-1,i_n_lat,i_n_long]))*np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
