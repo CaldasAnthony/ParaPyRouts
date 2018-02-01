@@ -329,7 +329,7 @@ def effective_radius(I,R_s,Rp,r_step,extra,Middle=False) :
         if r == 0 :
 
             if Middle == False :
-                A = np.pi*(1/2.)*(2.*R + 1/2.*r_step)*r_step/float(theta_size)
+                A = np.pi*(1/2.)*(2.*R + 1/2.*r_step)*r_step
                 R += r_step/2.
             else :
                 A = 2.*np.pi*r_step*((r+0.5)*r_step + Rp)
@@ -340,7 +340,7 @@ def effective_radius(I,R_s,Rp,r_step,extra,Middle=False) :
         else :
 
             if Middle == False :
-                A = np.pi*(2*R + r_step)*r_step/float(theta_size)
+                A = np.pi*(2*R + r_step)*r_step
                 R += r_step
             else :
                 A = 2.*np.pi*r_step*((r+0.5)*r_step + Rp)
