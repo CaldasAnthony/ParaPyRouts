@@ -103,7 +103,7 @@ def trans2fert1D (k_corr_data_grid,k_cont_h2h2,k_cont_h2he,k_cont_nu,T_cont,Q_cl
 
         k_rmd = np.zeros((T_col.size,dim_bande))
 
-    Itot = np.ones((dim_bande,r_size,1))
+    Itot = np.ones((dim_bande,r_size-1,1))
 
     bar = ProgressBar(r_size,'Radiative transfert progression')
 
@@ -219,7 +219,7 @@ def trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_st
     if TimeSel == True :
         data = data[:,t,:,:,:]
 
-    Itot = np.ones((dim_bande,r_size,theta_size))
+    Itot = np.ones((dim_bande,r_size-1,theta_size))
 
     if rank == rank_ref : 
         bar = ProgressBar(theta_size,'Radiative transfert progression')
