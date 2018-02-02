@@ -407,9 +407,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
                 for i_n_t in range(n_t) :
                     for i_n_lat in range(n_lat) :
                         for i_n_long in range(n_long) :
-                            g_z = g[i_n_t,i_n_lat,i_n_long]
-                            H = R_gp*T[i_n_t,pres-1,i_n_lat,i_n_long]/(M[i_n_t,pres-1,i_n_lat,i_n_long]*g_z)
-                            dz = H*np.log(P[i_n_t,pres-1,i_n_lat,i_n_long]/P[i_n_t,pres,i_n_lat,i_n_long])
+                            dz = H[i_n_t,pres-1,i_n_lat,i_n_long]*np.log(P[i_n_t,pres-1,i_n_lat,i_n_long]/P[i_n_t,pres,i_n_lat,i_n_long])
                             z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
                 g[:,pres,:,:] = g0*1/(1+z[:,pres,:,:]/Rp)**2
                 H[:,pres,:,:] = R_gp*T[:,pres,:,:]/(M[:,pres,:,:]*g[:,pres,:,:])
