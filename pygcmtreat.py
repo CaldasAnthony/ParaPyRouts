@@ -396,7 +396,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
 
                             z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
             else :
-                g = g0*1/(1+z[:,pres-1,:,:])
+                g = g0*1/(1+z[:,pres-1,:,:]/Rp)**2
                 for i_n_t in range(n_t) :
                     for i_n_lat in range(n_lat) :
                         for i_n_long in range(n_long) :
