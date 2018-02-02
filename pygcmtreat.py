@@ -247,7 +247,7 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
         T_file = data['data'][planet.pressure_profile_key][:,1]
         n_t,n_l,n_lat,n_long = 1, param[planet.number_layer_key],int(planet.latitude)+1,int(planet.longitude)+1
         T_surf = param[planet.planet_temperature_key]
-        P_file = np.linspace(np.log10(param[planet.extreme_pressure_key[0]],np.log10(param[planet.extreme_pressure_key[1]]),param[planet.number_layer_key]+1))
+        P_file = np.linspace(np.log10(param[planet.extreme_pressure_key[0]]),np.log10(param[planet.extreme_pressure_key[1]]),param[planet.number_layer_key]+1)
         T = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
         P = 10**P_file
 
