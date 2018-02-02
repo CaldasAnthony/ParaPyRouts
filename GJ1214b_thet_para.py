@@ -106,7 +106,7 @@ if Profil == True :
 
                                     ###### Parallele encoding end ######
 
-    compo_i, M_i, z_i = Boxes_interpolation(P_n,T_n,Q_n,Rp,g0,number,P_comp,T_comp,Q_comp,n_species,X_species,M_species,\
+    compo_i, M_i, z_i, g_i, H_i = Boxes_interpolation(P_n,T_n,Q_n,Rp,g0,number,P_comp,T_comp,Q_comp,n_species,X_species,M_species,\
             c_species,ratio_HeH2,Tracer,Cloudy,LogInterp,MassAtm,NoH2)
 
                                     ###### Parallele encoding init ######
@@ -121,33 +121,47 @@ if Profil == True :
             comm.Send([compo_i,MPI.DOUBLE],dest=0,tag=0)
             comm.Send([M_i,MPI.DOUBLE],dest=0,tag=1)
             comm.Send([z_i,MPI.DOUBLE],dest=0,tag=2)
+            comm.Send([g_i,MPI.DOUBLE],dest=0,tag=3)
+            comm.Send([H_i,MPI.DOUBLE],dest=0,tag=4)
         elif r_n == 0 and rank == 0 :
             composition = np.zeros((n_species.size,tss,pss,lass,loss))
             M_molar = np.zeros((tss,pss,lass,loss),dtype=np.float64)
             z_sphe = np.zeros((tss,pss,lass,loss),dtype=np.float64)
+            g_z = np.zeros((tss,pss,lass,loss),dtype=np.float64)
+            H_z = np.zeros((tss,pss,lass,loss),dtype=np.float64)
             composition[:,:,:,dom_rank,:] = compo_i
             M_molar[:,:,dom_rank,:] = M_i
             z_sphe[:,:,dom_rank,:] = z_i
+            g_z[:,:,dom_rank,:] = g_i
+            H_z[:,:,dom_rank,:] = H_i
         elif r_n != 0 and rank == 0 :
             new_dom_rank = repartition(lass,number_rank,r_n,True)
             compo_n = np.zeros((n_species.size,tss,pss,new_dom_rank.size,loss),dtype=np.float64)
             M_n = np.zeros((tss,pss,new_dom_rank.size,loss),dtype=np.float64)
             z_n = np.zeros((tss,pss,new_dom_rank.size,loss),dtype=np.float64)
+            g_n = np.zeros((tss,pss,new_dom_rank.size,loss),dtype=np.float64)
+            H_n = np.zeros((tss,pss,new_dom_rank.size,loss),dtype=np.float64)
             comm.Recv([compo_n,MPI.DOUBLE],source=r_n,tag=0)
             comm.Recv([M_n,MPI.DOUBLE],source=r_n,tag=1)
             comm.Recv([z_n,MPI.DOUBLE],source=r_n,tag=2)
+            comm.Recv([g_n,MPI.DOUBLE],source=r_n,tag=3)
+            comm.Recv([H_n,MPI.DOUBLE],source=r_n,tag=4)
             composition[:,:,:,new_dom_rank,:] = compo_n
             M_molar[:,:,new_dom_rank,:] = M_n
             z_sphe[:,:,new_dom_rank,:] = z_n
+            g_z[:,:,new_dom_rank,:] = g_n
+            H_z[:,:,new_dom_rank,:] = H_n
 
     comm.Barrier()
 
-    del compo_i, M_i, z_i
+    del compo_i, M_i, z_i, g_i, H_i
     info = np.array([0,0,0,0,0,0,0,0,0,0], dtype=np.float64)
 
     if rank == 0 :
 
-        np.save('/data1/caldas/z',z_sphe)
+        np.save('%sz.npy'%(path),z_sphe)
+        np.save('%sg.npy'%(path),g_z)
+        np.save('%sH.npy'%(path),H_z)
         if h < np.amax(z_sphe) :
             h = np.amax(z_sphe)
             hmax = h

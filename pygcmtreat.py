@@ -296,6 +296,8 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
 
     n_t,n_l,n_lat,n_long = np.shape(P)
     z = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
+    g = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
+    H = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
     M = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
 
     if Tracer == False :
@@ -371,20 +373,19 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
 
             z[:,0,:,:] = 0.
             Mass = np.zeros((n_t,n_lat,n_long),dtype=np.float64)
+            g[:,0,:,:] = np.ones((n_t,n_lat,n_long),dtype=np.float64)*g0
+            H[:,0,:,:] = R_gp*T[:,0,:,:]/(M[:,0,:,:]*g[:,0,:,:])
 
         else :
 
             # Premiere estmiation de l'altitude avec l'acceleration de la pesanteur de la couche precedente
 
             if TauREx == False :
-                if MassAtm == True :
-                    g = g0 + Mass*G/(Rp + z[:,pres-1,:,:])**2
-                else :
-                    g = g0 + np.zeros((n_t,n_lat,n_long),dtype=np.float64)
+
                 for i_n_t in range(n_t) :
                     for i_n_lat in range(n_lat) :
                         for i_n_long in range(n_long) :
-                            g_z = g[i_n_t,i_n_lat,i_n_long]
+                            g_z = g[i_n_t,pres-1,i_n_lat,i_n_long]
                             if T[i_n_t,pres,i_n_lat,i_n_long] != T[i_n_t,pres-1,i_n_lat,i_n_long] :
                                 a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*(T[i_n_t,pres,i_n_lat,i_n_long]-T[i_n_t,pres-1,i_n_lat,i_n_long])\
                                       /((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g_z*\
@@ -395,8 +396,14 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
                             dz = a_z*(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)/(1-a_z/Rp)
 
                             z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
+
+                if MassAtm == True :
+                    g[:,pres,:,:] = g0 + Mass*G/(Rp + z[:,pres,:,:])**2
+                else :
+                    g[:,pres,:,:] = g0 + np.zeros((n_t,n_lat,n_long),dtype=np.float64)
+                H[:,pres,:,:] = R_gp*T[:,pres,:,:]/(M[:,pres,:,:]*g[:,pres,:,:])
+
             else :
-                g = g0*1/(1+z[:,pres-1,:,:]/Rp)**2
                 for i_n_t in range(n_t) :
                     for i_n_lat in range(n_lat) :
                         for i_n_long in range(n_long) :
@@ -404,13 +411,15 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
                             H = R_gp*T[i_n_t,pres-1,i_n_lat,i_n_long]/(M[i_n_t,pres-1,i_n_lat,i_n_long]*g_z)
                             dz = H*np.log(P[i_n_t,pres-1,i_n_lat,i_n_long]/P[i_n_t,pres,i_n_lat,i_n_long])
                             z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
+                g[:,pres,:,:] = g0*1/(1+z[:,pres,:,:]/Rp)**2
+                H[:,pres,:,:] = R_gp*T[:,pres,:,:]/(M[:,pres,:,:]*g[:,pres,:,:])
 
             # On incremente petit a petit la masse atmospherique
 
             if MassAtm == True :
                 Mass += P[:,pres,:,:]/(R_gp*T[:,pres,:,:])*M[:,pres,:,:]*4/3.*np.pi*((Rp + z[:,pres,:,:])**3 - (Rp + z[:,pres-1,:,:])**3)
 
-    return compo, M, z
+    return compo, M, z, g, H
 
 
 ########################################################################################################################
