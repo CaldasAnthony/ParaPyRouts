@@ -292,7 +292,7 @@ def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=
 
 
 def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_species,M_species,c_species,ratio,\
-                        Tracer=False,Clouds=False,LogInterp=False,MassAtm=False,NoH2=False) :
+                        Tracer=False,Clouds=False,LogInterp=False,MassAtm=False,NoH2=False,TauREx=True) :
 
     n_t,n_l,n_lat,n_long = np.shape(P)
     z = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
@@ -376,24 +376,34 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
 
             # Premiere estmiation de l'altitude avec l'acceleration de la pesanteur de la couche precedente
 
-            if MassAtm == True :
-                g = g0 + Mass*G/(Rp + z[:,pres-1,:,:])**2
-            else :
-                g = g0 + np.zeros((n_t,n_lat,n_long),dtype=np.float64)
-            for i_n_t in range(n_t) :
-                for i_n_lat in range(n_lat) :
-                    for i_n_long in range(n_long) :
-                        g_z = g[i_n_t,i_n_lat,i_n_long]
-                        if T[i_n_t,pres,i_n_lat,i_n_long] != T[i_n_t,pres-1,i_n_lat,i_n_long] :
-                            a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*(T[i_n_t,pres,i_n_lat,i_n_long]-T[i_n_t,pres-1,i_n_lat,i_n_long])\
-                                  /((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g_z*\
-                            np.log(T[i_n_t,pres,i_n_lat,i_n_long]/T[i_n_t,pres-1,i_n_lat,i_n_long]))*np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
-                        else :
-                            a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*T[i_n_t,pres-1,i_n_lat,i_n_long]/((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g_z)\
-                            *np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
-                        dz = a_z*(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)/(1-a_z/Rp)
+            if TauREx == False :
+                if MassAtm == True :
+                    g = g0 + Mass*G/(Rp + z[:,pres-1,:,:])**2
+                else :
+                    g = g0 + np.zeros((n_t,n_lat,n_long),dtype=np.float64)
+                for i_n_t in range(n_t) :
+                    for i_n_lat in range(n_lat) :
+                        for i_n_long in range(n_long) :
+                            g_z = g[i_n_t,i_n_lat,i_n_long]
+                            if T[i_n_t,pres,i_n_lat,i_n_long] != T[i_n_t,pres-1,i_n_lat,i_n_long] :
+                                a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*(T[i_n_t,pres,i_n_lat,i_n_long]-T[i_n_t,pres-1,i_n_lat,i_n_long])\
+                                      /((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g_z*\
+                                np.log(T[i_n_t,pres,i_n_lat,i_n_long]/T[i_n_t,pres-1,i_n_lat,i_n_long]))*np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
+                            else :
+                                a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*T[i_n_t,pres-1,i_n_lat,i_n_long]/((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g_z)\
+                                *np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
+                            dz = a_z*(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)/(1-a_z/Rp)
 
-                        z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
+                            z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
+            else :
+                g = g0*1/(1+z[:,pres-1,:,:])
+                for i_n_t in range(n_t) :
+                    for i_n_lat in range(n_lat) :
+                        for i_n_long in range(n_long) :
+                            g_z = g[i_n_t,i_n_lat,i_n_long]
+                            H = R_gp*T[i_n_t,pres-1,i_n_lat,i_n_long]/(M[i_n_t,pres-1,i_n_lat,i_n_long]*g_z)
+                            dz = H*np.log(P[i_n_t,pres-1,i_n_lat,i_n_long]/P[i_n_t,pres,i_n_lat,i_n_long])
+                            z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
 
             # On incremente petit a petit la masse atmospherique
 

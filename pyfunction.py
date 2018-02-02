@@ -2304,7 +2304,7 @@ class JWST :
 
 class planet :
     def __init__(self):
-        self.pressure_profile_data = '/data1/caldas/TauREx_4/Output/SPECTRUM_INSTANCE_out.pickle'
+        self.pressure_profile_data = '/data1/caldas/TauREx_create/Output_1_1_2600_0.05/SPECTRUM_INSTANCE_out.pickle'
         self.planet_radius_key = 'planet_radius'
         self.planet_mass_key = 'planet_mass'
         self.star_radius_key = 'star_radius'
