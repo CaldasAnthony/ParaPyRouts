@@ -1663,7 +1663,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
                                             order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,0]],p_grid[i,j,k-1],q_grid[i,j,k-1+ind[1,0]],k,ind[:,0],[1,0,1])
                                             y = y + 1
 
-                                            dx_init_opt[i,j,y] += L - x_ref[min]
+                                            dx_init_opt[i,j,y] = L - x_ref[min]
                                             delta = L - x_ref[min]
                                             L -= delta
                                             order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,1]],p_grid[i,j,k-1],q_grid[i,j,k-1+ind[1,1]],k,ind[:,1],[1,0,1])
@@ -1687,7 +1687,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
                                                 order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,0]],p_grid[i,j,k-1+ind[1,0]],q_grid[i,j,k-1],k,ind[:,0],[1,1,0])
                                                 y = y + 1
 
-                                                dx_init_opt[i,j,y] += L - x_ref[min]
+                                                dx_init_opt[i,j,y] = L - x_ref[min]
                                                 delta = L - x_ref[min]
                                                 L -= delta
                                                 order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,1]],p_grid[i,j,k-1+ind[1,1]],q_grid[i,j,k-1],k,ind[:,1],[1,1,0])
@@ -1719,7 +1719,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
                                         order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1],p_grid[i,j,k-1+ind[0,0]],q_grid[i,j,k-1+ind[1,0]],k,ind[:,0],[0,1,1])
                                         y = y + 1
 
-                                        dx_init_opt[i,j,y] += L - x_ref[min]
+                                        dx_init_opt[i,j,y] = L - x_ref[min]
                                         delta = L - x_ref[min]
                                         L -= delta
                                         order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1],p_grid[i,j,k-1+ind[0,1]],q_grid[i,j,k-1+ind[1,1]],k,ind[:,1],[0,1,1])
@@ -1828,12 +1828,12 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
                                                 order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,0]],p_grid[i,j,k-1+ind[1,0]],q_grid[i,j,k-1+ind[2,0]],k,ind[:,0],[1,1,1])
                                                 y = y + 1
 
-                                                dx_init_opt[i,j,y] += x_ref[mid] - ex
+                                                dx_init_opt[i,j,y] = x_ref[mid] - ex
                                                 ex = x_ref[mid]
                                                 order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,1]],p_grid[i,j,k-1+ind[1,1]],q_grid[i,j,k-1+ind[2,1]],k,ind[:,1],[1,1,1])
                                                 y = y + 1
 
-                                                dx_init_opt[i,j,y] += x_ref[max] - ex
+                                                dx_init_opt[i,j,y] = x_ref[max] - ex
                                                 ex = x_ref[max]
                                                 order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,2]],p_grid[i,j,k-1+ind[1,2]],q_grid[i,j,k-1+ind[2,2]],k,ind[:,2],[1,1,1])
 
@@ -1856,7 +1856,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
                                                     order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,0]],p_grid[i,j,k-1],q_grid[i,j,k-1+ind[1,0]],k,ind[:,0],[1,0,1])
                                                     y = y + 1
 
-                                                    dx_init_opt[i,j,y] += x_ref[max] - ex
+                                                    dx_init_opt[i,j,y] = x_ref[max] - ex
                                                     ex = x_ref[max]
                                                     order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,1]],p_grid[i,j,k-1],q_grid[i,j,k-1+ind[1,1]],k,ind[:,1],[1,0,1])
 
@@ -1877,7 +1877,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
                                                     order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,0]],p_grid[i,j,k-1+ind[1,0]],q_grid[i,j,k-1],k,ind[:,0],[1,1,0])
                                                     y = y + 1
 
-                                                    dx_init_opt[i,j,y] += x_ref[max] - ex
+                                                    dx_init_opt[i,j,y] = x_ref[max] - ex
                                                     ex = x_ref[max]
                                                     order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1+ind[0,1]],p_grid[i,j,k-1+ind[1,1]],q_grid[i,j,k-1],k,ind[:,1],[1,1,0])
 
@@ -1910,7 +1910,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
                                                 order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1],p_grid[i,j,k-1+ind[0,0]],q_grid[i,j,k-1+ind[1,0]],k,ind[:,0],[0,1,1])
                                                 y = y + 1
 
-                                                dx_init_opt[i,j,y] += x_ref[max] - ex
+                                                dx_init_opt[i,j,y] = x_ref[max] - ex
                                                 ex = x_ref[max]
                                                 order_init[:,i,j,y] = order_assign(z_grid[i,j,k-1],p_grid[i,j,k-1+ind[0,1]],q_grid[i,j,k-1+ind[1,1]],k,ind[:,1],[0,1,1])
 
