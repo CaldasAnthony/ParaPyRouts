@@ -1575,6 +1575,11 @@ def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,ra
                 if i%100 == 0. or i == size - 1 :
                     bar.animate(i + 1)
 
+        print k_inter[i]
+        k_1 = np.interp(np.log(P)-2,P_sample,k_corr_data[:,i_Td,0])
+        k_2 = np.interp(np.log(P)-2,P_sample,k_corr_data[:,i_Tu,0])
+        print np.interp(T,np.array([T_sample[i_Td],T_sample[i_Tu]]),np.array([k_1,k_2]))
+
     return k_inter*0.0001,size,i_Tu_array,i_pu_array,coeff_1_array,coeff_3_array
 
 ########################################################################################################################
