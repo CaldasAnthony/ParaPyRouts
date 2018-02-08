@@ -1164,9 +1164,9 @@ if Script == True :
 
     if rank == 0 :
         I = np.load('%s.npy'%(save_name_3D))
-        save_adress = "%s.dat"%(save_name_3D)
+        save_adress = "%s"%(save_name_3D)
         if Noise == True :
-            save_name_3D += '_n'
+            save_adress += '_n'
         if ErrOr == True :
             class star :
                 def __init__(self):
