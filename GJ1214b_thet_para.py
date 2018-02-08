@@ -1054,6 +1054,7 @@ if Cylindric_transfert_3D == True :
     
         if rank == 0 : 
             print 'Pytmosph3R will begin to compute the %s contribution'%(cases_names[wh_ca[i_ca]])
+            print 'Save directory : %s'%(save_name_3D_step)
 
         I_n = trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dim_bande,data_convert,\
                   P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
@@ -1084,9 +1085,10 @@ if Cylindric_transfert_3D == True :
             if Script == True :
 
                 Itot = np.load('%s.npy'%(save_name_3D_step))
-                save_adress = "%s"%(save_name_3D_step)
                 if Noise == True :
-                    save_adress = '%s_n'%(save_adress)
+                    save_adress = '%s_n'%(save_name_3D_step)
+                else :
+                    save_adress = "%s"%(save_name_3D_step)
                 if ErrOr == True :
                     class star :
                         def __init__(self):
@@ -1124,7 +1126,6 @@ if Cylindric_transfert_3D == True :
             stud = stud_type(r_eff,Single,Continuum,Molecular,Scattering,Clouds)
             save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
                     phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
-            print 'Save directory : %s'%(save_name_3D_step)
             I_step = np.load('%s.npy'%(save_name_3D_step))
             if i_ca == 0 :
                 tau = np.log(I_step)
