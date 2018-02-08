@@ -1164,7 +1164,7 @@ if Script == True :
 
     if rank == 0 :
         I = np.load('%s.npy'%(save_name_3D))
-        save_adress = "%I/dat/%s.dat"%(path,save_name_3D)
+        save_adress = "%sI/dat/%s.dat"%(path,save_name_3D)
         if Noise == True :
             save_name_3D += '_n'
         if ErrOr == True :
