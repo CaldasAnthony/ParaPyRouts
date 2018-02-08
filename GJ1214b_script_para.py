@@ -212,7 +212,7 @@ N_fixe = True          ###### Si nous voulons imposer le nombre de couche atmosp
 TopPressure = 'Up'    ###### Si nous voulons fixer le toit de l'atmosphere par rapport a une pression minimale
 MassAtm = False         ###### Si on tient compte de la masse atmospherique
 
-Parameters = True
+Parameters = False
 
 Cylindre = False        ###### Construit la maille cylindrique
 Obliquity = False       ###### Si l'exoplanete est inclinee
@@ -238,7 +238,7 @@ TimeSelec = True       ###### Si nous etudions un temps precis de la simulation
 
 # Cylindric transfert
 
-Cylindric_transfert_3D = True
+Cylindric_transfert_3D = False
 
 Molecular = True         ###### Ne tiens pas compte de l'absorption moleculaire
 Continuum = True       ###### Tiens compte de l'absorption par les collisions
