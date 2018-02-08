@@ -1147,7 +1147,7 @@ if Script == True :
 
     if rank == 0 :
         I = np.load('%s.npy'%(save_name_3D))
-        save_adress = "%sI/dat/%s.dat"%(path,save_name_3D)
+        save_adress = "%s.dat"%(save_name_3D)
         if Noise == True :
             save_name_3D += '_n'
         if ErrOr == True :
@@ -1174,6 +1174,6 @@ if Script == True :
             int_lambda = np.sort(10000./int_lambda[::-1])
             noise = stellar_noise(star(),detection,int_lambda)
             noise = noise[::-1]
-        flux_script(path,name_source,source,save_name_3D,I,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
+        flux_script(path,name_source,source,save_adress,I,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
 
 ########################################################################################################################
