@@ -487,7 +487,7 @@ def line_search(line) :
 ########################################################################################################################
 
 
-def flux_script(output,path,name_source,source,save_name,I,error,Rs,Rp,r_step,Kcorr=False,Middle=True,Noise=False) :
+def flux_script(path,name_source,source,save_name,I,error,Rs,Rp,r_step,Kcorr=False,Middle=True,Noise=False) :
 
     sh_I = np.shape(I)
     if error.size == 1 :
@@ -517,8 +517,16 @@ def flux_script(output,path,name_source,source,save_name,I,error,Rs,Rp,r_step,Kc
 ########################################################################################################################
 
 
+def spectrum_output_taurex_read(file) :
 
-
-
-
+    data = open('%s'%(file),'r')
+    data = data.readlines()
+    size = len(data)
+    bande_sample = np.zeros(size)
+    flux = np.zeros(size)
+    for i_s in range(size) :
+        don = line_search(data[i_s])
+        bande_sample[i_s] = don[0]
+        flux[i_s] = don[1]
+    return bande_sample,flux
 
