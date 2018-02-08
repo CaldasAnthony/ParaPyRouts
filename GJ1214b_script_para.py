@@ -83,7 +83,8 @@ n_species_active = np.array([information[planet.active_species_key]])
 
 T_iso, P_surf = information[planet.planet_temperature_key], information[planet.extreme_pressure_key[0]]
 x_ratio_species_active = np.array([information[planet.planet_active_ratio_key]])
-M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=False)
+M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=True)
+print x_ratio_species_active, M
 
 # Proprietes des nuages
 

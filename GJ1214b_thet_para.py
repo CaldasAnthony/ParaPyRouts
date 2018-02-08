@@ -25,11 +25,13 @@ if rank == 0 :
         print 'Clouds in the atmosphere (grain radius/density) : %s'%(message_clouds)
     else :
         print 'There is no clouds'
-    print 'Width of layers : %i m'%(delta_z)
-    print 'Top of the atmosphere : %i m'%(h)
+    if N_fixe == False :
+        print 'Width of layers : %i m'%(delta_z)
+        print 'Top of the atmosphere : %i m'%(h)
     print 'Mean radius of the exoplanet : %i m'%(Rp)
     print 'Mean surface gravity : %.2f m/s^2'%(g0)
-    print 'Mean molar mass : %.5f kg/mol'%(M)
+    if diag_file == '' :
+        print 'Mean molar mass : %.5f kg/mol'%(M)
     print 'Extrapolation type for the upper atmosphere : %s'%(Upper)
     number = 2 + m_species.size + c_species.size + n_species.size + 1
     print 'Resolution of the GCM simulation (latitude/longitude) : %i/%i'%(reso_lat,reso_long)
