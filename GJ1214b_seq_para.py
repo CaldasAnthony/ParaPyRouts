@@ -1123,7 +1123,7 @@ if Cylindric_transfert_3D == True :
 if View == True :
 
     if rank == 0 :
-        Itot = np.load('%s'%(save_name_3D))
+        Itot = np.load('%s.npy'%(save_name_3D))
         if Kcorr == True :
             bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,domain))
         else :
