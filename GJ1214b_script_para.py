@@ -58,6 +58,7 @@ g0 = G*Mp/(Rp**2)
 #Ts = 3000.
 Rs = information[planet.star_radius_key]
 Ts = information[planet.star_temperature_key]
+d_al = 100.*9.461e+15
 
 # Proprietes en cas de lecture d'un diagfi
 
@@ -251,6 +252,13 @@ Module = False          ###### Si nous souhaitons moduler la densite de referenc
 
 D3Maille = False        ###### Si nous voulons resoudre le transfert dans la maille 3D
 TimeSel = True         ###### Si nous etudions un temps precis de la simulation
+
+########################################################################################################################
+
+Script = True          ###### Si nous voulons avoir une version .dat du spectre
+ErrOr = True           ###### Si calculons le bruit de photon pour un instrument donne
+detection = JWST()
+Noise = True           ###### Si nous voulons bruiter le signal a partir du bruit de photon calcule
 
 ########################################################################################################################
 

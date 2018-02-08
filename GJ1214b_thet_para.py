@@ -1105,36 +1105,75 @@ if Cylindric_transfert_3D == True :
 
 if View == True :
 
-    if Cylindric_transfert_3D == False :
-        Itot = np.load(save_name_3D)
-    if Kcorr == True :
-        bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,domain))
-    else :
-        bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
+    if rank == 0 :
+        Itot = np.load('%s'%(save_name_3D))
+        if Kcorr == True :
+            bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,domain))
+        else :
+            bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
 
-    R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux = atmospectre(Itot,bande_sample,Rs,Rp,r_step,0,\
+        R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux = atmospectre(Itot,bande_sample,Rs,Rp,r_step,0,\
                                                                                 False,Kcorr,Middle)
 
-    if Radius == True :
-        plt.semilogx()
-        plt.grid(True)
-        plt.plot(1/(100.*bande_sample)*10**6,R_eff,'g',linewidth = 2,label='3D spectrum')
-        plt.ylabel('Effective radius (m)')
-        plt.xlabel('Wavelenght (micron)')
-        plt.legend(loc=4)
-        plt.show()
+        if Radius == True :
+            plt.semilogx()
+            plt.grid(True)
+            plt.plot(1/(100.*bande_sample)*10**6,R_eff,'g',linewidth = 2,label='3D spectrum')
+            plt.ylabel('Effective radius (m)')
+            plt.xlabel('Wavelenght (micron)')
+            plt.legend(loc=4)
+            plt.show()
 
-    if Flux == True :
-        plt.semilogx()
-        plt.grid(True)
-        plt.plot(1/(100.*bande_sample)*10**6,flux,'r',linewidth = 2,label='3D spectrum')
-        plt.ylabel('Flux (Rp/Rs)2')
-        plt.xlabel('Wavelenght (micron)')
-        plt.legend(loc=4)
-        plt.show()
+        if Flux == True :
+            plt.semilogx()
+            plt.grid(True)
+            plt.plot(1/(100.*bande_sample)*10**6,flux,'r',linewidth = 2,label='3D spectrum')
+            plt.ylabel('Flux (Rp/Rs)2')
+            plt.xlabel('Wavelenght (micron)')
+            plt.legend(loc=4)
+            plt.show()
 
 ########################################################################################################################
 
 
 if rank == 0 : 
     print 'Pytmosph3R process finished with success'
+
+
+########################################################################################################################
+
+
+if Script == True :
+
+    if rank == 0 :
+        I = np.load('%s.npy'%(save_name_3D))
+        save_adress = "%I/dat/%s.dat"%(path,save_name_3D)
+        if Noise == True :
+            save_name_3D += '_n'
+        if ErrOr == True :
+            class star :
+                def __init__(self):
+                    self.radius = Rs
+                    self.temperature = Ts
+                    self.distance = d_al
+            bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
+            bande_sample = np.delete(bande_sample,[0])
+            int_lambda = np.zeros((2,bande_sample.size))
+            bande_sample = np.sort(bande_sample)
+
+            for i_bande in range(bande_sample.size) :
+                if i_bande == 0 :
+                    int_lambda[0,i_bande] = bande_sample[0]
+                    int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
+                elif i_bande == bande_sample.size - 1 :
+                    int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
+                    int_lambda[1,i_bande] = bande_sample[bande_sample.size-1]
+                else :
+                    int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
+                    int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
+            int_lambda = np.sort(10000./int_lambda[::-1])
+            noise = stellar_noise(star(),detection,int_lambda)
+            noise = noise[::-1]
+        flux_script(path,name_source,source,save_name_3D,I,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
+
+########################################################################################################################
