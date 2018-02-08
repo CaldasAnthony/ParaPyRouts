@@ -1097,6 +1097,39 @@ if Cylindric_transfert_3D == True :
 
         if rank == 0 :
             np.save('%s.npy'%(save_name_3D_step),Itot)
+
+            if Script == True :
+
+                Itot = np.load('%s.npy'%(save_name_3D_step))
+                save_adress = "%s"%(save_name_3D_step)
+                if Noise == True :
+                    save_adress += '_n'
+                if ErrOr == True :
+                    class star :
+                        def __init__(self):
+                            self.radius = Rs
+                            self.temperature = Ts
+                            self.distance = d_al
+                    bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
+                    bande_sample = np.delete(bande_sample,[0])
+                    int_lambda = np.zeros((2,bande_sample.size))
+                    bande_sample = np.sort(bande_sample)
+
+                    for i_bande in range(bande_sample.size) :
+                        if i_bande == 0 :
+                            int_lambda[0,i_bande] = bande_sample[0]
+                            int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
+                        elif i_bande == bande_sample.size - 1 :
+                            int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
+                            int_lambda[1,i_bande] = bande_sample[bande_sample.size-1]
+                        else :
+                            int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
+                            int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
+                    int_lambda = np.sort(10000./int_lambda[::-1])
+                    noise = stellar_noise(star(),detection,int_lambda)
+                    noise = noise[::-1]
+                flux_script(path,name_source,source,save_adress,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
+
             del Itot
         del I_n
     
@@ -1116,6 +1149,39 @@ if Cylindric_transfert_3D == True :
                 tau += np.log(I_step)
         Itot = np.exp(tau)
         np.save('%s.npy'%(save_name_3D),Itot)
+
+        if Script == True :
+
+            Itot = np.load('%s.npy'%(save_name_3D))
+            save_adress = "%s"%(save_name_3D)
+            if Noise == True :
+                save_adress += '_n'
+            if ErrOr == True :
+                class star :
+                    def __init__(self):
+                        self.radius = Rs
+                        self.temperature = Ts
+                        self.distance = d_al
+                bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
+                bande_sample = np.delete(bande_sample,[0])
+                int_lambda = np.zeros((2,bande_sample.size))
+                bande_sample = np.sort(bande_sample)
+
+                for i_bande in range(bande_sample.size) :
+                    if i_bande == 0 :
+                        int_lambda[0,i_bande] = bande_sample[0]
+                        int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
+                    elif i_bande == bande_sample.size - 1 :
+                        int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
+                        int_lambda[1,i_bande] = bande_sample[bande_sample.size-1]
+                    else :
+                        int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
+                        int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
+                int_lambda = np.sort(10000./int_lambda[::-1])
+                noise = stellar_noise(star(),detection,int_lambda)
+                noise = noise[::-1]
+            flux_script(path,name_source,source,save_adress,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
+
         print save_name_3D
 
 ########################################################################################################################
@@ -1156,41 +1222,5 @@ if View == True :
 if rank == 0 :
     print 'Pytmosph3R process finished with success'
 
-
-########################################################################################################################
-
-
-if Script == True :
-
-    if rank == 0 :
-        I = np.load('%s.npy'%(save_name_3D))
-        save_adress = "%s"%(save_name_3D)
-        if Noise == True :
-            save_adress += '_n'
-        if ErrOr == True :
-            class star :
-                def __init__(self):
-                    self.radius = Rs
-                    self.temperature = Ts
-                    self.distance = d_al
-            bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
-            bande_sample = np.delete(bande_sample,[0])
-            int_lambda = np.zeros((2,bande_sample.size))
-            bande_sample = np.sort(bande_sample)
-
-            for i_bande in range(bande_sample.size) :
-                if i_bande == 0 :
-                    int_lambda[0,i_bande] = bande_sample[0]
-                    int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
-                elif i_bande == bande_sample.size - 1 :
-                    int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
-                    int_lambda[1,i_bande] = bande_sample[bande_sample.size-1]
-                else :
-                    int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
-                    int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
-            int_lambda = np.sort(10000./int_lambda[::-1])
-            noise = stellar_noise(star(),detection,int_lambda)
-            noise = noise[::-1]
-        flux_script(path,name_source,source,save_adress,I,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
 
 ########################################################################################################################
