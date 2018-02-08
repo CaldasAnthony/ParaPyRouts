@@ -264,7 +264,7 @@ Noise = True           ###### Si nous voulons bruiter le signal a partir du brui
 
 # Plot
 
-View = True
+View = False
 
 Radius = True          ###### Spectre rayon effective = f(longueur d'onde)
 Flux = False            ###### Spectre flux = f(longueur d'onde)
