@@ -40,6 +40,8 @@ number_rank = comm.size
 
     Date de derniere modification : 29.10.2017
 
+    >> Reecriture de l'interpolation des sections efficaces. Correction du BigBug
+
 """
 
 ########################################################################################################################
@@ -698,6 +700,480 @@ def convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,K,K_
 ########################################################################################################################
 ########################################################################################################################
 
+
+def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
+
+    n_sp, P_size, T_size, dim_bande = np.shape(sigma_array)
+
+    sigma_data = sigma_array[0,:,:,:]
+
+    sigma_array_t = np.transpose(sigma_array,(1,2,3,0))
+    compo_array_t = np.transpose(compo_array)
+
+    k_inter,size,i_Tu_arr,i_pu_arr,coeff_1_array,coeff_3_array = \
+    k_correlated_interp(sigma_data,P_array,T_array,0,P_sample,T_sample,rank,rank_ref,Kcorr)
+
+    zz, = np.where(i_Tu_arr == 0)
+    i_Td_arr = i_Tu_arr - 1
+    i_Td_arr[zz] = np.zeros(zz.size)
+    zz, = np.where(i_pu_arr == 0)
+    i_pd_arr = i_pu_arr - 1
+    i_pd_arr[zz] = np.zeros(zz.size)
+
+    k_rmd = np.zeros((i_Tu_arr.size,dim_bande))
+
+    if rank == rank_ref :
+        bar = ProgressBar(i_Tu_arr.size,'Ssearcher progression')
+
+    for i in xrange( i_Tu_arr.size ):
+
+        i_Tu = i_Tu_arr[i]
+        i_Td = i_Tu_arr[i]
+        i_pu = i_pu_arr[i]
+        i_pd = i_pd_arr[i]
+
+        if Optimal == False :
+
+            coeff_1 = coeff_1_array[i]
+            coeff_2 = 1. - coeff_1
+            coeff_3 = coeff_3_array[i]
+            coeff_4 = 1. - coeff_3
+
+            c13 = coeff_1 * coeff_3 * 0.0001
+            c23 = coeff_2 * coeff_3 * 0.0001
+            c14 = coeff_1 * coeff_4 * 0.0001
+            c24 = coeff_2 * coeff_4 * 0.0001
+
+            k_pd_Td = sigma_array_t[i_pd, i_Td, :, :]
+            k_pd_Tu = sigma_array_t[i_pd, i_Tu, :, :]
+            k_pu_Td = sigma_array_t[i_pu, i_Td, :, :]
+            k_pu_Tu = sigma_array_t[i_pu, i_Tu, :, :]
+
+            comp = compo_array_t[i,:]
+
+            k_1 = k_pd_Td * c24 + k_pd_Tu * c14
+            k_2 = k_pu_Td * c23 + k_pu_Tu * c13
+
+            k_rmd[i, :] = np.dot( k_1 + k_2, comp )
+
+        else :
+
+            b_m = coeff_1_array[0,i]
+            a_m = coeff_1_array[1,i]
+            T = coeff_1_array[2,i]
+            coeff_3 = coeff_3_array[i] * 0.0001
+            coeff_4 = (1. - coeff_3) * 0.0001
+
+            k_pd_Tu = sigma_array_t[i_pd, i_Tu, :, :]
+            k_pu_Tu = sigma_array_t[i_pu, i_Tu, :, :]
+
+            comp = compo_array_t[i,:]
+
+            k_u = k_pd_Tu * coeff_4 + k_pu_Tu * coeff_3
+            k_d = k_pd_Td * coeff_4 + k_pu_Td * coeff_3
+
+            b_mm = b_m * np.log(k_u/k_d)
+            a_mm = np.exp(b_mm/a_m)
+
+            k_rmd[i, :] = np.dot( k_u*a_mm*np.exp(-b_mm/T), comp )
+
+        if rank == rank_ref :
+            bar.animate( i+1 )
+
+    return k_rmd
+
+
+########################################################################################################################
+
+
+def Ksearcher(T_array,P_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
+
+    k_rmd = np.zeros((P_array.size,dim_bande,dim_gauss))
+
+    layer = int(T_array.size/10.)
+
+    T_size = T_array.size
+
+    if oneD == False :
+        if rank == rank_ref :
+            bar = ProgressBar(dim_bande*dim_gauss,'K-correlated coefficients computation')
+
+    for i_bande in range(dim_bande) :
+
+        k_corr_data = k_corr_data_grid[:,:,:,i_bande,:]
+
+        if i_bande == 0 :
+
+            for i_gauss in range(dim_gauss) :
+
+                if i_gauss == 0 :
+                    k_inter,size,i_Tu_array,i_pu_array,coeff_1_array,coeff_3_array = \
+                    k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,rank,rank_ref,Kcorr,oneD,Optimal)
+
+                    k_rmd[:,i_bande,i_gauss] = k_inter[:]
+
+                else :
+
+                    for lay in range(10) :
+
+                        if lay != 9 :
+
+                            k_inter = k_correlated_interp_boucle(k_corr_data,size,i_Tu_array[lay*layer:(lay+1)*layer],i_pu_array[lay*layer:(lay+1)*layer],\
+                                            coeff_1_array[lay*layer:(lay+1)*layer],coeff_3_array[lay*layer:(lay+1)*layer],i_gauss,Optimal,Kcorr)
+
+                            k_rmd[lay*layer:(lay+1)*layer,i_bande,i_gauss] = k_inter[:]
+
+                        else :
+
+                            k_inter = k_correlated_interp_boucle(k_corr_data,size,i_Tu_array[lay*layer:T_size],i_pu_array[lay*layer:T_size],\
+                                            coeff_1_array[lay*layer:T_size],coeff_3_array[lay*layer:T_size],i_gauss,Optimal,Kcorr)
+
+                            k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
+
+                if oneD == False :
+                    if rank == rank_ref :
+                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
+
+        else :
+
+            for i_gauss in range(dim_gauss) :
+
+                for lay in range(10) :
+
+                    if lay != 9 :
+
+                        k_inter = k_correlated_interp_boucle(k_corr_data,size,i_Tu_array[lay*layer:(lay+1)*layer],i_pu_array[lay*layer:(lay+1)*layer],\
+                                            coeff_1_array[lay*layer:(lay+1)*layer],coeff_3_array[lay*layer:(lay+1)*layer],i_gauss,Optimal,Kcorr)
+
+                        k_rmd[lay*layer:(lay+1)*layer,i_bande,i_gauss] = k_inter[:]
+
+                    else :
+
+                        k_inter = k_correlated_interp_boucle(k_corr_data,size,i_Tu_array[lay*layer:T_size],i_pu_array[lay*layer:T_size],\
+                                            coeff_1_array[lay*layer:T_size],coeff_3_array[lay*layer:T_size],i_gauss,Optimal,Kcorr)
+
+                        k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
+
+                if oneD == False :
+                    if rank == rank_ref :
+                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
+
+    #print("Computed for bande %i" %(i_bande+1))
+
+    return k_rmd
+
+
+########################################################################################################################
+
+
+def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,rank,rank_ref,Kcorr=True,oneD=False,Optimal=False) :
+
+    size = P_array.size
+    k_inter = np.zeros(size)
+
+    i_Tu_array = np.zeros(size, dtype = "int")
+    i_pu_array = np.zeros(size, dtype = "int")
+    if Optimal == True :
+        coeff_1_array = np.zeros((3,size))
+    else :
+        coeff_1_array = np.zeros(size)
+    coeff_3_array = np.zeros(size)
+
+    if rank == rank_ref :
+        bar = ProgressBar(size,'Module interpolates cross sections')
+
+    for i in range(size) :
+
+        P = np.log10(P_array[i])-2
+        T = T_array[i]
+
+        if T == 0 or P == 0 :
+            i_Tu = 0
+            i_pu = 0
+            coeff_1 = 0
+            coeff_3 = 0
+            k_inter[i] = 0.
+
+        else :
+
+            if T == T_array[i-1] and P == P_array[i-1] and i != 0 :
+                k_inter[i] = k_inter[i-1]
+            else :
+                if Kcorr == True :
+                    res,c_grid,i_grid = interp2olation_opti_uni(T,P,T_sample,P_sample,k_corr_data[:,:,0,i_gauss],False,False)
+                    k_inter[i] = res
+                    i_Tu, i_Td, i_pu, i_pd = i_grid[0], i_grid[1], i_grid[2], i_grid[3]
+                    coeff_3, coeff_1 = c_grid[0], c_grid[2]
+                else :
+                    if Optimal == True :
+                        res,c_grid,i_grid = interp2olation_opti_uni(P,T,P_sample,T_sample,k_corr_data[:,:,0],False,True)
+                        b_m, a_m, T = c_grid[0], c_grid[1], c_grid[2]
+                        coeff_3 = c_grid[3]
+                    else :
+                        res,c_grid,i_grid = interp2olation_opti_uni(P,T,P_sample,T_sample,k_corr_data[:,:,0],False,True)
+                    k_inter[i] = res
+                    i_pu, i_pd, i_Tu, i_Td = i_grid[0], i_grid[1], i_grid[2], i_grid[3]
+
+        i_Tu_array[i] = int(i_Tu)
+        i_pu_array[i] = int(i_pu)
+        if Optimal == False :
+            coeff_1_array[i] = coeff_1
+        else :
+            coeff_1_array[0,i] = b_m
+            coeff_1_array[1,i] = a_m
+            coeff_1_array[2,i] = T
+        coeff_3_array[i] = coeff_3
+
+        if rank == rank_ref :
+            if i%100 == 0. or i == size - 1 :
+                bar.animate(i + 1)
+
+    return k_inter*0.0001,size,i_Tu_array,i_pu_array,coeff_1_array,coeff_3_array
+
+########################################################################################################################
+
+def k_correlated_interp_boucle(k_corr_data,size,i_Tu_array,i_pu_array,\
+                               coeff_1_array,coeff_3_array,i_gauss,Optimal=False,Kcorr=False):
+
+    if Optimal == False :
+        coeff_2_array = 1 - coeff_1_array
+
+    coeff_4_array = 1 - coeff_3_array
+    zz, = np.where(i_Tu_array == 0)
+    i_Td_array = i_Tu_array - 1
+    i_Td_array[zz] = np.zeros(zz.size)
+    zz, = np.where(i_pu_array == 0)
+    i_pd_array = i_pu_array - 1
+    i_pd_array[zz] = np.zeros(zz.size)
+
+    gauss = np.ones(i_Tu_array.size,dtype='int')*i_gauss
+
+    if Kcorr == True :
+        k_pd_Td = k_corr_data[i_Td_array,i_pd_array,0,gauss]
+        k_pd_Tu = k_corr_data[i_Tu_array,i_pd_array,0,gauss]
+        k_pu_Td = k_corr_data[i_Td_array,i_pu_array,0,gauss]
+        k_pu_Tu = k_corr_data[i_Tu_array,i_pu_array,0,gauss]
+    else :
+        k_pd_Td = k_corr_data[i_pd_array,i_Td_array,0]
+        k_pd_Tu = k_corr_data[i_pd_array,i_Tu_array,0]
+        k_pu_Td = k_corr_data[i_pu_array,i_Td_array,0]
+        k_pu_Tu = k_corr_data[i_pu_array,i_Tu_array,0]
+
+    k_d = k_pd_Td*coeff_4_array + k_pu_Td*coeff_3_array
+    k_u = k_pd_Tu*coeff_4_array + k_pu_Tu*coeff_3_array
+    if Optimal == False :
+        k_inter = k_d*coeff_2_array + k_u*coeff_1_array
+    else :
+        b_m = coeff_1_array[0]
+        a_m = coeff_1_array[1]
+        T = coeff_1_array[2]
+        wh_zn, = np.where(k_d != 0.00)
+        b_mm = np.zeros(b_m.size,dtype=np.float64)
+        b_mm[wh_zn] = b_m*np.log(k_u[wh_zn]/k_d[wh_zn])
+        a_mm = np.exp(b_mm/a_m)
+        k_inter = k_u*a_mm*np.exp(b_mm/T)
+
+    return k_inter*0.0001
+
+
+########################################################################################################################
+
+
+def Ksearcher_M(T_array,P_array,Q_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
+
+    k_rmd = np.zeros((P_array.size,dim_bande,dim_gauss))
+
+    if oneD == False :
+        if rank == rank_ref :
+            bar = ProgressBar(dim_bande*dim_gauss,'K-correlated coefficients computation')
+
+    layer = int(T_array.size/10.)
+
+    T_size = T_array.size
+
+    for i_bande in range(dim_bande) :
+
+        k_corr_data = k_corr_data_grid[:,:,:,i_bande,:]
+
+        if i_bande == 0 :
+
+            for i_gauss in range(dim_gauss) :
+
+                if i_gauss == 0 :
+
+                    k_inter,size,i_Tu_array,i_pu_array,i_Qu_array,coeff_1_array,coeff_3_array,coeff_5_array = \
+                        k_correlated_interp_M(k_corr_data,P_array,T_array,Q_array,i_gauss,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,oneD,Optimal)
+
+                    k_rmd[:,i_bande,i_gauss] = k_inter[:]
+
+                else :
+
+                    for lay in range(5) :
+
+                        if lay != 4 :
+
+                            k_inter = k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array[lay*layer:(lay+1)*layer],i_pu_array[lay*layer:(lay+1)*layer],i_Qu_array[lay*layer:(lay+1)*layer],\
+                                                    coeff_1_array[lay*layer:(lay+1)*layer],coeff_3_array[lay*layer:(lay+1)*layer],coeff_5_array[lay*layer:(lay+1)*layer],i_gauss,Optimal,Kcorr)
+
+
+                            k_rmd[lay*layer:(lay+1)*layer,i_gauss,i_bande] = k_inter[:]
+
+                        else :
+
+                            k_inter = k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array[lay*layer:T_size],i_pu_array[lay*layer:T_size],i_Qu_array[lay*layer:T_size],\
+                                                    coeff_1_array[lay*layer:T_size],coeff_3_array[lay*layer:T_size],coeff_5_array[lay*layer:T_size],i_gauss,Optimal,Kcorr)
+
+                            k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
+
+
+                if oneD == False :
+                    if rank == rank_ref :
+                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
+
+        else :
+
+            for i_gauss in range(dim_gauss) :
+
+                for lay in range(5) :
+
+                    if lay != 4 :
+
+                        k_inter = k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array[lay*layer:(lay+1)*layer],i_pu_array[lay*layer:(lay+1)*layer],i_Qu_array[lay*layer:(lay+1)*layer],\
+                                                    coeff_1_array[lay*layer:(lay+1)*layer],coeff_3_array[lay*layer:(lay+1)*layer],coeff_5_array[lay*layer:(lay+1)*layer],i_gauss,Optimal,Kcorr)
+
+
+                        k_rmd[lay*layer:(lay+1)*layer,i_bande,i_gauss] = k_inter[:]
+
+                    else :
+
+                        k_inter = k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array[lay*layer:T_size],i_pu_array[lay*layer:T_size],i_Qu_array[lay*layer:T_size],\
+                                                    coeff_1_array[lay*layer:T_size],coeff_3_array[lay*layer:T_size],coeff_5_array[lay*layer:T_size],i_gauss,Optimal,Kcorr)
+
+                        k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
+
+                if oneD == False :
+                    if rank == rank_ref :
+                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
+
+    return k_rmd
+
+
+########################################################################################################################
+
+
+def Ssearcher_M(T_array,P_array,Q_array,compo_array,sigma_array,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
+
+    n_sp, P_size, T_size, dim_bande = np.shape(sigma_array)
+
+    sigma_data = sigma_array[0,:,:,:]
+
+    sigma_array_t = np.transpose(sigma_array,(1,2,3,4,0))
+    compo_array_t = np.transpose(compo_array)
+
+    k_inter,size,i_Tu_arr,i_pu_arr,i_Qu_arr,coeff_1_array,coeff_3_array,coeff_5_array = \
+    k_correlated_interp_M(sigma_data,P_array,T_array,Q_array,0,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,Optimal)
+
+    zz, = np.where(i_Tu_arr == 0)
+    i_Td_arr = i_Tu_arr - 1
+    i_Td_arr[zz] = np.zeros(zz.size)
+    zz, = np.where(i_pu_arr == 0)
+    i_pd_arr = i_pu_arr - 1
+    i_pd_arr[zz] = np.zeros(zz.size)
+    zz, = np.where(i_Qu_arr == 0)
+    i_Qd_arr = i_Qu_arr - 1
+    i_Qd_arr[zz] = np.zeros(zz.size)
+
+    k_rmd = np.zeros((i_Tu_arr.size,dim_bande))
+
+    if rank == rank_ref :
+        bar = ProgressBar(i_Tu_arr.size,'Ssearcher progression')
+
+    for i in xrange( i_Tu_arr.size ):
+
+        i_Tu = i_Tu_arr[i]
+        i_Td = i_Tu_arr[i]
+        i_pu = i_pu_arr[i]
+        i_pd = i_pd_arr[i]
+        i_Qu = i_Qu_arr[i]
+        i_Qd = i_Qd_arr[i]
+
+        if Optimal == False :
+
+            coeff_1 = coeff_1_array[i]
+            coeff_2 = 1. - coeff_1
+            coeff_3 = coeff_3_array[i]
+            coeff_4 = 1. - coeff_3
+            coeff_5 = coeff_5_array[i]
+            coeff_6 = 1. - coeff_5
+
+            c425 = coeff_2 * coeff_5 * coeff_4 * 0.0001
+            c415 = coeff_1 * coeff_5 * coeff_4 * 0.0001
+            c325 = coeff_2 * coeff_5 * coeff_3 * 0.0001
+            c315 = coeff_1 * coeff_5 * coeff_3 * 0.0001
+            c426 = coeff_2 * coeff_6 * coeff_4 * 0.0001
+            c416 = coeff_1 * coeff_6 * coeff_4 * 0.0001
+            c326 = coeff_2 * coeff_6 * coeff_3 * 0.0001
+            c316 = coeff_1 * coeff_6 * coeff_3 * 0.0001
+
+            k_pd_Td_Qu = sigma_array_t[i_pd, i_Td, i_Qu, :, :]
+            k_pd_Tu_Qu = sigma_array_t[i_pd, i_Tu, i_Qu, :, :]
+            k_pu_Td_Qu = sigma_array_t[i_pu, i_Td, i_Qu, :, :]
+            k_pu_Tu_Qu = sigma_array_t[i_pu, i_Tu, i_Qu, :, :]
+            k_pd_Td_Qd = sigma_array_t[i_pd, i_Td, i_Qd, :, :]
+            k_pd_Tu_Qd = sigma_array_t[i_pd, i_Tu, i_Qd, :, :]
+            k_pu_Td_Qd = sigma_array_t[i_pu, i_Td, i_Qd, :, :]
+            k_pu_Tu_Qd = sigma_array_t[i_pu, i_Tu, i_Qd, :, :]
+
+            comp = compo_array_t[i,:]
+
+            k_1 = k_pd_Td_Qu * c425 + k_pd_Tu_Qu * c415
+            k_2 = k_pu_Td_Qu * c325 + k_pu_Tu_Qu * c315
+            k_3 = k_pd_Td_Qd * c426 + k_pd_Tu_Qd * c416
+            k_4 = k_pu_Td_Qd * c326 + k_pu_Tu_Qd * c316
+
+            k_rmd[i, :] = np.dot(k_1 + k_2 + k_3 + k_4, comp )
+
+        else :
+
+            b_m = coeff_1_array[0,i]
+            a_m = coeff_1_array[1,i]
+            T = coeff_1_array[2,i]
+            coeff_3 = coeff_3_array[i]
+            coeff_4 = 1. - coeff_3
+            coeff_5 = coeff_5_array[i]
+            coeff_6 = 1. - coeff_5
+
+            c45 = coeff_5 * coeff_4 * 0.0001
+            c35 = coeff_5 * coeff_3 * 0.0001
+            c46 = coeff_6 * coeff_4 * 0.0001
+            c36 = coeff_6 * coeff_3 * 0.0001
+
+            k_pd_Tu_Qu = sigma_array_t[i_pd, i_Tu, i_Qu, :, :]
+            k_pu_Tu_Qu = sigma_array_t[i_pu, i_Tu, i_Qu, :, :]
+            k_pd_Tu_Qd = sigma_array_t[i_pd, i_Tu, i_Qd, :, :]
+            k_pu_Tu_Qd = sigma_array_t[i_pu, i_Tu, i_Qd, :, :]
+
+            comp = compo_array_t[i,:]
+
+            k_1 = k_pd_Tu_Qd * c46 + k_pd_Tu_Qu * c45
+            k_2 = k_pu_Tu_Qd * c36 + k_pu_Tu_Qu * c35
+            k_3 = k_pd_Td_Qd * c46 + k_pd_Td_Qu * c45
+            k_4 = k_pu_Td_Qd * c36 + k_pu_Td_Qu * c35
+
+            b_mm = b_m * np.log((k_1+k_2)/(k_3+k_4))
+            a_mm = np.exp(b_mm/a_m)
+
+            k_rmd[i, :] = np.dot((k_1+k_2)*a_mm*np.exp(-b_mm/T), comp )
+
+        if rank == rank_ref :
+            bar.animate( i+1 )
+
+    return k_rmd
+
+
+########################################################################################################################
+
+
 def k_correlated_interp_M(k_corr_data,P_array,T_array,Q_array,i_gauss,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr=True,oneD=False,Optimal=False) :
 
     T_min = T_sample[0]
@@ -1235,7 +1711,9 @@ def k_correlated_interp_M(k_corr_data,P_array,T_array,Q_array,i_gauss,P_sample,T
 
     return k_inter*0.0001,size,i_Tu_array,i_pu_array,i_Qu_array,coeff_1_array,coeff_3_array,coeff_5_array
 
+
 ########################################################################################################################
+
 
 def k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array,i_pu_array,i_Qu_array,\
                                coeff_1_array,coeff_3_array,coeff_5_array,i_gauss,Optimal=False,Kcorr=False):
@@ -1299,752 +1777,6 @@ def k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array,i_pu_array,i_Qu_arr
             k_inter[zer_p] = k_d*(1-coeff_1_array[1,zer_p]) + k_u*coeff_1_array[1,zer_p]
 
     return k_inter*0.0001
-
-
-########################################################################################################################
-
-
-def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,rank,rank_ref,Kcorr=True,oneD=False,Optimal=False) :
-
-    T_min = T_sample[0]
-    p_min = P_sample[0]
-
-    size = P_array.size
-    k_inter = np.zeros(size)
-    i_pu_ref = 100
-    i_Tu_ref = 100
-
-    if Kcorr == True :
-        k_lim_ddd = k_corr_data[0,0,0,i_gauss]
-    else :
-        k_lim_ddd = k_corr_data[0,0,0]
-
-    i_Tu_array = np.zeros(size, dtype = "int")
-    i_pu_array = np.zeros(size, dtype = "int")
-    if Optimal == True :
-        coeff_1_array = np.zeros((3,size))
-    else :
-        coeff_1_array = np.zeros(size)
-    coeff_3_array = np.zeros(size)
-
-    if oneD == False :
-        if rank == rank_ref : 
-            bar = ProgressBar(size,'Module interpolates cross sections')
-
-    for i in range(size) :
-
-        P = P_array[i]
-        T = T_array[i]
-
-        if T == 0 or P == 0 :
-
-            i_Tu = 0
-            i_pu = 0
-            coeff_1 = 0
-            coeff_3 = 0
-            k_inter[i] = 0.
-
-        else :
-
-            if np.log10(P) - 2 < p_min or T < T_min :
-
-                if T == T_array[i-1] and P == P_array[i-1] and i != 0 :
-
-                    k_inter[i] = k_inter[i-1]
-
-                else :
-
-                    if np.log10(P) - 2 < p_min :
-
-                        i_pu = 0
-                        coeff_3 = 0
-
-                        if T < T_min :
-
-                            i_Tu = 0
-                            coeff_1 = 0
-
-                            k_inter[i] = k_lim_ddd
-
-                        else :
-
-                            wh, = np.where((T_sample >= T))
-
-                            if wh.size != 0 :
-                                i_Tu = wh[0]
-                                Tu = T_sample[i_Tu]
-                                i_Td = wh[0] - 1
-                                Td = T_sample[i_Td]
-
-                                coeff_1 = (T - Td)/float(Tu - Td)
-                                coeff_2 = 1 - coeff_1
-                            else :
-                                i_Tu = T_sample.size - 1
-                                i_Td = T_sample.size - 1
-
-                                coeff_1 = 1.
-                                coeff_2 = 0.
-
-                            if Kcorr == True :
-                                k_1 = k_corr_data[i_Td,0,0,i_gauss]
-                                k_2 = k_corr_data[i_Tu,0,0,i_gauss]
-                            else :
-                                k_1 = k_corr_data[0,i_Td,0]
-                                k_2 = k_corr_data[0,i_Tu,0]
-
-                            if Optimal == False :
-                                k_inter[i] = k_1*coeff_2 + k_2*coeff_1
-                            else :
-                                b_m = (Tu - Td)/(Td*Tu)*np.log(k_2/k_1)
-                                a_m = np.exp(b_m/Tu)
-                                k_inter[i] = k_2*a_m*np.exp(b_m/T)
-
-                    else :
-
-                        p = np.log10(P) - 2
-
-                        wh, = np.where(P_sample >= p)
-
-                        if wh.size != 0 :
-                            i_pu = wh[0]
-                            pu = P_sample[i_pu]
-                            i_pd = i_pu - 1
-                            pd = P_sample[i_pd]
-
-                            coeff_3 = (p - pd)/float(pu - pd)
-                            coeff_4 = 1 - coeff_3
-
-                        else :
-                            i_pd = P_sample.size - 1
-                            i_pu = P_sample.size - 1
-
-                            coeff_3 = 1
-                            coeff_4 = 0
-
-                        if T < T_min :
-
-                            i_Tu = 0
-
-                            coeff_1 = 0
-
-                            if Kcorr == True :
-                                k_3 = k_corr_data[0,i_pd,0,i_gauss]
-                                k_4 = k_corr_data[0,i_pu,0,i_gauss]
-                            else :
-                                k_3 = k_corr_data[i_pd,0,0]
-                                k_4 = k_corr_data[i_pu,0,0]
-
-                            k_inter[i] = coeff_4*k_3 + coeff_3*k_4
-
-                        else :
-
-                            wh, = np.where((T_sample >= T))
-
-                            if wh.size != 0 :
-                                i_Tu = wh[0]
-                                Tu = T_sample[i_Tu]
-                                i_Td = wh[0] - 1
-                                Td = T_sample[i_Td]
-
-                                coeff_1 = (T - Td)/float(Tu - Td)
-                                coeff_2 = 1 - coeff_1
-                            else :
-                                i_Tu = T_sample.size - 1
-                                i_Td = T_sample.size - 1
-
-                                coeff_1 = 1.
-                                coeff_2 = 0.
-
-                            if Kcorr == True :
-                                k_pd_Td = k_corr_data[i_Td,i_pd,0,i_gauss]
-                                k_pd_Tu = k_corr_data[i_Tu,i_pd,0,i_gauss]
-                                k_pu_Td = k_corr_data[i_Td,i_pu,0,i_gauss]
-                                k_pu_Tu = k_corr_data[i_Tu,i_pu,0,i_gauss]
-                            else :
-                                k_pd_Td = k_corr_data[i_pd,i_Td,0]
-                                k_pd_Tu = k_corr_data[i_pd,i_Tu,0]
-                                k_pu_Td = k_corr_data[i_pu,i_Td,0]
-                                k_pu_Tu = k_corr_data[i_pu,i_Tu,0]
-
-                            k_d = k_pd_Td*coeff_4 + k_pu_Td*coeff_3
-                            k_u = k_pd_Tu*coeff_4 + k_pu_Tu*coeff_3
-
-                            if Optimal == False :
-                                k_inter[i] = k_d*coeff_2 + k_u*coeff_1
-                            else :
-                                b_m = (Tu - Td)/(Td*Tu)*np.log(k_u/k_d)
-                                a_m = np.exp(b_m/Tu)
-                                k_inter[i] = k_u*a_m*np.exp(b_m/T)
-
-            else :
-
-
-                if T == T_array[i-1] and P == P_array[i-1] and i != 0 :
-
-                    k_inter[i] = k_inter[i-1]
-
-                else :
-
-                    p = np.log10(P) - 2
-
-                    wh, = np.where(P_sample >= p)
-
-                    if wh.size != 0 :
-                        i_pu = wh[0]
-                        pu = P_sample[i_pu]
-                        i_pd = i_pu - 1
-                        pd = P_sample[i_pd]
-
-                        coeff_3 = (p - pd)/float(pu - pd)
-                        coeff_4 = 1 - coeff_3
-
-                    else :
-                        i_pd = P_sample.size - 1
-                        i_pu = P_sample.size - 1
-
-                        coeff_3 = 1.
-                        coeff_4 = 0.
-
-                    wh, = np.where((T_sample >= T))
-
-                    if wh.size != 0 :
-                        i_Tu = wh[0]
-                        Tu = T_sample[i_Tu]
-                        i_Td = wh[0] - 1
-                        Td = T_sample[i_Td]
-
-                        coeff_1 = (T - Td)/float(Tu - Td)
-                        coeff_2 = 1 - coeff_1
-                    else :
-                        i_Td = T_sample.size - 1
-                        i_Tu = T_sample.size - 1
-
-                        coeff_1 = 1.
-                        coeff_2 = 0.
-
-                    if i_pu == i_pu_ref and i_Tu == i_Tu_ref :
-
-                        k_1 = k_pd_Td*coeff_2 + k_pd_Tu*coeff_1
-                        k_2 = k_pu_Td*coeff_2 + k_pu_Tu*coeff_1
-
-                        k_inter[i] = k_1*coeff_4 + k_2*coeff_3
-
-                    else :
-
-                        if Kcorr == True :
-                            k_pd_Td = k_corr_data[i_Td,i_pd,0,i_gauss]
-                            k_pd_Tu = k_corr_data[i_Tu,i_pd,0,i_gauss]
-                            k_pu_Td = k_corr_data[i_Td,i_pu,0,i_gauss]
-                            k_pu_Tu = k_corr_data[i_Tu,i_pu,0,i_gauss]
-                        else :
-                            k_pd_Td = k_corr_data[i_pd,i_Td,0]
-                            k_pd_Tu = k_corr_data[i_pd,i_Tu,0]
-                            k_pu_Td = k_corr_data[i_pu,i_Td,0]
-                            k_pu_Tu = k_corr_data[i_pu,i_Tu,0]
-
-                        k_d = k_pd_Td*coeff_4 + k_pu_Td*coeff_3
-                        k_u = k_pd_Tu*coeff_4 + k_pu_Tu*coeff_3
-
-                        if Optimal == False :
-                            k_inter[i] = k_d*coeff_2 + k_u*coeff_1
-                        else :
-                            b_m = (Tu - Td)/(Td*Tu)*np.log(k_u/k_d)
-                            a_m = np.exp(b_m/Tu)
-                            k_inter[i] = k_u*a_m*np.exp(b_m/T)
-                        # k_inter est un tableau de k dont les dimensions sont celles d'une section efficace, des cm^2/molecule
-                        # donc en sortie nous le convertissons en m^2/molecule pour effectuer le calcul de la profondeur optique
-
-                        i_pu_ref = i_pu
-                        i_Tu_ref = i_Tu
-
-        i_Tu_array[i] = int(i_Tu)
-        i_pu_array[i] = int(i_pu)
-        if Optimal == False :
-            coeff_1_array[i] = coeff_1
-        else :
-            if T < T_min or T > T_sample[T_sample.size - 1] :
-                coeff_1_array[1,i] = coeff_1
-            else :
-                coeff_1_array[0,i] = b_m
-                coeff_1_array[1,i] = a_m
-                coeff_1_array[2,i] = T
-        coeff_3_array[i] = coeff_3
-
-        if oneD == False :
-            if rank == rank_ref :
-                if i%100 == 0. or i == size - 1 :
-                    bar.animate(i + 1)
-
-        print '%.4e'%(k_inter[i])
-        k_1 = np.interp(np.log10(P)-2,P_sample,k_corr_data[:,i_Td,0])
-        k_2 = np.interp(np.log10(P)-2,P_sample,k_corr_data[:,i_Tu,0])
-        print '%.4e'%(np.interp(T,np.array([T_sample[i_Td],T_sample[i_Tu]]),np.array([k_1,k_2])))
-
-    return k_inter*0.0001,size,i_Tu_array,i_pu_array,coeff_1_array,coeff_3_array
-
-########################################################################################################################
-
-def k_correlated_interp_boucle(k_corr_data,size,i_Tu_array,i_pu_array,\
-                               coeff_1_array,coeff_3_array,i_gauss,Optimal=False,Kcorr=False):
-
-    if Optimal == False :
-        coeff_2_array = 1 - coeff_1_array
-    else :
-        k_inter = np.zeros(size)
-        zer_n, = np.where(coeff_1_array[0,:] != 0)
-        zer_p, = np.where(coeff_1_array[0,:] == 0)
-    coeff_4_array = 1 - coeff_3_array
-    zz, = np.where(i_Tu_array == 0)
-    i_Td_array = i_Tu_array - 1
-    i_Td_array[zz] = np.zeros(zz.size)
-    zz, = np.where(i_pu_array == 0)
-    i_pd_array = i_pu_array - 1
-    i_pd_array[zz] = np.zeros(zz.size)
-
-    gauss = np.ones(i_Tu_array.size,dtype='int')*i_gauss
-
-    if Kcorr == True :
-        k_pd_Td = k_corr_data[i_Td_array,i_pd_array,0,gauss]
-        k_pd_Tu = k_corr_data[i_Tu_array,i_pd_array,0,gauss]
-        k_pu_Td = k_corr_data[i_Td_array,i_pu_array,0,gauss]
-        k_pu_Tu = k_corr_data[i_Tu_array,i_pu_array,0,gauss]
-    else :
-        k_pd_Td = k_corr_data[i_pd_array,i_Td_array,0]
-        k_pd_Tu = k_corr_data[i_pd_array,i_Tu_array,0]
-        k_pu_Td = k_corr_data[i_pu_array,i_Td_array,0]
-        k_pu_Tu = k_corr_data[i_pu_array,i_Tu_array,0]
-
-    if Optimal == False :
-        k_d = k_pd_Td*coeff_4_array + k_pu_Td*coeff_3_array
-        k_u = k_pd_Tu*coeff_4_array + k_pu_Tu*coeff_3_array
-        k_inter = k_d*coeff_2_array + k_u*coeff_1_array
-    else :
-        k_u = k_pd_Tu*coeff_4_array + k_pu_Tu*coeff_3_array
-        b_m = coeff_1_array[0,zer_n]
-        a_m = coeff_1_array[1,zer_n]
-        T = coeff_1_array[2,zer_n]
-        k_inter[zer_n] = k_u*a_m*np.exp(b_m/T)
-        if zer_p.size != 0 :
-            k_d = k_pd_Td*coeff_4_array + k_pu_Td*coeff_3_array
-            k_inter[zer_p] = k_d*(1-coeff_1_array[1,zer_p]) + k_u*coeff_1_array[1,zer_p]
-
-    return k_inter*0.0001
-
-
-
-########################################################################################################################
-
-
-def Ksearcher_M(T_array,P_array,Q_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
-
-    k_rmd = np.zeros((P_array.size,dim_bande,dim_gauss))
-
-    if oneD == False :
-        if rank == rank_ref :
-            bar = ProgressBar(dim_bande*dim_gauss,'K-correlated coefficients computation')
-
-    layer = int(T_array.size/10.)
-
-    T_size = T_array.size
-
-    for i_bande in range(dim_bande) :
-
-        k_corr_data = k_corr_data_grid[:,:,:,i_bande,:]
-
-        if i_bande == 0 :
-
-            for i_gauss in range(dim_gauss) :
-
-                if i_gauss == 0 :
-
-                    k_inter,size,i_Tu_array,i_pu_array,i_Qu_array,coeff_1_array,coeff_3_array,coeff_5_array = \
-                        k_correlated_interp_M(k_corr_data,P_array,T_array,Q_array,i_gauss,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,oneD,Optimal)
-
-                    k_rmd[:,i_bande,i_gauss] = k_inter[:]
-
-                else :
-
-                    for lay in range(5) :
-
-                        if lay != 4 :
-
-                            k_inter = k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array[lay*layer:(lay+1)*layer],i_pu_array[lay*layer:(lay+1)*layer],i_Qu_array[lay*layer:(lay+1)*layer],\
-                                                    coeff_1_array[lay*layer:(lay+1)*layer],coeff_3_array[lay*layer:(lay+1)*layer],coeff_5_array[lay*layer:(lay+1)*layer],i_gauss,Optimal,Kcorr)
-
-
-                            k_rmd[lay*layer:(lay+1)*layer,i_gauss,i_bande] = k_inter[:]
-
-                        else :
-
-                            k_inter = k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array[lay*layer:T_size],i_pu_array[lay*layer:T_size],i_Qu_array[lay*layer:T_size],\
-                                                    coeff_1_array[lay*layer:T_size],coeff_3_array[lay*layer:T_size],coeff_5_array[lay*layer:T_size],i_gauss,Optimal,Kcorr)
-
-                            k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
-
-
-                if oneD == False :
-                    if rank == rank_ref :
-                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
-
-        else :
-
-            for i_gauss in range(dim_gauss) :
-
-                for lay in range(5) :
-
-                    if lay != 4 :
-
-                        k_inter = k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array[lay*layer:(lay+1)*layer],i_pu_array[lay*layer:(lay+1)*layer],i_Qu_array[lay*layer:(lay+1)*layer],\
-                                                    coeff_1_array[lay*layer:(lay+1)*layer],coeff_3_array[lay*layer:(lay+1)*layer],coeff_5_array[lay*layer:(lay+1)*layer],i_gauss,Optimal,Kcorr)
-
-
-                        k_rmd[lay*layer:(lay+1)*layer,i_bande,i_gauss] = k_inter[:]
-
-                    else :
-
-                        k_inter = k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array[lay*layer:T_size],i_pu_array[lay*layer:T_size],i_Qu_array[lay*layer:T_size],\
-                                                    coeff_1_array[lay*layer:T_size],coeff_3_array[lay*layer:T_size],coeff_5_array[lay*layer:T_size],i_gauss,Optimal,Kcorr)
-
-                        k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
-
-                if oneD == False :
-                    if rank == rank_ref :
-                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
-
-    return k_rmd
-
-
-########################################################################################################################
-
-
-def Ksearcher(T_array,P_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
-
-    k_rmd = np.zeros((P_array.size,dim_bande,dim_gauss))
-
-    layer = int(T_array.size/10.)
-
-    T_size = T_array.size
-
-    if oneD == False :
-        if rank == rank_ref :
-            bar = ProgressBar(dim_bande*dim_gauss,'K-correlated coefficients computation')
-
-    for i_bande in range(dim_bande) :
-
-        k_corr_data = k_corr_data_grid[:,:,:,i_bande,:]
-
-        if i_bande == 0 :
-
-            for i_gauss in range(dim_gauss) :
-
-                if i_gauss == 0 :
-                    k_inter,size,i_Tu_array,i_pu_array,coeff_1_array,coeff_3_array = \
-                    k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,rank,rank_ref,Kcorr,oneD,Optimal)
-
-                    k_rmd[:,i_bande,i_gauss] = k_inter[:]
-
-                else :
-
-                    for lay in range(10) :
-
-                        if lay != 9 :
-
-                            k_inter = k_correlated_interp_boucle(k_corr_data,size,i_Tu_array[lay*layer:(lay+1)*layer],i_pu_array[lay*layer:(lay+1)*layer],\
-                                            coeff_1_array[lay*layer:(lay+1)*layer],coeff_3_array[lay*layer:(lay+1)*layer],i_gauss,Optimal,Kcorr)
-
-                            k_rmd[lay*layer:(lay+1)*layer,i_bande,i_gauss] = k_inter[:]
-
-                        else :
-
-                            k_inter = k_correlated_interp_boucle(k_corr_data,size,i_Tu_array[lay*layer:T_size],i_pu_array[lay*layer:T_size],\
-                                            coeff_1_array[lay*layer:T_size],coeff_3_array[lay*layer:T_size],i_gauss,Optimal,Kcorr)
-
-                            k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
-
-                if oneD == False :
-                    if rank == rank_ref :
-                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
-
-        else :
-
-            for i_gauss in range(dim_gauss) :
-
-                for lay in range(10) :
-
-                    if lay != 9 :
-
-                        k_inter = k_correlated_interp_boucle(k_corr_data,size,i_Tu_array[lay*layer:(lay+1)*layer],i_pu_array[lay*layer:(lay+1)*layer],\
-                                            coeff_1_array[lay*layer:(lay+1)*layer],coeff_3_array[lay*layer:(lay+1)*layer],i_gauss,Optimal,Kcorr)
-
-                        k_rmd[lay*layer:(lay+1)*layer,i_bande,i_gauss] = k_inter[:]
-
-                    else :
-
-                        k_inter = k_correlated_interp_boucle(k_corr_data,size,i_Tu_array[lay*layer:T_size],i_pu_array[lay*layer:T_size],\
-                                            coeff_1_array[lay*layer:T_size],coeff_3_array[lay*layer:T_size],i_gauss,Optimal,Kcorr)
-
-                        k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
-
-                if oneD == False :
-                    if rank == rank_ref :
-                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
-
-    #print("Computed for bande %i" %(i_bande+1))
-
-    return k_rmd
-
-
-########################################################################################################################
-
-
-def Ssearcher_M(T_array,P_array,Q_array,compo_array,sigma_array,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
-
-    n_sp, P_size, T_size, dim_bande = np.shape(sigma_array)
-
-    sigma_data = sigma_array[0,:,:,:]
-
-    sigma_array_t = np.transpose(sigma_array,(1,2,3,4,0))
-    compo_array_t = np.transpose(compo_array)
-
-    k_inter,size,i_Tu_arr,i_pu_arr,i_Qu_arr,coeff_1_array,coeff_3_array,coeff_5_array = \
-    k_correlated_interp_M(sigma_data,P_array,T_array,Q_array,0,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,Optimal)
-
-    zz, = np.where(i_Tu_arr == 0)
-    i_Td_arr = i_Tu_arr - 1
-    i_Td_arr[zz] = np.zeros(zz.size)
-    zz, = np.where(i_pu_arr == 0)
-    i_pd_arr = i_pu_arr - 1
-    i_pd_arr[zz] = np.zeros(zz.size)
-    zz, = np.where(i_Qu_arr == 0)
-    i_Qd_arr = i_Qu_arr - 1
-    i_Qd_arr[zz] = np.zeros(zz.size)
-
-    k_rmd = np.zeros((i_Tu_arr.size,dim_bande))
-
-    if rank == rank_ref : 
-        bar = ProgressBar(i_Tu_arr.size,'Ssearcher progression')
-
-    for i in xrange( i_Tu_arr.size ):
-
-        i_Tu = i_Tu_arr[i]
-        i_Td = i_Tu_arr[i]
-        i_pu = i_pu_arr[i]
-        i_pd = i_pd_arr[i]
-        i_Qu = i_Qu_arr[i]
-        i_Qd = i_Qd_arr[i]
-
-        if Optimal == False :
-
-            coeff_1 = coeff_1_array[i]
-            coeff_2 = 1. - coeff_1
-            coeff_3 = coeff_3_array[i]
-            coeff_4 = 1. - coeff_3
-            coeff_5 = coeff_5_array[i]
-            coeff_6 = 1. - coeff_5
-
-            c425 = coeff_2 * coeff_5 * coeff_4 * 0.0001
-            c415 = coeff_1 * coeff_5 * coeff_4 * 0.0001
-            c325 = coeff_2 * coeff_5 * coeff_3 * 0.0001
-            c315 = coeff_1 * coeff_5 * coeff_3 * 0.0001
-            c426 = coeff_2 * coeff_6 * coeff_4 * 0.0001
-            c416 = coeff_1 * coeff_6 * coeff_4 * 0.0001
-            c326 = coeff_2 * coeff_6 * coeff_3 * 0.0001
-            c316 = coeff_1 * coeff_6 * coeff_3 * 0.0001
-
-            k_pd_Td_Qu = sigma_array_t[i_pd, i_Td, i_Qu, :, :]
-            k_pd_Tu_Qu = sigma_array_t[i_pd, i_Tu, i_Qu, :, :]
-            k_pu_Td_Qu = sigma_array_t[i_pu, i_Td, i_Qu, :, :]
-            k_pu_Tu_Qu = sigma_array_t[i_pu, i_Tu, i_Qu, :, :]
-            k_pd_Td_Qd = sigma_array_t[i_pd, i_Td, i_Qd, :, :]
-            k_pd_Tu_Qd = sigma_array_t[i_pd, i_Tu, i_Qd, :, :]
-            k_pu_Td_Qd = sigma_array_t[i_pu, i_Td, i_Qd, :, :]
-            k_pu_Tu_Qd = sigma_array_t[i_pu, i_Tu, i_Qd, :, :]
-
-            comp = compo_array_t[i,:]
-
-            k_1 = k_pd_Td_Qu * c425 + k_pd_Tu_Qu * c415
-            k_2 = k_pu_Td_Qu * c325 + k_pu_Tu_Qu * c315
-            k_3 = k_pd_Td_Qd * c426 + k_pd_Tu_Qd * c416
-            k_4 = k_pu_Td_Qd * c326 + k_pu_Tu_Qd * c316
-
-            k_rmd[i, :] = np.dot(k_1 + k_2 + k_3 + k_4, comp )
-
-        else :
-
-            if coeff_1_array[0,i] != 0 :
-
-                b_m = coeff_1_array[0,i]
-                a_m = coeff_1_array[1,i]
-                T = coeff_1_array[2,i]
-                coeff_3 = coeff_3_array[i]
-                coeff_4 = 1. - coeff_3
-                coeff_5 = coeff_5_array[i]
-                coeff_6 = 1. - coeff_5
-
-                c45 = coeff_5 * coeff_4 * 0.0001
-                c35 = coeff_5 * coeff_3 * 0.0001
-                c46 = coeff_6 * coeff_4 * 0.0001
-                c36 = coeff_6 * coeff_3 * 0.0001
-
-                k_pd_Tu_Qu = sigma_array_t[i_pd, i_Tu, i_Qu, :, :]
-                k_pu_Tu_Qu = sigma_array_t[i_pu, i_Tu, i_Qu, :, :]
-                k_pd_Tu_Qd = sigma_array_t[i_pd, i_Tu, i_Qd, :, :]
-                k_pu_Tu_Qd = sigma_array_t[i_pu, i_Tu, i_Qd, :, :]
-
-                comp = compo_array_t[i,:]
-
-                k_1 = k_pd_Tu_Qd * c46 + k_pd_Tu_Qu * c45
-                k_2 = k_pu_Tu_Qd * c36 + k_pu_Tu_Qu * c35
-
-                k_rmd[i, :] = np.dot((k_1+k_2)*a_m*np.exp(b_m/T), comp )
-
-            else :
-
-                coeff_1 = coeff_1_array[1,i]
-                coeff_2 = 1. - coeff_1
-                coeff_3 = coeff_3_array[i]
-                coeff_4 = 1. - coeff_3
-                coeff_5 = coeff_5_array[i]
-                coeff_6 = 1. - coeff_5
-
-                c425 = coeff_2 * coeff_5 * coeff_4 * 0.0001
-                c415 = coeff_1 * coeff_5 * coeff_4 * 0.0001
-                c325 = coeff_2 * coeff_5 * coeff_3 * 0.0001
-                c315 = coeff_1 * coeff_5 * coeff_3 * 0.0001
-                c426 = coeff_2 * coeff_6 * coeff_4 * 0.0001
-                c416 = coeff_1 * coeff_6 * coeff_4 * 0.0001
-                c326 = coeff_2 * coeff_6 * coeff_3 * 0.0001
-                c316 = coeff_1 * coeff_6 * coeff_3 * 0.0001
-
-                k_pd_Td_Qu = sigma_array_t[i_pd, i_Td, i_Qu, :, :]
-                k_pd_Tu_Qu = sigma_array_t[i_pd, i_Tu, i_Qu, :, :]
-                k_pu_Td_Qu = sigma_array_t[i_pu, i_Td, i_Qu, :, :]
-                k_pu_Tu_Qu = sigma_array_t[i_pu, i_Tu, i_Qu, :, :]
-                k_pd_Td_Qd = sigma_array_t[i_pd, i_Td, i_Qd, :, :]
-                k_pd_Tu_Qd = sigma_array_t[i_pd, i_Tu, i_Qd, :, :]
-                k_pu_Td_Qd = sigma_array_t[i_pu, i_Td, i_Qd, :, :]
-                k_pu_Tu_Qd = sigma_array_t[i_pu, i_Tu, i_Qd, :, :]
-
-                comp = compo_array_t[i,:]
-
-                k_1 = k_pd_Td_Qu * c425 + k_pd_Tu_Qu * c415
-                k_2 = k_pu_Td_Qu * c325 + k_pu_Tu_Qu * c315
-                k_3 = k_pd_Td_Qd * c426 + k_pd_Tu_Qd * c416
-                k_4 = k_pu_Td_Qd * c326 + k_pu_Tu_Qd * c316
-
-                k_rmd[i, :] = np.dot(k_1 + k_2 + k_3 + k_4, comp )
-
-        if rank == rank_ref :
-            bar.animate( i+1 )
-
-    return k_rmd
-
-
-########################################################################################################################
-
-
-def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
-
-    n_sp, P_size, T_size, dim_bande = np.shape(sigma_array)
-
-    sigma_data = sigma_array[0,:,:,:]
-
-    sigma_array_t = np.transpose(sigma_array,(1,2,3,0))
-    compo_array_t = np.transpose(compo_array)
-
-    k_inter,size,i_Tu_arr,i_pu_arr,coeff_1_array,coeff_3_array = \
-    k_correlated_interp(sigma_data,P_array,T_array,0,P_sample,T_sample,rank,rank_ref,Kcorr)
-
-    zz, = np.where(i_Tu_arr == 0)
-    i_Td_arr = i_Tu_arr - 1
-    i_Td_arr[zz] = np.zeros(zz.size)
-    zz, = np.where(i_pu_arr == 0)
-    i_pd_arr = i_pu_arr - 1
-    i_pd_arr[zz] = np.zeros(zz.size)
-
-    k_rmd = np.zeros((i_Tu_arr.size,dim_bande))
-
-    if rank == rank_ref : 
-        bar = ProgressBar(i_Tu_arr.size,'Ssearcher progression')
-
-    for i in xrange( i_Tu_arr.size ):
-
-        i_Tu = i_Tu_arr[i]
-        i_Td = i_Tu_arr[i]
-        i_pu = i_pu_arr[i]
-        i_pd = i_pd_arr[i]
-
-        if Optimal == False :
-
-            coeff_1 = coeff_1_array[i]
-            coeff_2 = 1. - coeff_1
-            coeff_3 = coeff_3_array[i]
-            coeff_4 = 1. - coeff_3
-
-            c13 = coeff_1 * coeff_3 * 0.0001
-            c23 = coeff_2 * coeff_3 * 0.0001
-            c14 = coeff_1 * coeff_4 * 0.0001
-            c24 = coeff_2 * coeff_4 * 0.0001
-
-            k_pd_Td = sigma_array_t[i_pd, i_Td, :, :]
-            k_pd_Tu = sigma_array_t[i_pd, i_Tu, :, :]
-            k_pu_Td = sigma_array_t[i_pu, i_Td, :, :]
-            k_pu_Tu = sigma_array_t[i_pu, i_Tu, :, :]
-
-            comp = compo_array_t[i,:]
-
-            k_1 = k_pd_Td * c24 + k_pd_Tu * c14
-            k_2 = k_pu_Td * c23 + k_pu_Tu * c13
-
-            k_rmd[i, :] = np.dot( k_1 + k_2, comp )
-
-        else :
-
-            if coeff_1_array[0,i] != 0 :
-
-                b_m = coeff_1_array[0,i]
-                a_m = coeff_1_array[1,i]
-                T = coeff_1_array[2,i]
-                coeff_3 = coeff_3_array[i] * 0.0001
-                coeff_4 = (1. - coeff_3) * 0.0001
-
-                k_pd_Tu = sigma_array_t[i_pd, i_Tu, :, :]
-                k_pu_Tu = sigma_array_t[i_pu, i_Tu, :, :]
-
-                comp = compo_array_t[i,:]
-
-                k_u = k_pd_Tu * coeff_4 + k_pu_Tu * coeff_3
-
-                k_rmd[i, :] = np.dot( k_u*a_m*np.exp(b_m/T), comp )
-
-            else :
-
-                coeff_1 = coeff_1_array[1,i]
-                coeff_2 = 1. - coeff_1
-                coeff_3 = coeff_3_array[i]
-                coeff_4 = 1. - coeff_3
-
-                c13 = coeff_1 * coeff_3 * 0.0001
-                c23 = coeff_2 * coeff_3 * 0.0001
-                c14 = coeff_1 * coeff_4 * 0.0001
-                c24 = coeff_2 * coeff_4 * 0.0001
-
-                k_pd_Td = sigma_array_t[i_pd, i_Td, :, :]
-                k_pd_Tu = sigma_array_t[i_pd, i_Tu, :, :]
-                k_pu_Td = sigma_array_t[i_pu, i_Td, :, :]
-                k_pu_Tu = sigma_array_t[i_pu, i_Tu, :, :]
-
-                comp = compo_array_t[i,:]
-
-                k_1 = k_pd_Td * c24 + k_pd_Tu * c14
-                k_2 = k_pu_Td * c23 + k_pu_Tu * c13
-
-                k_rmd[i, :] = np.dot( k_1 + k_2, comp )
-
-        if rank == rank_ref :
-            bar.animate( i+1 )
-
-    return k_rmd
 
 
 ########################################################################################################################

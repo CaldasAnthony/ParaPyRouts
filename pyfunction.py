@@ -1980,6 +1980,121 @@ def interp3olation_multi(x,y,z,x_sample,y_sample,z_sample,grid) :
 
 
 ########################################################################################################################
+
+
+def interp2olation_opti_uni(x,y,x_sample,y_sample,grid,Optimal_x=False,Optimal_y=False) :
+
+    wh_x, = np.where(x_sample > x)
+
+    if Optimal_x == False :
+        if wh_x.size == 0 :
+            x_u,x_d = x_sample.size-1,x_sample.size-1
+            c1,c2 = 0.,1.
+        else :
+            if wh_x[0] == 0 :
+                x_u,x_d = 0,0
+                c1,c2 = 1.,0.
+            else :
+                x_u,x_d = wh_x[0],wh_x[0]-1
+                c1 = (x-x_sample[x_d])/(x_sample[x_u]-x_sample[x_d])
+                c2 = (x_sample[x_u]-x)/(x_sample[x_u]-x_sample[x_d])
+    else :
+        if wh_x.size == 0 :
+            x_u,x_d = x_sample.size-1,x_sample.size-1
+            c1a,c1b,c1c = 0.,1.,x
+        else :
+            if wh_x[0] == 0 :
+                x_u,x_d = 0,0
+                c1a,c1b,c1c = 0.,1.,x
+            else :
+                x_u,x_d = wh_x[0],wh_x[0]-1
+                c1a = (x_sample[x_u]*x_sample[x_d])/(x_sample[x_u]-x_sample[x_d])
+                c1b = x_sample[x_u]
+                c1c = x
+
+    wh_y, = np.where(y_sample > y)
+
+    if Optimal_y == False :
+        if wh_y.size == 0 :
+            y_u,y_d = y_sample.size-1,y_sample.size-1
+            c3,c4 = 0.,1.
+        else :
+            if wh_y[0] == 0 :
+                y_u,y_d = 0,0
+                c3,c4 = 1.,0.
+            else :
+                y_u,y_d = wh_y[0],wh_y[0]-1
+                c3 = (y-y_sample[y_d])/(y_sample[y_u]-y_sample[y_d])
+                c4 = (y_sample[y_u]-y)/(y_sample[y_u]-y_sample[y_d])
+    else :
+        if wh_y.size == 0 :
+            y_u,y_d = y_sample.size-1,y_sample.size-1
+            c3a,c3b,c3c = 0.,1.,y
+        else :
+            if wh_y[0] == 0 :
+                y_u,y_d = 0,0
+                c3a,c3b,c3c = 0.,1.,y
+            else :
+                y_u,y_d = wh_y[0],wh_y[0]-1
+                c3a = (y_sample[y_u]*y_sample[y_d])/(y_sample[y_u]-y_sample[y_d])
+                c3b = y_sample[y_u]
+                c3c = y
+
+    if Optimal_x == False and Optimal_y == False :
+        res_1 = c1*grid[x_u,y_u]+c2*grid[x_d,y_u]
+        res_2 = c1*grid[x_u,y_d]+c2*grid[x_d,y_d]
+        res = c3*res_1+c4*res_2
+        c_grid = np.array([c1,c2,c3,c4])
+        i_grid = np.array([x_d,x_u,y_d,y_u])
+    else :
+        if Optimal_x == True and Optimal_y == False :
+            res_1 = c3*grid[x_u,y_u]+c4*grid[x_u,y_d]
+            res_2 = c3*grid[x_d,y_u]+c4*grid[x_d,y_d]
+            if res_2 != 0 :
+                c1aa = c1a*np.log(res_1/res_2)
+            else :
+                c1aa = 0.
+            c1bb = np.exp(c1aa/c1b)
+            res = res_1*c1bb*np.exp(-c1aa/c1c)
+            c_grid = np.array([c1a,c1b,c1c,c3,c4])
+            i_grid = np.array([x_d,x_u,y_d,y_u])
+        if Optimal_x == False and Optimal_y == True :
+            res_1 = c1*grid[x_u,y_u]+c2*grid[x_d,y_u]
+            res_2 = c1*grid[x_u,y_d]+c2*grid[x_d,y_d]
+            if res_2 != 0.00 :
+                c3aa = c3a*np.log(res_1/res_2)
+            else :
+                c3aa = 0.
+            c3bb = np.exp(c3aa/c3b)
+            res = res_1*c3bb*np.exp(-c3aa/c3c)
+            c_grid = np.array([c1,c2,c3a,c3b,c3c])
+            i_grid = np.array([x_d,x_u,y_d,y_u])
+        if Optimal_x == True and Optimal_y == True :
+            if grid[x_d,y_u] != 0.00 :
+                c1aa = c1a*np.log(grid[x_u,y_u]/grid[x_d,y_u])
+            else :
+                c1aa = 0.
+            c1bb = np.exp(c1aa/c1b)
+            res_1 = grid[x_u,y_u]*c1bb*np.exp(-c1aa/c1c)
+            if grid[x_d,y_d] != 0.00 :
+                c2aa = c1a*np.log(grid[x_u,y_d]/grid[x_d,y_d])
+            else :
+                c2aa = 0.
+            c2bb = np.exp(c1aa/c1b)
+            res_2 = grid[x_d,y_u]*c2bb*np.exp(-c2aa/c1c)
+            if res_2 != 0.00 :
+                c3aa = c3a*np.log(res_1/res_2)
+            else :
+                c3aa = 0.
+            c3bb = np.exp(c3aa/c3b)
+            res = res_1*c3bb*np.exp(-c3aa/c3c)
+            c_grid = np.array([c1a,c1b,c1c,c3a,c3b,c3c])
+            i_grid = np.array([x_d,x_u,y_d,y_u])
+
+    return res,c_grid,i_grid
+
+
+########################################################################################################################
 ########################################################################################################################
 
 
