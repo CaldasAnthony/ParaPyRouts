@@ -22,7 +22,7 @@ path = "/data1/caldas/Pytmosph3R/"
 name_file = "Files/Para"
 name_source = "Source"
 #name_exo = "GJ1214b"
-name_exo = "Planet"
+name_exo = "Planet_0"
 opac_file, param_file, stitch_file = 'Opacity', 'Parameters', 'Stitch'
 version = 6.2
 
@@ -214,10 +214,10 @@ MassAtm = False         ###### Si on tient compte de la masse atmospherique
 
 Parameters = True
 
-Cylindre = False        ###### Construit la maille cylindrique
+Cylindre = True        ###### Construit la maille cylindrique
 Obliquity = False       ###### Si l'exoplanete est inclinee
 
-Corr = False            ###### Traite les parcours optiques
+Corr = True            ###### Traite les parcours optiques
 Gravity = False         ###### Pour travailler a gravite constante
 Discret = True         ###### Calcul les distances discretes
 Integral = True        ###### Effectue l'integration sur les chemins optiques
