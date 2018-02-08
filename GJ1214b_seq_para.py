@@ -1101,9 +1101,9 @@ if Cylindric_transfert_3D == True :
             if Script == True :
 
                 Itot = np.load('%s.npy'%(save_name_3D_step))
-                save_adress = "%s"%(save_name_3D_step)
+                save_ad = "%s"%(save_name_3D_step)
                 if Noise == True :
-                    save_adress += '_n'
+                    save_ad += '_n'
                 if ErrOr == True :
                     class star :
                         def __init__(self):
@@ -1128,7 +1128,7 @@ if Cylindric_transfert_3D == True :
                     int_lambda = np.sort(10000./int_lambda[::-1])
                     noise = stellar_noise(star(),detection,int_lambda)
                     noise = noise[::-1]
-                flux_script(path,name_source,source,save_adress,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
+                flux_script(path,name_source,source,save_ad,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
 
             del Itot
         del I_n
@@ -1153,9 +1153,9 @@ if Cylindric_transfert_3D == True :
         if Script == True :
 
             Itot = np.load('%s.npy'%(save_name_3D))
-            save_adress = "%s"%(save_name_3D)
+            save_ad = "%s"%(save_name_3D)
             if Noise == True :
-                save_adress += '_n'
+                save_ad += '_n'
             if ErrOr == True :
                 class star :
                     def __init__(self):
@@ -1180,7 +1180,7 @@ if Cylindric_transfert_3D == True :
                 int_lambda = np.sort(10000./int_lambda[::-1])
                 noise = stellar_noise(star(),detection,int_lambda)
                 noise = noise[::-1]
-            flux_script(path,name_source,source,save_adress,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
+            flux_script(path,name_source,source,save_ad,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
 
         print save_name_3D
 
