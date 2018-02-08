@@ -911,6 +911,7 @@ def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,ra
                         coeff_3 = c_grid[3]
                     else :
                         res,c_grid,i_grid = interp2olation_opti_uni(P,T,P_sample,T_sample,k_corr_data[:,:,0],False,True)
+                        coeff_1, coeff_3 = c_grid[0], c_grid[2]
                     k_inter[i] = res
                     i_pu, i_pd, i_Tu, i_Td = i_grid[0], i_grid[1], i_grid[2], i_grid[3]
 

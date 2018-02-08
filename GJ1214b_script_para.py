@@ -213,10 +213,10 @@ MassAtm = False         ###### Si on tient compte de la masse atmospherique
 
 Parameters = True
 
-Cylindre = True        ###### Construit la maille cylindrique
+Cylindre = False        ###### Construit la maille cylindrique
 Obliquity = False       ###### Si l'exoplanete est inclinee
 
-Corr = True            ###### Traite les parcours optiques
+Corr = False            ###### Traite les parcours optiques
 Gravity = False         ###### Pour travailler a gravite constante
 Discret = True         ###### Calcul les distances discretes
 Integral = True        ###### Effectue l'integration sur les chemins optiques
