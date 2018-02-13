@@ -22,7 +22,7 @@ path = "/data1/caldas/Pytmosph3R/"
 name_file = "Files/Para"
 name_source = "Source"
 #name_exo = "GJ1214b"
-name_exo = "Planet_0"
+name_exo = "Planet"
 opac_file, param_file, stitch_file = 'Opacity', 'Parameters', 'Stitch'
 version = 6.2
 
@@ -111,9 +111,12 @@ ind_cross, ind_active = index_active (n_species,n_species_cross,n_species_active
 #cont_tot = np.array(['H2-He_2011.cia','H2-He_2011.cia','H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat','H2-CH4_eq_2011.cia','N2-H2_2011.cia'])
 #cont_species = np.array(['H2','He','H2Os','H2O','CH4','N2'])
 #cont_associations = np.array(['h2he','h2he','h2oh2o','h2ofor','h2ch4','h2n2'])
-cont_tot = np.array(['H2-He_2011.cia','H2-He_2011.cia','H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat'])
-cont_species = np.array(['H2','He','H2Os','H2O'])
-cont_associations = np.array(['h2he','h2he','h2oh2o','h2ofor'])
+#cont_tot = np.array(['H2-He_2011.cia','H2-He_2011.cia','H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat'])
+#cont_species = np.array(['H2','He','H2Os','H2O'])
+#cont_associations = np.array(['h2he','h2he','h2oh2o','h2ofor'])
+cont_tot = np.array(['H2-He_2011.cia','H2-He_2011.cia'])
+cont_species = np.array(['H2','He'])
+cont_associations = np.array(['h2he','h2he'])
 
 ########################################################################################################################
 
