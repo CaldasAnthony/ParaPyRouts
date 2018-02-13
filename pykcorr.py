@@ -228,7 +228,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         k_cont_rmd = np.zeros((dim_bande,P_rmd.size))
         decont = 0
 
-        if H2 == True and He == False :
+        if H2 == True :
 
             decont += 1
             K_cont_h2h2 = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[0]))
@@ -246,9 +246,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
 
             del amagat_h2h2,k_interp_h2h2,K_cont_h2h2
 
-        if H2 == True and He == True :
+        if He == True :
 
-            decont += 2
+            decont += 1
             K_cont_h2he = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[1]))
             K_cont_nu_h2he = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[1]))
             T_cont_h2he = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[1]))
@@ -554,7 +554,7 @@ def convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,K,K_
         amagat = 2.69578e-3*P_rmd/T_rmd
         k_cont_rmd = np.zeros((dim_bande,P_rmd.size))
 
-        if H2 == True and He == False :
+        if H2 == True :
 
             decont += 1
             K_cont_h2h2 = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[0]))
@@ -572,9 +572,9 @@ def convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,K,K_
 
             del amagat_h2h2,k_interp_h2h2
 
-        if H2 == True and He == True :
+        if He == True :
 
-            decont += 2
+            decont += 1
             K_cont_h2he = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[1]))
             K_cont_nu_h2he = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[1]))
             T_cont_h2he = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[1]))
