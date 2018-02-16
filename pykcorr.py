@@ -266,7 +266,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
             del amagat_foreign,k_interp_h2he,K_cont_h2he
 
         if Other == False :
-            del k_cont_rmd,amagat
+            del amagat
         else :
             for i_cont in range(decont,cont_species.size) :
 
