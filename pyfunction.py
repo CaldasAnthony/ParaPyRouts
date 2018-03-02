@@ -2419,7 +2419,7 @@ class JWST :
 
 class planet :
     def __init__(self):
-        self.pressure_profile_data = '/data1/caldas/Output_mol_1200/Output_0.05_140.00_1200/SPECTRUM_INSTANCE_out.pickle'
+        self.pressure_profile_data = '/data1/caldas/Output_mol_500/Output_0.05_140.00_500/SPECTRUM_INSTANCE_out.pickle'
         self.planet_radius_key = 'planet_radius'
         self.planet_mass_key = 'planet_mass'
         self.star_radius_key = 'star_radius'
