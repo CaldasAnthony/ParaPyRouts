@@ -928,7 +928,7 @@ def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,ra
         if rank == rank_ref :
             if i%100 == 0. or i == size - 1 :
                 bar.animate(i + 1)
-            print T, P, T_sample[i_Tu], P_sample[i_pu]
+            print T, P, T_sample[i_Tu], P_sample[i_pu], coeff_1, coeff_3
 
     return k_inter*0.0001,size,i_Tu_array,i_pu_array,coeff_1_array,coeff_3_array
 
