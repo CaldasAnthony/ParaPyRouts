@@ -902,7 +902,7 @@ def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,ra
                 if Kcorr == True :
                     res,c_grid,i_grid = interp2olation_opti_uni(T,P,T_sample,P_sample,k_corr_data[:,:,0,i_gauss],False,False)
                     k_inter[i] = res
-                    i_Tu, i_Td, i_pu, i_pd = i_grid[0], i_grid[1], i_grid[2], i_grid[3]
+                    i_Td, i_Tu, i_pd, i_pu = i_grid[0], i_grid[1], i_grid[2], i_grid[3]
                     coeff_3, coeff_1 = c_grid[0], c_grid[2]
                 else :
                     if Optimal == True :
@@ -913,7 +913,7 @@ def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,ra
                         res,c_grid,i_grid = interp2olation_opti_uni(P,T,P_sample,T_sample,k_corr_data[:,:,0],False,True)
                         coeff_1, coeff_3 = c_grid[0], c_grid[2]
                     k_inter[i] = res
-                    i_pu, i_pd, i_Tu, i_Td = i_grid[0], i_grid[1], i_grid[2], i_grid[3]
+                    i_pd, i_pu, i_Td, i_Tu = i_grid[0], i_grid[1], i_grid[2], i_grid[3]
 
         i_Tu_array[i] = int(i_Tu)
         i_pu_array[i] = int(i_pu)
