@@ -261,7 +261,7 @@ TimeSel = True         ###### Si nous etudions un temps precis de la simulation
 Script = True          ###### Si nous voulons avoir une version .dat du spectre
 ErrOr = True           ###### Si calculons le bruit de photon pour un instrument donne
 detection = JWST()
-Noise = True           ###### Si nous voulons bruiter le signal a partir du bruit de photon calcule
+Noise = False           ###### Si nous voulons bruiter le signal a partir du bruit de photon calcule
 
 ########################################################################################################################
 
