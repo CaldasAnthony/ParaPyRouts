@@ -751,8 +751,8 @@ def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,rank,ran
 
             comp = compo_array_t[i,:]
 
-            k_1 = k_pd_Td * c24 + k_pd_Tu * c14
-            k_2 = k_pu_Td * c23 + k_pu_Tu * c13
+            k_1 = k_pd_Td * c24 + k_pd_Tu * c23
+            k_2 = k_pu_Td * c14 + k_pu_Tu * c13
 
             k_rmd[i, :] = np.dot( k_1 + k_2, comp )
 
@@ -1128,10 +1128,10 @@ def Ssearcher_M(T_array,P_array,Q_array,compo_array,sigma_array,P_sample,T_sampl
 
             comp = compo_array_t[i,:]
 
-            k_1 = k_pd_Td_Qu * c425 + k_pd_Tu_Qu * c415
-            k_2 = k_pu_Td_Qu * c325 + k_pu_Tu_Qu * c315
-            k_3 = k_pd_Td_Qd * c426 + k_pd_Tu_Qd * c416
-            k_4 = k_pu_Td_Qd * c326 + k_pu_Tu_Qd * c316
+            k_1 = k_pd_Td_Qu * c425 + k_pd_Tu_Qu * c325
+            k_2 = k_pu_Td_Qu * c415 + k_pu_Tu_Qu * c315
+            k_3 = k_pd_Td_Qd * c426 + k_pd_Tu_Qd * c326
+            k_4 = k_pu_Td_Qd * c416 + k_pu_Tu_Qd * c316
 
             k_rmd[i, :] = np.dot(k_1 + k_2 + k_3 + k_4, comp )
 
