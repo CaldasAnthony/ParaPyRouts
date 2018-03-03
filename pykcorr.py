@@ -757,7 +757,7 @@ def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,rank,ran
             k_rmd[i, :] = np.dot( k_1 + k_2, comp )
 
             if rank == rank_ref :
-                print k_pd_Td,k_pu_Td,k_pd_Tu,k_pu_Tu,k_rmd[i, :]
+                print k_pd_Td[300],k_pu_Td[300],k_pd_Tu[300],k_pu_Tu[300],k_rmd[i,300]
 
         else :
 
