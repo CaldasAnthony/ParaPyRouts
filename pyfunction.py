@@ -1989,7 +1989,7 @@ def interp2olation_opti_uni(x,y,x_sample,y_sample,grid,Optimal_x=False,Optimal_y
     if Optimal_x == False :
         if wh_x.size == 0 :
             x_u,x_d = x_sample.size-1,x_sample.size-1
-            c1,c2 = 0.,1.
+            c1,c2 = 1.,0.
         else :
             if wh_x[0] == 0 :
                 x_u,x_d = 0,0
@@ -2017,7 +2017,7 @@ def interp2olation_opti_uni(x,y,x_sample,y_sample,grid,Optimal_x=False,Optimal_y
     if Optimal_y == False :
         if wh_y.size == 0 :
             y_u,y_d = y_sample.size-1,y_sample.size-1
-            c3,c4 = 0.,1.
+            c3,c4 = 1.,0.
         else :
             if wh_y[0] == 0 :
                 y_u,y_d = 0,0
@@ -2041,9 +2041,9 @@ def interp2olation_opti_uni(x,y,x_sample,y_sample,grid,Optimal_x=False,Optimal_y
                 c3c = y
 
     if Optimal_x == False and Optimal_y == False :
-        res_1 = c1*grid[x_u,y_u]+c2*grid[x_d,y_u]
-        res_2 = c1*grid[x_u,y_d]+c2*grid[x_d,y_d]
-        res = c3*res_1+c4*res_2
+        res_1 = c1*grid[x_u,y_u] + c2*grid[x_d,y_u]
+        res_2 = c1*grid[x_u,y_d] + c2*grid[x_d,y_d]
+        res = c3*res_1 + c4*res_2
         c_grid = np.array([c1,c2,c3,c4])
         i_grid = np.array([x_d,x_u,y_d,y_u])
     else :

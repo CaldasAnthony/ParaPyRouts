@@ -711,7 +711,7 @@ def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,rank,ran
     compo_array_t = np.transpose(compo_array)
 
     k_inter,size,i_Tu_arr,i_pu_arr,coeff_1_array,coeff_3_array = \
-    k_correlated_interp(sigma_data,P_array,T_array,0,P_sample,T_sample,rank,rank_ref,Kcorr)
+    k_correlated_interp(sigma_data,P_array,T_array,0,P_sample,T_sample,rank,rank_ref,Kcorr,oneD,Optimal)
 
     zz, = np.where(i_Tu_arr == 0)
     i_Td_arr = i_Tu_arr - 1
@@ -755,6 +755,9 @@ def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,rank,ran
             k_2 = k_pu_Td * c14 + k_pu_Tu * c13
 
             k_rmd[i, :] = np.dot( k_1 + k_2, comp )
+
+            if rank == rank_ref :
+                print k_pd_Td,k_pu_Td,k_pd_Tu,k_pu_Tu,k_rmd[i, :]
 
         else :
 
@@ -909,10 +912,11 @@ def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,ra
                         res,c_grid,i_grid = interp2olation_opti_uni(P,T,P_sample,T_sample,k_corr_data[:,:,0],False,True)
                         b_m, a_m, T = c_grid[0], c_grid[1], c_grid[2]
                         coeff_3 = c_grid[3]
+                        k_inter[i] = res
                     else :
                         res,c_grid,i_grid = interp2olation_opti_uni(P,T,P_sample,T_sample,k_corr_data[:,:,0],False,False)
                         coeff_1, coeff_3 = c_grid[0], c_grid[2]
-                    k_inter[i] = res
+                        k_inter[i] = res
                     i_pd, i_pu, i_Td, i_Tu = i_grid[0], i_grid[1], i_grid[2], i_grid[3]
 
         i_Tu_array[i] = int(i_Tu)
@@ -928,7 +932,7 @@ def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,ra
         if rank == rank_ref :
             if i%100 == 0. or i == size - 1 :
                 bar.animate(i + 1)
-        print T, P, T_sample[i_Tu], P_sample[i_pu], coeff_1, coeff_3
+            print T, P, T_sample[i_Tu], P_sample[i_pu], coeff_1, coeff_3
 
     return k_inter*0.0001,size,i_Tu_array,i_pu_array,coeff_1_array,coeff_3_array
 
