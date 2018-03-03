@@ -757,7 +757,7 @@ def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,rank,ran
             k_rmd[i, :] = np.dot( k_1 + k_2, comp )
 
             if rank == rank_ref :
-                print k_pd_Td[300],k_pu_Td[300],k_pd_Tu[300],k_pu_Tu[300],k_rmd[i,300]
+                print k_pd_Td[300],k_pu_Td[300],k_pd_Tu[300],k_pu_Tu[300],k_rmd[i,300],coeff_1, coeff_2, coeff_3, coeff_4
 
         else :
 
@@ -932,7 +932,7 @@ def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,ra
         if rank == rank_ref :
             if i%100 == 0. or i == size - 1 :
                 bar.animate(i + 1)
-            print T, P, i_Tu, i_Td, T_sample[i_Tu], T_sample[i_Td], i_pu, i_pd, P_sample[i_pu], P_sample[i_pd], coeff_1, coeff_2, coeff_3, coeff_4
+            print T, P, i_Tu, i_Td, T_sample[i_Tu], T_sample[i_Td], i_pu, i_pd, P_sample[i_pu], P_sample[i_pd]
 
     return k_inter*0.0001,size,i_Tu_array,i_pu_array,coeff_1_array,coeff_3_array
 
