@@ -728,7 +728,7 @@ def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,rank,ran
     for i in xrange( i_Tu_arr.size ):
 
         i_Tu = i_Tu_arr[i]
-        i_Td = i_Tu_arr[i]
+        i_Td = i_Td_arr[i]
         i_pu = i_pu_arr[i]
         i_pd = i_pd_arr[i]
 
