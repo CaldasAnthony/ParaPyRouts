@@ -115,7 +115,7 @@ if Profil == True :
                                     ###### Parallele encoding end ######
 
     compo_i, M_i, z_i, g_i, H_i = Boxes_interpolation(P_n,T_n,Q_n,Rp,g0,number,P_comp,T_comp,Q_comp,n_species,X_species,M_species,\
-            c_species,m_species,ratio_HeH2,composition,Tracer,LogInterp,MassAtm,NoH2,TauREx)
+            c_species,m_species,ratio_HeH2,compo_type,Tracer,LogInterp,MassAtm,NoH2,TauREx)
 
                                     ###### Parallele encoding init ######
 
