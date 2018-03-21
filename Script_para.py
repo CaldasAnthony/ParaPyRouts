@@ -89,7 +89,7 @@ else :
 
 # Proprietes de l'atmosphere isotherme
 
-if data_base != '' :
+if data_base == '' :
     T_iso, P_surf = information[planet.planet_temperature_key], information[planet.extreme_pressure_key[0]]
     x_ratio_species_active = information[planet.planet_active_ratio_key]
     M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=True)
@@ -133,9 +133,10 @@ cont_associations = np.array(['h2oh2o','h2ofor'])
 # Proprietes de maille
 
 if data_base != '' :
-    h, P_h, n_layers = 9.e+6, information[planet.extreme_pressure_key[1]], information[planet.number_layer_key]
-else :
     h, P_h, n_layers = 9.e+6, 1.e-4, 200
+else :
+    h, P_h, n_layers = 9.e+6, information[planet.extreme_pressure_key[1]], information[planet.number_layer_key]
+
 delta_z, r_step, x_step, theta_number = 0e+4, 0e+4, 0e+4, 2*reso_lat
 z_array = np.arange(h/np.float(delta_z)+1)*float(delta_z)
 theta_step = 2*np.pi/np.float(theta_number)
