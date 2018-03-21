@@ -373,6 +373,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
                         M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
 
                     if composition[0] == 'tracer_other' :
+                        print 'aaaaaaaaaaaaaaaa'
                         ind, = np.where(species[2:] == m_species)
                         if NoH2 == False :
                             M_f = 1./(ratio + 1.)*M_species[0] + ratio/(ratio+1.)*M_species[1]
