@@ -2762,6 +2762,7 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
         else :
 
             k_interp = np.zeros((2,size))
+        print i_bande
 
         if i_bande == 0 :
 
@@ -2775,7 +2776,7 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
 
                 zone_wave, = np.where((wavelength_cont_spespe >= wave_min)*(wavelength_cont_spespe <= wave_max))
                 #print("For bande number %i, we took into account wavelenght (cm-1) :" %(i_bande))
-                #print(wavelength_cont[zone_wave])
+                print zone_wave
                 fact = zone_wave.size
 
                 for i_wave in zone_wave :
