@@ -59,9 +59,12 @@ if diag_file == '' :
 
 #Rs = 0.206470165349*R_S
 #Ts = 3000.
-if diag_file == ' ' :
+if diag_file == '' :
     Rs = information[planet.star_radius_key]
     Ts = information[planet.star_temperature_key]
+else :
+    Rs = 0.114*R_S
+    Ts = 2550.
 
 d_al = 100.*9.461e+15
 error = 5.e-5

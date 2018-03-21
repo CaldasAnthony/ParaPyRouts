@@ -1097,12 +1097,12 @@ if Cylindric_transfert_3D == True :
                     save_ad = '%s_n'%(save_name_3D_step)
                 else :
                     save_ad = "%s"%(save_name_3D_step)
+                class star :
+                    def __init__(self):
+                        self.radius = Rs
+                        self.temperature = Ts
+                        self.distance = d_al
                 if ErrOr == True :
-                    class star :
-                        def __init__(self):
-                            self.radius = Rs
-                            self.temperature = Ts
-                            self.distance = d_al
                     bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
                     bande_sample = np.delete(bande_sample,[0])
                     int_lambda = np.zeros((2,bande_sample.size))
