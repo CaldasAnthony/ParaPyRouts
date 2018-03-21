@@ -565,6 +565,7 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
                                     ratio_mf = M_species[indf+2]/M_species[ind+2]*data_convert[2,t,i_z,lat,long]/(1.-data_convert[2,t,i_z,lat,long])
                                     com[ind+2] = ratio_mf/(1.+ratio_mf)
                                     com[indf+2] = 1. - com[ind+2]
+                                    print 'wouaf'
 
                         if NoH2 == False :
                             data_convert[2+m_number+c_number,t,i_z,lat,long] = (1. - np.nansum(com[2:]))/(1. + ratio)
