@@ -514,7 +514,9 @@ def flux_script(path,name_source,source,save_name,I,error,Rs,Rp,r_step,Kcorr=Fal
         error = error_cor
 
     from pytransfert import atmospectre
+
     bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
+
     R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux = atmospectre(I,bande_sample,Rs,Rp,r_step,0,\
                                                                                         False,Kcorr,Middle)
     file_name = '%s.dat'%(save_name)
