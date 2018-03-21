@@ -369,7 +369,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
                         if NoH2 == False :
                             compo[1,i,j,k,:] = compo[0,i,j,k,:]*ratio
                         else :
-                            compo[1,i,j,k,l] = 0.
+                            compo[1,i,j,k,:] = np.zeros(n_long,dtype=np.float64)
                         M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
 
                     if composition == 'tracer_other' :
@@ -387,7 +387,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
                         if NoH2 == False :
                             compo[1,i,j,k,:] = compo[0,i,j,k,:]*ratio
                         else :
-                            compo[1,i,j,k,l] = 0.
+                            compo[1,i,j,k,:] = np.zeros(n_long,dtype=np.float64)
                         M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
 
 
