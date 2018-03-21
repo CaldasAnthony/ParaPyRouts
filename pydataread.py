@@ -70,15 +70,16 @@ def data_record(path,name_source,data_base,name_exo,aerosol,continuum,kcorr,cros
         if species != 'H2O' and species != 'H2Os' :
             k_cont_data_read(k_cont_file,continuum.associations[i_n],directory)
         else :
-            nu_file = '%sSources/continuum_data/H20_CONT_NU.dat'%(data_base)
-            k_cont_h2o_read(k_cont_file,nu_file,continuum.associations[i_n],directory)
+            nu_file = '%sSources/continuum_data/H2O_CONT_NU.dat'%(data_base)
+            k_cont_h2o_read(k_cont_file,continuum.associations[i_n],directory)
             data = open('%sSources/continuum_data/H2O_CONT_NU.dat'%(data_base))
             nu = data.readlines()
             dim_b = np.shape(nu)[0]
             k_cont_nu = np.zeros(dim_b)
             for i_ban in range(dim_b) :
                 k_cont_nu[i_ban] = np.float(nu[i_ban])
-            np.save('%s%s/k_cont_nu_h2o.npy'%(path,name_source),k_cont_nu)
+            np.save('%s%s/k_cont_nu_h2oh2o.npy'%(path,name_source),k_cont_nu)
+            np.save('%s%s/k_cont_nu_h2ofor.npy'%(path,name_source),k_cont_nu)
 
     if composition.file != '' :
         composition_data_read(composition,directory,name_exo,Renorm)
@@ -325,7 +326,7 @@ def k_cont_data_read(k_cont_file,associations,directory) :
 ########################################################################################################################
 
 
-def k_cont_h2o_read(k_cont_file,nu_file,associations,directory) :
+def k_cont_h2o_read(k_cont_file,associations,directory) :
 
     data = open(k_cont_file,'r')
     k_cont_data = data.readlines()
@@ -356,16 +357,6 @@ def k_cont_h2o_read(k_cont_file,nu_file,associations,directory) :
     np.save('%sT_cont_%s.npy'%(directory,associations),T_cont)
     print 'T_cont_H2O : '
     print T_cont
-
-    data = open(nu_file,'r')
-    nu_cont = data.readlines()
-    dim_nu = nu_cont.size
-    bande_cont = np.zeros(dim_nu, dtype=np.float64)
-
-    for i_n in range(dim_nu) :
-        bande_cont[i_n] = line_search(nu_cont[i_n])
-
-    np.save('%sk_cont_nu_%s.npy'%(directory,associations),bande_cont)
 
 
 ########################################################################################################################
