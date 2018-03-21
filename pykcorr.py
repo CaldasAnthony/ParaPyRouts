@@ -139,10 +139,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 t_size,p_size,dim_bande,dim_gauss = np.shape(K)
         else :
             K = K[ind_cross]
-            if Tracer == True :
-                np_size,p_size,t_size,q_size,dim_bande = np.shape(K)
-            else :
-                np_size,p_size,t_size,dim_bande = np.shape(K)
+            np_size,p_size,t_size,dim_bande = np.shape(K)
 
         if Kcorr == True :
             if Tracer == False :
@@ -182,7 +179,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
             if Tracer == False :
                 k_rmd = Ssearcher(T_rmd,P_rmd,compo_active,K,P_sample,T_sample,rank,rank_ref,Kcorr,Optimal)
             else :
-                k_rmd = Ssearcher_M(T_rmd,P_rmd,Q_rmd,compo_active,K,P_sample,T_sample,rank,rank_ref,Kcorr,Optimal)
+                k_rmd = Ssearcher(T_rmd,P_rmd,Q_rmd,compo_active,K,P_sample,T_sample,rank,rank_ref,Kcorr,Optimal)
 
             if rank_max == comm.size :
                 comm.Barrier()

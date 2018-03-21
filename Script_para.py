@@ -120,7 +120,7 @@ n_species_cross = np.array(['H2O','CH4','NH3','CO','CO2'])
 m_species = np.array(['H2O'])
 m_file = np.array(['h2o'])
 domain, domainn, source = "IR", "IR", "bin10"
-dim_bande, dim_gauss = 38, 16
+dim_bande, dim_gauss = 3000, 16
 
 # Selection des sections efficaces
 
@@ -255,7 +255,7 @@ Ord = False             ###### Si Discreet == False, Ord permet de calculer les 
 Matrix = False          ###### Transposition de la maille spherique dans la maille cylindrique
 
 Convert = True         ###### Lance la fonction convertator qui assure l'interpolation des sections efficaces
-Kcorr = True           ###### Sections efficaces ou k-correles
+Kcorr = False           ###### Sections efficaces ou k-correles
 Molecul = True       ###### Effectue les calculs pour l'absorption moleculaire
 Cont = True            ###### Effectue les calculs pour l'absorption par les collisions
 Scatt = True           ###### Effectue les calculs pour l'absorption par diffusion Rayleigh
