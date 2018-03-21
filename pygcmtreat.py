@@ -545,9 +545,7 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
                                     com, c_gr, i_gr = interp2olation_uni_multi(data_convert[0,t,i_z,lat,long],data_convert[1,t,i_z,lat,long],\
                                                                                 P_comp,T_comp,x_species)
 
-                        print composition
                         if composition[0] == 'tracer_other' :
-                            print 'aaaaaaaaaaaaaaaaooooooooo'
                             if Tracer == True :
                                 data_convert[2,t,i_z,lat,long] = c_grid[1]*Q[t,i_grid[0],lat,long] + c_grid[0]*Q[t,i_grid[1],lat,long]
 
@@ -566,7 +564,6 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
                                     ratio_mf = M_species[indf+2]/M_species[ind+2]*data_convert[2,t,i_z,lat,long]/(1.-data_convert[2,t,i_z,lat,long])
                                     com[ind+2] = ratio_mf/(1.+ratio_mf)
                                     com[indf+2] = 1. - com[ind+2]
-                                    print 'wouaf'
 
                         if NoH2 == False :
                             data_convert[2+m_number+c_number,t,i_z,lat,long] = (1. - np.nansum(com[2:]))/(1. + ratio)
