@@ -147,7 +147,7 @@ def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,e
         bande_sample[i_ba] = np.float(line_search(bande_read[1+i_g])[0])
         if i_ba == bande_dim -1 :
             bande_sample[i_ba+1] = np.float(line_search(bande_read[1+i_g])[1])
-    np.save('%sbande_sample.npy'%(directory),bande_sample)
+    np.save('%sbande_sample_%s.npy'%(directory,domain),bande_sample)
 
     data = open('%sSources/corrk_data/%s/corrk_gcm_%s.dat'%(path,kcorr.resolution,domain),'r')
     k_corr_data = data.readlines()
