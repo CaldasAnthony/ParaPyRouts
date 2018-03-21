@@ -139,6 +139,16 @@ def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,e
         g_sample[i_g] = np.float(line_search(g_read[1+i_g])[0])
     np.save('%sgauss_sample.npy'%(directory),g_sample)
 
+    data = open('%sSources/corrk_data/%s/narrowbands_%s.in'%(path,kcorr.resolution,domain),'r')
+    bande_read = data.readlines()
+    bande_dim = np.int(line_search(bande_read[0])[0])
+    bande_sample = np.zeros(bande_dim+1)
+    for i_ba in range(bande_dim) :
+        bande_sample[i_ba] = np.float(line_search(bande_read[1+i_g])[0])
+        if i_ba == bande_dim -1 :
+            bande_sample[i_ba+1] = np.float(line_search(bande_read[1+i_g])[1])
+    np.save('%sbande_sample.npy'%(directory),bande_sample)
+
     data = open('%sSources/corrk_data/%s/corrk_gcm_%s.dat'%(path,kcorr.resolution,domain),'r')
     k_corr_data = data.readlines()
 
