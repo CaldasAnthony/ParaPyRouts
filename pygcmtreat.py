@@ -322,7 +322,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
         for i in range(n_t) :
             for j in range(n_l) :
                 for k in range(n_lat) :
-                    if composition == 'composition' :
+                    if composition[0] == 'composition' :
                         if LogInterp == True :
                             res, c_grid, i_grid = interp2olation_multi(np.log10(P[i,j,k,:]),T[i,j,k,:],P_comp,T_comp,x_species)
                         else :
@@ -353,7 +353,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
         for i in range(n_t) :
             for j in range(n_l) :
                 for k in range(n_lat) :
-                    if composition == 'composition' :
+                    if composition[0] == 'composition' :
                         if LogInterp == True :
                             res, c_grid, i_grid = interp3olation_multi(np.log10(P[i,j,k,:]),T[i,j,k,:],Q[i,j,k,:],P_comp,T_comp,Q_comp,x_species)
                         else :
@@ -372,7 +372,7 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
                             compo[1,i,j,k,:] = np.zeros(n_long,dtype=np.float64)
                         M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
 
-                    if composition == 'tracer_other' :
+                    if composition[0] == 'tracer_other' :
                         ind, = np.where(species[2:] == m_species)
                         if NoH2 == False :
                             M_f = 1./(ratio + 1.)*M_species[0] + ratio/(ratio+1.)*M_species[1]
@@ -519,7 +519,7 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
 
                         data_convert[0,t,i_z,lat,long] = np.exp(res)
                         data_convert[1,t,i_z,lat,long] = c_grid[1]*T[t,i_grid[0],lat,long] + c_grid[0]*T[t,i_grid[1],lat,long]
-                        if composition == 'composition' :
+                        if composition[0] == 'composition' :
                             if Tracer == True :
                                 data_convert[2,t,i_z,lat,long] = c_grid[1]*Q[t,i_grid[0],lat,long] + c_grid[0]*Q[t,i_grid[1],lat,long]
 
@@ -546,7 +546,7 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
                                                                                 P_comp,T_comp,x_species)
                                 # Si le point considere n'est pas le premier, et donc, le point de surface, on calcule la masse d'atmosphere
                                 # a pendre en compte ensuite dans l'extrapolation
-                        if composition == 'tracer_othet' :
+                        if composition[0] == 'tracer_othet' :
                             if Tracer == True :
                                 data_convert[2,t,i_z,lat,long] = c_grid[1]*Q[t,i_grid[0],lat,long] + c_grid[0]*Q[t,i_grid[1],lat,long]
 
@@ -640,7 +640,7 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
 
                         P_ref = data_convert[0,t,i_z,lat,long]
 
-                        if composition == 'composition' :
+                        if composition[0] == 'composition' :
                             if Tracer == True :
                                 data_convert[2,t,i_z,lat,long] = Q[t,n_l-1,lat,long]
                                 Q_ref = data_convert[2,t,i_z,lat,long]
@@ -675,7 +675,7 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
                             data_convert[number-1,t,i_z,lat,long] = np.nansum(data_convert[2+m_number+c_number:number-1,t,i_z,lat,long]*\
                                         M_species)
 
-                        if composition == 'tracer_other' :
+                        if composition[0] == 'tracer_other' :
                             data_convert[2:,t,i_z,lat,long] = data_convert[2:,t,i_z-1,lat,long]
 
         if rank == 0 :
