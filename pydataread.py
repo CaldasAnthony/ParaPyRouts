@@ -54,15 +54,14 @@ def data_record(path,name_source,data_base,name_exo,aerosol,continuum,kcorr,cros
         else :
             aerosol_file = '%sSources/aerosol_properties/optprop_%s.dat'%(data_base,aerosol.file_name[i_dec+i_c])
             aerosol_data_read(aerosol_file,0,13,aerosol.nspecies[i_c],name_exo,directory,Save=True)
-    if aerosol.number != 1 and aerosol.number != 0 :
-        Q_f = np.load('%sQ_%s_%s.npy'%(directory,aerosol.nspecies[0],name_exo))
-        sh = np.shape(Q_f)
-        Q_ext = np.zeros((aerosol.number,sh[0],sh[1]))
-        all_species = ''
-        for i_c in range(aerosol.number):
-            Q_ext[i_c] = np.load('%sQ_%s_%s.npy'%(directory,aerosol.nspecies[i_c],name_exo))
-            all_species += '%s_'%(aerosol.nspecies[i_c])
-        np.save('%sQ_%s%s.npy'%(directory,all_species,name_exo),Q_ext)
+    Q_f = np.load('%sQ_%s_%s.npy'%(directory,aerosol.nspecies[0],name_exo))
+    sh = np.shape(Q_f)
+    Q_ext = np.zeros((aerosol.number,sh[0],sh[1]))
+    all_species = ''
+    for i_c in range(aerosol.number):
+        Q_ext[i_c] = np.load('%sQ_%s_%s.npy'%(directory,aerosol.nspecies[i_c],name_exo))
+        all_species += '%s_'%(aerosol.nspecies[i_c])
+    np.save('%sQ_%s%s.npy'%(directory,all_species,name_exo),Q_ext)
 
     k_cont_number = continuum.number
     for i_n in range(k_cont_number) :

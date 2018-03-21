@@ -42,7 +42,7 @@ t, t_selec, phi_rot, phi_obli, inclinaison = 0, 5, 0.00, 0.00, 0.00
 if inclinaison != 0. :
     phi_obli = np.abs(phi_obli+inclinaison-np.pi/2.)
 
-Record = False
+Record = True
 
 ########################################################################################################################
 
