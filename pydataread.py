@@ -245,8 +245,9 @@ def cross_data_read(file_path,type_ref,n_species,path,source) :
     data = pickle.load(open('%s%s.db'%(file_path,n_species[0])))
 
     np.save("%sbande_sample_%s.npy"%(path,source), data["%s"%(type_ref[1])])
-    np.save("%sP_sample_%s.npy"%(path,source), data["%s"%(np.log10(type_ref[2]))])
+    print type_ref[2]
     print np.log10(type_ref[2])
+    np.save("%sP_sample_%s.npy"%(path,source), data["%s"%(np.log10(type_ref[2]))])
     np.save("%sT_sample_%s.npy"%(path,source), data["%s"%(type_ref[3])])
 
     dim_bande, dim_P, dim_T = data["%s"%(type_ref[1])].size, data["%s"%(type_ref[2])].size, data["%s"%(type_ref[3])].size
