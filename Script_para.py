@@ -143,7 +143,7 @@ if data_base != '' :
 else :
     h, P_h, n_layers = 9.e+6, information[planet.extreme_pressure_key[1]], information[planet.number_layer_key]
 
-delta_z, r_step, x_step, theta_number = 0e+4, 0e+4, 0e+4, 2*reso_lat
+delta_z, r_step, x_step, theta_number = 10e+4, 10e+4, 10e+4, 2*reso_lat
 z_array = np.arange(h/np.float(delta_z)+1)*float(delta_z)
 theta_step = 2*np.pi/np.float(theta_number)
 Upper = "Isotherme"
