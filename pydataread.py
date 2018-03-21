@@ -118,6 +118,7 @@ def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,e
         for i_Q in range(Q_dim) :
             Q_sample[i_Q] = np.float(line_search(Q_read[int(dec[0])+2+i_Q])[0])
         np.save('%sQ_comp_%s.npy'%(directory,name_exo),Q_sample)
+        np.save('%sQ_sample.npy'%(directory),Q_sample)
     else :
         Q_dim = 1
     P_dim, T_dim = np.int(P_dim[0]), np.int(T_dim[0])
@@ -128,6 +129,8 @@ def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,e
         P_sample[i_P] = np.float(line_search(p_read[1+i_P])[0])
     np.save('%sT_comp_%s.npy'%(directory,name_exo),T_sample)
     np.save('%sP_comp_%s.npy'%(directory,name_exo),P_sample)
+    np.save('%sT_sample.npy'%(directory),T_sample)
+    np.save('%sP_sample.npy'%(directory),P_sample)
     data = open('%sSources/corrk_data/g.dat'%(path),'r')
     g_read = data.readlines()
     g_dim = np.int(line_search(g_read[0])[0])-1
