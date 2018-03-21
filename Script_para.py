@@ -104,7 +104,7 @@ M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=T
 
 c_species = np.array(['H2O'])
 c_species_name = np.array(['h2o_ice_col'])
-c_species_file = np.array(['h2o_ice_col'])
+c_species_file = np.array(['iceir_n50'])
 rho_p = np.array([917.])
 r_eff = 0.5e-6
 
