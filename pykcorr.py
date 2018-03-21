@@ -1891,6 +1891,7 @@ def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,ze
                 f_K = 1.1364 + 2.53e-11*w_n**2
                 index = (1.1427e+6*(5.79925e+3/(1.66175e+10-w_n**2)+1.2005e+2/(7.9608e+9-w_n**2)+5.3334/(5.6306e+9-w_n**2)+\
                                     4.3244/(4.619e+9-w_n**2)+0.12181e-4/(5.8474e+6-w_n**2)))**2
+                print index
                 sig = fact/(wl**4)*index*f_K
 
                 k_sca_rmd[:,i_bande] += sig*n_mol_tot*x_mol_species[sp,:]
@@ -1967,6 +1968,7 @@ def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,ze
                     index = (0.85*(8.06051 + 2.48099e+10/(132.274e+14 - 1/wl**2) + 1.74557e+8/(3.932957e+13 - 1/wl**2)))**2
 
                 sig = f_K/(wl**4)*index
+                print index
 
                 k_sca_rmd[:,i_bande] += sig*n_mol_tot*x_mol_species[sp,:]
 
