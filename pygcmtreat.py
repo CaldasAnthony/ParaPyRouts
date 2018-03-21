@@ -546,7 +546,7 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
                                                                                 P_comp,T_comp,x_species)
                                 # Si le point considere n'est pas le premier, et donc, le point de surface, on calcule la masse d'atmosphere
                                 # a pendre en compte ensuite dans l'extrapolation
-                        if composition[0] == 'tracer_othet' :
+                        if composition[0] == 'tracer_other' :
                             if Tracer == True :
                                 data_convert[2,t,i_z,lat,long] = c_grid[1]*Q[t,i_grid[0],lat,long] + c_grid[0]*Q[t,i_grid[1],lat,long]
 
