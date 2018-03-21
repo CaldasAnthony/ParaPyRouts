@@ -2829,6 +2829,7 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
 
                         i_Td_array = i_Tu_array - 1
                         i_Td_array[zer] = np.zeros(zer.size, dtype='int')
+                        print 'pouet'
 
                         ex, = np.where(i_Tu_array == end)
 
