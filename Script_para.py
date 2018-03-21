@@ -91,10 +91,13 @@ else :
 
 # Proprietes de l'atmosphere isotherme
 
-if data_base == '' :
+if data_base != '' :
+    T_iso, P_surf = 0,0
+    x_ratio_species_active = np.array([0,0])
+else :
     T_iso, P_surf = information[planet.planet_temperature_key], information[planet.extreme_pressure_key[0]]
     x_ratio_species_active = information[planet.planet_active_ratio_key]
-    
+
 M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=True)
 
 # Proprietes des nuages
