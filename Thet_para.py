@@ -832,10 +832,7 @@ if Parameters == True :
             gauss_val = np.array([])
             P_sample = np.load("%s%s/P_sample_%s.npy"%(path,name_source,source))
             T_sample = np.load("%s%s/T_sample_%s.npy"%(path,name_source,source))
-            if Tracer == True :
-                Q_sample = np.load("%s%s/Q_sample_%s.npy"%(path,name_source,source))
-            else :
-                Q_sample = np.array([])
+            Q_sample = np.array([])
             bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
 
             k_corr_data_grid = "%s%s/crossection_%s.npy"%(path,name_source,source)
