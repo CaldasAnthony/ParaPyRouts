@@ -82,7 +82,7 @@ alpha_step, delta_step = 2*np.pi/np.float(reso_long), np.pi/np.float(reso_lat)
 
 #n_species = np.array(['H2','He','H2O','CH4','N2','NH3','CO','CO2'])
 #n_species_active = np.array(['H2O','CH4','NH3','CO','CO2'])
-if data_base == '' :
+if data_base != '' :
     n_species = np.array(['H2','He','CO2','H2O'])
 else :
     n_species_active = np.array([information[planet.active_species_key]])
