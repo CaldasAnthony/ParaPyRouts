@@ -64,6 +64,7 @@ if diag_file == ' ' :
     Ts = information[planet.star_temperature_key]
 
 d_al = 100.*9.461e+15
+error = 5.e-5
 
 # Proprietes en cas de lecture d'un diagfi
 

@@ -1121,6 +1121,8 @@ if Cylindric_transfert_3D == True :
                     int_lambda = np.sort(10000./int_lambda[::-1])
                     noise = stellar_noise(star(),detection,int_lambda)
                     noise = noise[::-1]
+                else :
+                    noise = error
                 flux_script(path,name_source,source,save_ad,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
 
             del Itot
