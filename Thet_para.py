@@ -54,7 +54,7 @@ if rank == 0 :
 
 if Profil == True :
     
-    if composition == 'composition' :
+    if compo_type == 'composition' :
         T_comp = np.load("%s%s/T_comp_%s.npy"%(path,name_source,name_exo))
         P_comp = np.load("%s%s/P_comp_%s.npy"%(path,name_source,name_exo))
         if Tracer == True :
@@ -264,7 +264,7 @@ if Profil == True :
                                     ###### Parallele encoding end ######
 
             data_convert_part = Boxes_conversion(P,T,Q,gen,z_sphe,composition,delta_z,Rp,h,hmax,dim,g0,M_molar,number,T_comp,P_comp,\
-                 Q_comp,X_species,M_species,ratio_HeH2,rank,Upper,n_species,m_species,composition,Tracer,Cloudy,Middle,LogInterp,MassAtm,NoH2)
+                 Q_comp,X_species,M_species,ratio_HeH2,rank,Upper,n_species,m_species,compo_type,Tracer,Cloudy,Middle,LogInterp,MassAtm,NoH2)
 
                                     ###### Parallele encoding init ######
 
