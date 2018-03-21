@@ -137,6 +137,8 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 t_size,p_size,q_size,dim_bande,dim_gauss = np.shape(K)
             else :
                 t_size,p_size,dim_bande,dim_gauss = np.shape(K)
+            dim_bande = dim_bande - 1
+            print dim_bande
         else :
             K = K[ind_cross]
             if Tracer == True :
