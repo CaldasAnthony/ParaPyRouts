@@ -438,7 +438,7 @@ def atmospectre(I,bande_sample,R_s,Rp,r_step,extra,trans,Kcorr=False,Middle=Fals
         ratR_bar = (R_eff_bar - R_ref)/R_s*1000000.
 
         flux_bar = R_eff_bar**2/R_s**2
-        flux = 0
+        flux = R_eff**2/R_s**2
 
     else :
 
