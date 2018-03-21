@@ -307,7 +307,6 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                     if cont_species[i_cont] == 'H2Os' :
                         amagat_spe = amagat*composit_rmd[wh_c[0],:]**2*N_mol
 
-                print Kcorr
                 k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
                                 T_rmd,bande_sample,T_cont_spespe,rank,rank_ref,K_cont.associations[i_cont],Kcorr,H2O)
 
