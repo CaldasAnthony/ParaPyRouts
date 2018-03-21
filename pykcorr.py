@@ -116,7 +116,7 @@ def convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,directory
 
 def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_active,ind_cross,K,K_cont,Qext,P_sample,T_sample,\
                  Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,name,t,phi_rot,phi_obli,n_species,domain,ratio,directory,name_exo,reso_long,reso_lat,\
-                 rank,rank_ref,rank_max,Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,ByLay=False) :
+                 rank,rank_ref,rank_max,name_source,Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,ByLay=False) :
 
     if rank_max != comm.size :
         number_rank = rank_max
@@ -250,9 +250,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         if H2 == True :
 
             decont += 1
-            K_cont_h2h2 = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[0]))
-            K_cont_nu_h2h2 = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[0]))
-            T_cont_h2h2 = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[0]))
+            K_cont_h2h2 = np.load('%s%s/k_cont_%s.npy'%(directory,name_source,K_cont.associations[0]))
+            K_cont_nu_h2h2 = np.load('%s%s/k_cont_nu_%s.npy'%(directory,name_source,K_cont.associations[0]))
+            T_cont_h2h2 = np.load('%s%s/T_cont_%s.npy'%(directory,name_source,K_cont.associations[0]))
 
             k_interp_h2h2 = k_cont_interp_h2h2_integration(K_cont_h2h2,K_cont_nu_h2h2,\
                                             T_rmd,bande_sample,T_cont_h2h2,rank,rank_ref,Kcorr)
@@ -268,9 +268,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         if He == True :
 
             decont += 1
-            K_cont_h2he = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[1]))
-            K_cont_nu_h2he = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[1]))
-            T_cont_h2he = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[1]))
+            K_cont_h2he = np.load('%s%s/k_cont_%s.npy'%(directory,name_source,K_cont.associations[1]))
+            K_cont_nu_h2he = np.load('%s%s/k_cont_nu_%s.npy'%(directory,name_source,K_cont.associations[1]))
+            T_cont_h2he = np.load('%s%s/T_cont_%s.npy'%(directory,name_source,K_cont.associations[1]))
 
 
             k_interp_h2he = k_cont_interp_h2he_integration(K_cont_h2he,K_cont_nu_h2he,\
@@ -289,9 +289,9 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         else :
             for i_cont in range(decont,cont_species.size) :
 
-                K_cont_spespe = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
-                K_cont_nu_spespe = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[i_cont]))
-                T_cont_spespe = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
+                K_cont_spespe = np.load('%s%s/k_cont_%s.npy'%(directory,name_source,K_cont.associations[i_cont]))
+                K_cont_nu_spespe = np.load('%s%s/k_cont_nu_%s.npy'%(directory,name_source,K_cont.associations[i_cont]))
+                T_cont_spespe = np.load('%s%S/T_cont_%s.npy'%(directory,name_source,K_cont.associations[i_cont]))
 
                 if cont_species[i_cont] != 'H2O' and cont_species[i_cont] != 'H2Os':
                     wh_c, = np.where(n_species == cont_species[i_cont])
@@ -1893,7 +1893,6 @@ def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,ze
                 index = 1 + 1.1427e-2*(5.79925e+3/(1.66175e+10-w_n**2)+1.2005e+2/(7.9608e+9-w_n**2)+5.3334/(5.6306e+9-w_n**2)+\
                                     4.3244/(4.619e+9-w_n**2)+0.12181e-4/(5.8474e+6-w_n**2))
                 index = (index**2-1)/(index**2+2)
-                print index
                 sig = fact_2/(wl**4)*index**f_K
 
                 k_sca_rmd[:,i_bande] += sig*n_mol_tot*x_mol_species[sp,:]
@@ -1970,7 +1969,6 @@ def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,ze
                     index = 1 + 0.85*(8.06051 + 2.48099e+10/(132.274e+14 - 1/wl**2) + 1.74557e+8/(3.932957e+13 - 1/wl**2))
                 index = (index**2-1)/(index**2+2)
                 sig = f_K/(wl**4)*index*fact_2
-                print index
 
                 k_sca_rmd[:,i_bande] += sig*n_mol_tot*x_mol_species[sp,:]
 
