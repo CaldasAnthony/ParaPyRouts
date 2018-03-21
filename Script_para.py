@@ -239,16 +239,16 @@ compo_type = np.array(['tracer_other'])
 
 Parameters = True
 
-Cylindre = True        ###### Construit la maille cylindrique
+Cylindre = False        ###### Construit la maille cylindrique
 Obliquity = False       ###### Si l'exoplanete est inclinee
 
-Corr = True            ###### Traite les parcours optiques
+Corr = False            ###### Traite les parcours optiques
 Gravity = False         ###### Pour travailler a gravite constante
 Discret = True         ###### Calcul les distances discretes
 Integral = True        ###### Effectue l'integration sur les chemins optiques
 Ord = False             ###### Si Discreet == False, Ord permet de calculer les indices avec l'integration
 
-Matrix = True          ###### Transposition de la maille spherique dans la maille cylindrique
+Matrix = False          ###### Transposition de la maille spherique dans la maille cylindrique
 
 Convert = True         ###### Lance la fonction convertator qui assure l'interpolation des sections efficaces
 Kcorr = True           ###### Sections efficaces ou k-correles
