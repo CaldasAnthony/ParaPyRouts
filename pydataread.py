@@ -128,6 +128,13 @@ def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,e
         P_sample[i_P] = np.float(line_search(p_read[1+i_P])[0])
     np.save('%sT_comp_%s.npy'%(directory,name_exo),T_sample)
     np.save('%sP_comp_%s.npy'%(directory,name_exo),P_sample)
+    data = open('%sSources/corrk_data/g.dat'%(path),'r')
+    g_read = data.readlines()
+    g_dim = line_search(g_read[0])-1
+    g_sample = np.zeros(g_dim)
+    for i_g in range(g_dim) :
+        g_sample[i_g] = np.float(line_search(g_read[1+i_g])[0])
+    np.save('%gauss_sample.npy'%(directory),g_sample)
 
     data = open('%sSources/corrk_data/%s/corrk_gcm_%s.dat'%(path,kcorr.resolution,domain),'r')
     k_corr_data = data.readlines()
