@@ -207,7 +207,8 @@ if Record == True :
             self.species = n_species_cross
             self.type_ref = np.array(['xsecarr','wno','p','t'])
 
-    data_record(path,name_source,data_base,name_exo,aerosol(),continuum(),kcorr(),crossection(),composition(),Renorm=False)
+    if rank == 0 :
+        data_record(path,name_source,data_base,name_exo,aerosol(),continuum(),kcorr(),crossection(),composition(),Renorm=False)
 else :
     class continuum :
         def __init__(self) :
