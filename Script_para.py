@@ -67,7 +67,7 @@ else :
     Ts = 2550.
 
 d_al = 100.*9.461e+15
-error = 5.e-5
+error = np.array([1.e-5])
 
 # Proprietes en cas de lecture d'un diagfi
 
