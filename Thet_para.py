@@ -1010,8 +1010,8 @@ if Cylindric_transfert_3D == True :
                 gauss_val = np.array([])
         else :
             if Kcorr == True :
-                k_rmd = np.load("%s%s/%s/Temp/k_cross_opt_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
+                k_rmd = np.load("%s%s/%s/Temp/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+                %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,rank))
                 k_rmd = np.shape(k_rmd)
             else :
                 k_rmd = np.load("%s%s/%s/Temp/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
