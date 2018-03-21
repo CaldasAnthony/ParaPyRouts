@@ -130,7 +130,7 @@ def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,e
     np.save('%sP_comp_%s.npy'%(directory,name_exo),P_sample)
     data = open('%sSources/corrk_data/g.dat'%(path),'r')
     g_read = data.readlines()
-    g_dim = np.int(line_search(g_read[0]))-1
+    g_dim = np.int(line_search(g_read[0])[0])-1
     g_sample = np.zeros(g_dim)
     for i_g in range(g_dim) :
         g_sample[i_g] = np.float(line_search(g_read[1+i_g])[0])
