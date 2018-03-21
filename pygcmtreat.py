@@ -373,7 +373,6 @@ def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_specie
                         M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
 
                     if composition[0] == 'tracer_other' :
-                        print 'aaaaaaaaaaaaaaaa'
                         ind, = np.where(species[2:] == m_species)
                         if NoH2 == False :
                             M_f = 1./(ratio + 1.)*M_species[0] + ratio/(ratio+1.)*M_species[1]
@@ -549,7 +548,7 @@ def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_c
                                 # a pendre en compte ensuite dans l'extrapolation
 
                         if composition[0] == 'tracer_other' :
-                            print 'aaaaaaaaaaaaaaaa'
+                            print 'aaaaaaaaaaaaaaaaooooooooo'
                             if Tracer == True :
                                 data_convert[2,t,i_z,lat,long] = c_grid[1]*Q[t,i_grid[0],lat,long] + c_grid[0]*Q[t,i_grid[1],lat,long]
 
