@@ -84,7 +84,9 @@ alpha_step, delta_step = 2*np.pi/np.float(reso_long), np.pi/np.float(reso_lat)
 #n_species_active = np.array(['H2O','CH4','NH3','CO','CO2'])
 if data_base != '' :
     n_species = np.array(['H2','He','CO2','H2O'])
+    n_species_active = np.array(['H2O','CO2'])
 else :
+    n_species = np.array(['H2','He','H2O'])
     n_species_active = np.array([information[planet.active_species_key]])
 
 # Proprietes de l'atmosphere isotherme
@@ -92,7 +94,8 @@ else :
 if data_base == '' :
     T_iso, P_surf = information[planet.planet_temperature_key], information[planet.extreme_pressure_key[0]]
     x_ratio_species_active = information[planet.planet_active_ratio_key]
-    M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=True)
+    
+M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=True)
 
 # Proprietes des nuages
 
