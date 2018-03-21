@@ -439,7 +439,6 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         c_number = c_species.size
 
         Qext = np.load(Qext)
-        print np.shape(Qext)
 
         if rank_max == comm.size :
             comm.Barrier()
@@ -505,7 +504,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         if rank == 0 :
             print "Cloud scattering finished with success, process are beginning to save data remind"
 
-        del Qext,k_cloud_rmd
+        del Qext
 
     else :
 
