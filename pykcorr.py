@@ -1889,10 +1889,10 @@ def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,ze
             if n_species[sp] == 'CO2' :
 
                 f_K = 1.1364 + 2.53e-11*w_n**2
-                index = (1.1427e+6*(5.79925e+3/(1.66175e+10-w_n**2)+1.2005e+2/(7.9608e+9-w_n**2)+5.3334/(5.6306e+9-w_n**2)+\
-                                    4.3244/(4.619e+9-w_n**2)+0.12181e-4/(5.8474e+6-w_n**2)))**2
+                index = 1.1427e-2*(5.79925e+3/(1.66175e+10-w_n**2)+1.2005e+2/(7.9608e+9-w_n**2)+5.3334/(5.6306e+9-w_n**2)+\
+                                    4.3244/(4.619e+9-w_n**2)+0.12181e-4/(5.8474e+6-w_n**2))
                 print index
-                sig = fact/(wl**4)*index*f_K
+                sig = fact/(wl**4)*index**f_K
 
                 k_sca_rmd[:,i_bande] += sig*n_mol_tot*x_mol_species[sp,:]
 
