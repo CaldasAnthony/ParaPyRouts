@@ -2298,13 +2298,13 @@ def k_cont_interp_h2h2_integration(K_cont_h2h2,wavelength_cont_h2h2,T_array,band
                                 k_interp[i] = k_h2h2_Tu*coeff +  k_h2h2_Td*(1 - coeff)
 
                             i_Tu_array[i] = i_Tu
+                            i_Td_array = i_Tu_array - 1
                             coeff_array[i] = coeff
 
                     else :
 
                         zer, = np.where(i_Tu_array == 0)
 
-                        i_Td_array = i_Tu_array - 1
                         i_Td_array[zer] = np.zeros(zer.size, dtype='int')
 
                         ex, = np.where(i_Tu_array == end)
@@ -2377,13 +2377,13 @@ def k_cont_interp_h2h2_integration(K_cont_h2h2,wavelength_cont_h2h2,T_array,band
                                 k_interp[0,i] = k_h2h2_Tu*coeff +  k_h2h2_Td*(1 - coeff)
 
                             i_Tu_array[i] = i_Tu
+                            i_Td_array = i_Tu_array - 1
                             coeff_array[i] = coeff
 
                     else :
 
                         zer, = np.where(i_Tu_array == 0)
 
-                        i_Td_array = i_Tu_array - 1
                         i_Td_array[zer] = np.zeros(zer.size, dtype='int')
 
                         ex, = np.where(i_Tu_array == end)
@@ -2559,13 +2559,13 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
                                 k_interp[i] = k_h2he_Tu*coeff +  k_h2he_Td*(1 - coeff)
 
                             i_Tu_array[i] = i_Tu
+                            i_Td_array = i_Tu_array - 1
                             coeff_array[i] = coeff
 
                     else :
 
                         zer, = np.where(i_Tu_array == 0)
 
-                        i_Td_array = i_Tu_array - 1
                         i_Td_array[zer] = np.zeros(zer.size, dtype='int')
 
                         ex, = np.where(i_Tu_array == end)
@@ -2639,13 +2639,13 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
                                 k_interp[0,i] = k_h2he_Tu*coeff +  k_h2he_Td*(1 - coeff)
 
                             i_Tu_array[i] = i_Tu
+                            i_Td_array = i_Tu_array - 1
                             coeff_array[i] = coeff
 
                     else :
 
                         zer, = np.where(i_Tu_array == 0)
 
-                        i_Td_array = i_Tu_array - 1
                         i_Td_array[zer] = np.zeros(zer.size, dtype='int')
 
                         ex, = np.where(i_Tu_array == end)
@@ -2762,7 +2762,6 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
         else :
 
             k_interp = np.zeros((2,size))
-        print i_bande
 
         if i_bande == 0 :
 
@@ -2776,7 +2775,6 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
 
                 zone_wave, = np.where((wavelength_cont_spespe >= wave_min)*(wavelength_cont_spespe <= wave_max))
                 #print("For bande number %i, we took into account wavelenght (cm-1) :" %(i_bande))
-                print zone_wave
                 fact = zone_wave.size
 
                 for i_wave in zone_wave :
@@ -2823,13 +2821,13 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
                                 k_interp[i] = k_spespe_Tu*coeff +  k_spespe_Td*(1 - coeff)
 
                             i_Tu_array[i] = i_Tu
+                            i_Td_array = i_Tu_array - 1
                             coeff_array[i] = coeff
 
                     else :
 
                         zer, = np.where(i_Tu_array == 0)
 
-                        i_Td_array = i_Tu_array - 1
                         i_Td_array[zer] = np.zeros(zer.size, dtype='int')
                         print 'pouet'
 
@@ -2904,13 +2902,13 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
                                 k_interp[0,i] = k_spespe_Tu*coeff +  k_spespe_Td*(1 - coeff)
 
                             i_Tu_array[i] = i_Tu
+                            i_Td_array = i_Tu_array - 1
                             coeff_array[i] = coeff
 
                     else :
 
                         zer, = np.where(i_Tu_array == 0)
 
-                        i_Td_array = i_Tu_array - 1
                         i_Td_array[zer] = np.zeros(zer.size, dtype='int')
 
                         ex, = np.where(i_Tu_array == end)
