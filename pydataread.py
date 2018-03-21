@@ -519,6 +519,8 @@ def flux_script(path,name_source,source,save_name,I,error,Rs,Rp,r_step,Kcorr=Fal
 
     R_eff_bar,R_eff,ratio_bar,ratR_bar,bande_bar,flux_bar,flux = atmospectre(I,bande_sample,Rs,Rp,r_step,0,\
                                                                                         False,Kcorr,Middle)
+    
+    print flux
     file_name = '%s.dat'%(save_name)
 
     output = open(file_name,'w')
