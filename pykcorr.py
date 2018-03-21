@@ -117,8 +117,7 @@ def convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,directory
 def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_active,ind_cross,K,K_cont,Qext,P_sample,T_sample,\
                  Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,name,t,phi_rot,phi_obli,n_species,domain,ratio,directory,name_exo,reso_long,reso_lat,\
                  rank,rank_ref,rank_max,Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,ByLay=False) :
-    
-    print Kcorr
+
     if rank_max != comm.size :
         number_rank = rank_max
     else:
@@ -308,6 +307,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                     if cont_species[i_cont] == 'H2Os' :
                         amagat_spe = amagat*composit_rmd[wh_c[0],:]**2*N_mol
 
+                print Kcorr
                 k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
                                 T_rmd,bande_sample,T_cont_spespe,rank,rank_ref,K_cont.associations[i_cont],Kcorr,H2O)
 
@@ -2737,6 +2737,7 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
 
 def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_array,bande_array,T_cont_spespe,rank,rank_ref,species,Kcorr=True,H2O=False) :
 
+    print Kcorr
     losch = 2.6867774e19
     size = T_array.size
     if Kcorr == True :
