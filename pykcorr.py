@@ -137,8 +137,6 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
                 t_size,p_size,q_size,dim_bande,dim_gauss = np.shape(K)
             else :
                 t_size,p_size,dim_bande,dim_gauss = np.shape(K)
-            dim_bande = dim_bande - 1
-            print dim_bande
         else :
             K = K[ind_cross]
             if Tracer == True :
@@ -242,7 +240,10 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
 
     if Continuum == True :
 
-        dim_bande = bande_sample.size
+        if Kcorr == True :
+            dim_bande = bande_sample.size-1
+        else :
+            dim_bande = bande_sample.size
         cont_species = K_cont.species
         H2, He, Other = H2HeO(cont_species)
         amagat = 2.69578e-3*P_rmd/T_rmd
