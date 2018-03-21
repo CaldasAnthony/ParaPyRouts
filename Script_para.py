@@ -42,7 +42,7 @@ t, t_selec, phi_rot, phi_obli, inclinaison = 0, 5, 0.00, 0.00, 0.00
 if inclinaison != 0. :
     phi_obli = np.abs(phi_obli+inclinaison-np.pi/2.)
 
-Record = False
+Record = True
 
 ########################################################################################################################
 
@@ -130,10 +130,10 @@ ind_cross, ind_active = index_active (n_species,n_species_cross,n_species_active
 
 #cont_tot = np.array(['H2-He_2011.cia','H2-He_2011.cia','H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat','H2-CH4_eq_2011.cia','N2-H2_2011.cia'])
 #cont_species = np.array(['H2','He','H2Os','H2O','CH4','N2'])
-#cont_associations = np.array(['h2he','h2he','h2oh2o','h2ofor','h2ch4','h2n2'])
+#cont_associations = np.array(['h2h2','h2he','h2oh2o','h2ofor','h2ch4','h2n2'])
 #cont_tot = np.array(['H2-He_2011.cia','H2-He_2011.cia','H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat'])
 #cont_species = np.array(['H2','He','H2Os','H2O'])
-#cont_associations = np.array(['h2he','h2he','h2oh2o','h2ofor'])
+#cont_associations = np.array(['h2h2','h2he','h2oh2o','h2ofor'])
 cont_tot = np.array(['H2O_CONT_SELF.dat','H2O_CONT_FOREIGN.dat'])
 cont_species = np.array(['H2Os','H2O'])
 cont_associations = np.array(['h2oh2o','h2ofor'])
@@ -202,7 +202,7 @@ if Record == True :
             self.jump = True
     class crossection :
         def __init__(self) :
-            self.file = ''
+            self.file = '/data1/caldas/Pytmosph3R/xsec/10wno/'
             self.type = source
             self.species = n_species_cross
             self.type_ref = np.array(['xsecarr','wno','p','t'])
@@ -243,16 +243,16 @@ compo_type = np.array(['tracer_other'])
 
 Parameters = True
 
-Cylindre = False        ###### Construit la maille cylindrique
+Cylindre = True        ###### Construit la maille cylindrique
 Obliquity = False       ###### Si l'exoplanete est inclinee
 
-Corr = False            ###### Traite les parcours optiques
+Corr = True            ###### Traite les parcours optiques
 Gravity = False         ###### Pour travailler a gravite constante
 Discret = True         ###### Calcul les distances discretes
 Integral = True        ###### Effectue l'integration sur les chemins optiques
 Ord = False             ###### Si Discreet == False, Ord permet de calculer les indices avec l'integration
 
-Matrix = False          ###### Transposition de la maille spherique dans la maille cylindrique
+Matrix = True          ###### Transposition de la maille spherique dans la maille cylindrique
 
 Convert = True         ###### Lance la fonction convertator qui assure l'interpolation des sections efficaces
 Kcorr = False           ###### Sections efficaces ou k-correles
