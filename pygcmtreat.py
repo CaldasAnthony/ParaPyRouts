@@ -2,8 +2,8 @@ from pyfunction import *
 from pyconstant import *
 from netCDF4 import Dataset
 import math as math
-import pickle
 import scipy.integrate as integrate
+import pickle
 import os,sys
 import time
 
@@ -42,11 +42,11 @@ import time
     atmosphere au milieu des couches regulieres de la grille en altitude qui est souhaite. Ainsi, data_convert[:,:,0,:,:]
     correspond aux parametres de surface, et data_convert[:,:,1:,:,:] aux parametres au milieu des couches
     >> cylindric_assymatrix_parameter est donc a nouveau modifiee de maniere a tenir compte du fait que les data soient
-    deja determines au milieu des couches, ainsi si l'option Middle est choisie, l'ordre de z_level devient l'ordre de
+    deja determines au milieu des couches, ainsi si l'option Middle est choisie, l'ordre de z_array devient l'ordre de
     la couche, et on conserve bien les proprietes, nous n'avons plus de demi-couche pour la surface puisque les
     parametres de surface n'interviennent plus (nous gardons cet ordre 0 de surface pour garder les informations sur
     le diagfi de la simu GCM).
-    Note : le z_level doit rester un tableau allant de 0 a h avec un pas de delta_z, il donne la position des inter-
+    Note : le z_array doit rester un tableau allant de 0 a h avec un pas de delta_z, il donne la position des inter-
     couches
     >> Modification de dx_correspondance qui desormais calcule exactement les distances parcourues par un rayon dans
     les differentes cellules de l'atmosphere a une couche et un point de lattitude donnee. La fonction peut faire l'
@@ -57,23 +57,6 @@ import time
     une partie de cellule) ou negative (la derniere cellule depasse le toit de l'atmosphere)
 
     Date de derniere modification : 14.09.2016
-
-    >> Modification de dx_correspondance, les distances calculees sont desormais plus precises que jamais et decoupent
-    reellement le chemin optique en deux pour s'abstenir des problemes aux poles
-    >> Cette meme fonction peut desormais integrer sur le chemin optique des rayons la profondeur optique (divisee de
-    la section efficace toutefois), nous ne tenons pas compte d'une eventuelle dependance de la fraction molaire ou de
-    la section efficace avec l'altitude. Pour que cette hypothese reste valable, le pas en altitude doit etre bien
-    inferieur a la hauteur d'echelle
-    >> Desormais, chaque changement d'altitude, de longitude ou de latitude est traite de maniere independante, on notera
-    que l'integrale diverse pour les variations d'altitude tres tres faibles (ce qui arrive typiquement lorsque les
-    rayons traversent des coins de cellule spherique ou couramment pour les terminateurs aux poles)
-    >> Cette ecriture est bien adaptee au cas Middle, il l'est moins si cette option est False
-    >> Bien que conservees, les fonctions altitude_array ne sont plus appelees dans le transfert radiatif
-    >> Modification dans la construction du profil P-T cylindrique, la loi hydrostatique a ete reecrite
-    >> Une verification serait cependant avisee pour etre certain que cette reecriture ne s'eloigne pas de celle attendue
-    (par exemple, cas isotherme)
-
-    Date de derniere modification : 12.12.2016
 
     >> Modification complete de boxes, les fonctions d'interpolation sont predefinies desormais dans pyfunction,
     >> Correction d'un bug qui ne permettait pas de retenir convenablement les indices d'interpolations sur la
@@ -121,22 +104,21 @@ import time
 ########################################################################################################################
 
 
-def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x_species,M_species,c_species,m_species,ratio,Upper,\
-          TopPressure,Inverse,Surf=True,Tracer=False,Clouds=False,Middle=False,LogInterp=False,TimeSelec=False,MassAtm=False,NoH2=False,TauREx=True) :
+def Boxes_spheric_data(data,t,c_species,m_species,Surf=True,Tracer=False,Clouds=False,TimeSelec=False) :
 
-    file = Dataset("%s.nc"%(data))
-    variables = file.variables
+    if data != '' :
+        file = Dataset("%s.nc"%(data))
+        variables = file.variables
+    else :
+        from pyfunction import planet
+        planet = planet()
     c_number = c_species.size
     if Tracer == True :
-        m_number = 1
         m_species = m_species[0]
-    else :
-        m_number = 0
 
     # Si nous avons l'information sur les parametres de surface
 
     if data != '' :
-
         if Surf == True :
 
             # Si nous avons l'information sur la pression de surface, il nous faut donc rallonger les tableaux de parametres
@@ -185,6 +167,9 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
                 Q[:,0,:,:] = Q_vap_surf
                 Q[:,1:n_l+1,:,:] = Q_vap
 
+            else :
+                Q = np.array([])
+
             if Clouds == True :
                 if TimeSelec == False :
                     gen_cond = np.zeros((c_number,n_t,n_l,n_lat,n_long),dtype=np.float64)
@@ -203,18 +188,19 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
 
                 gen[:,:,0,:,:] = gen_cond_surf
                 gen[:,:,1:n_l+1,:,:] = gen_cond
+            else :
+                gen = np.array([])
 
             if TimeSelec == True :
                 n_t = 1
-            T_mean = np.nansum(T_file[:,n_l-1,:,:])/(n_t*n_lat*n_long)
+            T_mean = np.mean(T_file[:,n_l-1,:,:])
             T_max = np.amax(T_file[:,n_l-1,:,:])
             T_min = np.amin(T_file[:,n_l-1,:,:])
             print('Mean temperature : %i K, Maximal temperature : %i K, Minimal temperature : %i K'%(T_mean,T_max,T_min))
 
             P_mean = np.exp(np.nansum(np.log(P[:,n_l,:,:]))/(n_t*n_lat*n_long))
             print('Mean roof pressure : %f Pa'%(P_mean))
-
-            n_l = n_l + 1
+            T_var = np.array([T_mean,T_max,T_min])
 
         # Si nous n'avons pas l'information sur les parametres de surface
 
@@ -238,6 +224,8 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
                 else :
                     Q = np.zeros((1,n_l,n_lat,n_long))
                     Q[0] = variables["%s_vap"%(m_species)][t,:,:,:]
+            else :
+                Q = np.array([])
 
             if Clouds == True :
                 if TimeSelec == False :
@@ -248,14 +236,17 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
                     gen = np.zeros((c_number,1,n_l,n_lat,n_long))
                     for c_num in range(c_number) :
                         gen[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][t,:,:,:]
+            else :
+                gen = np.array([])
 
             if TimeSelec == True :
                 n_t = 1
-            T_mean = np.nansum(T[:,n_l-1,:,:]/(n_t*n_lat*n_long))
+            T_mean = np.mean(T[:,n_l-1,:,:])
             T_max = np.amax(T[:,n_l-1,:,:])
             T_min = np.amin(T[:,n_l-1,:,:])
             print('Mean temperature : %i K, Maximal temperature : %i K, Minimal temperature of the high atmosphere : %i K'\
                   %(T_mean,T_max,T_min))
+            T_var = np.array([T_mean,T_max,T_min])
 
             P_mean = np.exp(np.nansum(np.log(P[:,n_l-1,:,:]))/(n_t*n_lat*n_long))
             print('Mean roof pressure : %f Pa'%(P_mean))
@@ -301,13 +292,23 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
 
         P_mean = np.exp(np.nansum(np.log(P[:,n_l,:,:]))/(n_t*n_lat*n_long))
         print('Mean roof pressure : %f Pa'%(P_mean))
+        T_var = np.array([T_mean,T_max,T_min])
 
+    return P, T, Q, gen, T_var
+
+
+########################################################################################################################
+########################################################################################################################
+
+
+def Boxes_interpolation(P,T,Q,Rp,g0,number,P_comp,T_comp,Q_comp,species,x_species,M_species,c_species,m_species,ratio,composition,\
+                        Tracer=False,LogInterp=False,MassAtm=False,NoH2=False,TauREx=True) :
+
+    n_t,n_l,n_lat,n_long = np.shape(P)
     z = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
-    M = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
-    H = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
     g = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
-
-    bar = ProgressBar(n_t*n_l,'Data convertion from pressure levels')
+    H = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
+    M = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
 
     if Tracer == False :
 
@@ -321,25 +322,24 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
         for i in range(n_t) :
             for j in range(n_l) :
                 for k in range(n_lat) :
-
-                    if LogInterp == True :
-                        res, c_grid, i_grid = interp2olation_multi(np.log10(P[i,j,k,:]),T[i,j,k,:],P_comp,T_comp,x_species)
-                    else :
-                        res, c_grid, i_grid = interp2olation_multi(P[i,j,k,:],T[i,j,k,:],P_comp,T_comp,x_species)
-
-                    compo[2:size,i,j,k,:] = res[2:]
-                    for l in range(n_long) :
-                        if NoH2 == False :
-                            compo[0,i,j,k,l] = (1. - np.nansum(compo[2:size,i,j,k,l]))/(ratio + 1.)
+                    if composition == 'composition' :
+                        if LogInterp == True :
+                            res, c_grid, i_grid = interp2olation_multi(np.log10(P[i,j,k,:]),T[i,j,k,:],P_comp,T_comp,x_species)
                         else :
-                            compo[0,i,j,k,l] = 0.
-                            compo[2:size,i,j,k,l] = compo[2:size,i,j,k,l]/(np.nansum(compo[2:size,i,j,k,l]))
-                    if NoH2 == False :
-                        compo[1,i,j,k,:] = compo[0,i,j,k,:]*ratio
-                    else :
-                        compo[1,i,j,k,l] = 0.
-                    M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
-                bar.animate(i*n_l+j+1)
+                            res, c_grid, i_grid = interp2olation_multi(P[i,j,k,:],T[i,j,k,:],P_comp,T_comp,x_species)
+
+                        compo[2:size,i,j,k,:] = res[2:]
+                        for l in range(n_long) :
+                            if NoH2 == False :
+                                compo[0,i,j,k,l] = (1. - np.nansum(compo[2:size,i,j,k,l]))/(ratio + 1.)
+                            else :
+                                compo[0,i,j,k,l] = 0.
+                                compo[2:size,i,j,k,l] = compo[2:size,i,j,k,l]/(np.nansum(compo[2:size,i,j,k,l]))
+                        if NoH2 == False :
+                            compo[1,i,j,k,:] = compo[0,i,j,k,:]*ratio
+                        else :
+                            compo[1,i,j,k,l] = 0.
+                        M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
 
     else :
 
@@ -353,26 +353,43 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
         for i in range(n_t) :
             for j in range(n_l) :
                 for k in range(n_lat) :
-
-                    if LogInterp == True :
-                        res, c_grid, i_grid = interp3olation_multi(np.log10(P[i,j,k,:]),T[i,j,k,:],Q[i,j,k,:],P_comp,T_comp,Q_comp,x_species)
-                    else :
-                        res, c_grid, i_grid = interp3olation_multi(P[i,j,k,:],T[i,j,k,:],Q[i,j,k,:],P_comp,T_comp,Q_comp,x_species)
-
-                    compo[2:size,i,j,k,:] = res[2:]
-                    for l in range(n_long) :
-                        if NoH2 == False :
-                            compo[0,i,j,k,l] = (1. - np.nansum(compo[2:size,i,j,k,l]))/(ratio + 1.)
+                    if composition == 'composition' :
+                        if LogInterp == True :
+                            res, c_grid, i_grid = interp3olation_multi(np.log10(P[i,j,k,:]),T[i,j,k,:],Q[i,j,k,:],P_comp,T_comp,Q_comp,x_species)
                         else :
-                            compo[0,i,j,k,l] = 0.
-                            compo[2:size,i,j,k,l] = compo[2:size,i,j,k,l]/(np.nansum(compo[2:size,i,j,k,l]))
-                    if NoH2 == False :
-                        compo[1,i,j,k,:] = compo[0,i,j,k,:]*ratio
-                    else :
-                        compo[1,i,j,k,l] = 0.
-                    M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
+                            res, c_grid, i_grid = interp3olation_multi(P[i,j,k,:],T[i,j,k,:],Q[i,j,k,:],P_comp,T_comp,Q_comp,x_species)
 
-                bar.animate(i*n_l+j+1)
+                        compo[2:size,i,j,k,:] = res[2:]
+                        for l in range(n_long) :
+                            if NoH2 == False :
+                                compo[0,i,j,k,l] = (1. - np.nansum(compo[2:size,i,j,k,l]))/(ratio + 1.)
+                            else :
+                                compo[0,i,j,k,l] = 0.
+                                compo[2:size,i,j,k,l] = compo[2:size,i,j,k,l]/(np.nansum(compo[2:size,i,j,k,l]))
+                        if NoH2 == False :
+                            compo[1,i,j,k,:] = compo[0,i,j,k,:]*ratio
+                        else :
+                            compo[1,i,j,k,l] = 0.
+                        M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
+
+                    if composition == 'tracer_other' :
+                        ind, = np.where(species[2:] == m_species)
+                        if NoH2 == False :
+                            M_f = 1./(ratio + 1.)*M_species[0] + ratio/(ratio+1.)*M_species[1]
+                            ratio_mf = M_f/M_species[ind+2]*Q[i,j,k,:]/(1.-Q[i,j,k,:])
+                            compo[ind+2,i,j,k,:] = ratio_mf/(1.+ratio_mf)
+                            compo[0,i,j,k,:] = (1. - compo[ind+2,i,j,k,:])/(ratio + 1.)
+                        else :
+                            indf, = np.where(species[2:] != m_species)
+                            ratio_mf = M_species[indf+2]/M_species[ind+2]*Q[i,j,k,:]/(1.-Q[i,j,k,:])
+                            compo[ind+2,i,j,k,:] = ratio_mf/(1.+ratio_mf)
+                            compo[indf+2,i,j,k,:] = 1. - compo[ind+2,i,j,k,:]
+                        if NoH2 == False :
+                            compo[1,i,j,k,:] = compo[0,i,j,k,:]*ratio
+                        else :
+                            compo[1,i,j,k,l] = 0.
+                        M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
+
 
     # Une fois la composition dans chaque cellule des donnees GCM calculee, nous avons l'information manquante sur le
     # poids moleculaire moyen et donc sur la hauteur d'echelle locale. Nous pouvons alors transformer l'echelle de
@@ -397,21 +414,22 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
                     for i_n_lat in range(n_lat) :
                         for i_n_long in range(n_long) :
                             g_z = g[i_n_t,pres-1,i_n_lat,i_n_long]
+                            Rp_c = Rp + z[i_n_t,pres-1,i_n_lat,i_n_long]
                             if T[i_n_t,pres,i_n_lat,i_n_long] != T[i_n_t,pres-1,i_n_lat,i_n_long] :
-                                a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*(T[i_n_t,pres,i_n_lat,i_n_long]-T[i_n_t,pres-1,i_n_lat,i_n_long])\
+                                a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp_c)*R_gp*(T[i_n_t,pres,i_n_lat,i_n_long]-T[i_n_t,pres-1,i_n_lat,i_n_long])\
                                       /((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g_z*\
                                 np.log(T[i_n_t,pres,i_n_lat,i_n_long]/T[i_n_t,pres-1,i_n_lat,i_n_long]))*np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
                             else :
-                                a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*T[i_n_t,pres-1,i_n_lat,i_n_long]/((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g_z)\
+                                a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp_c)*R_gp*T[i_n_t,pres-1,i_n_lat,i_n_long]/((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g_z)\
                                 *np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
-                            dz = a_z*(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)/(1-a_z/Rp)
+                            dz = a_z*(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp_c)/(1-a_z/Rp_c)
 
                             z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
 
                 if MassAtm == True :
                     g[:,pres,:,:] = g0 + Mass*G/(Rp + z[:,pres,:,:])**2
                 else :
-                    g[:,pres,:,:] = g0 + np.zeros((n_t,n_lat,n_long),dtype=np.float64)
+                    g[:,pres,:,:] = g0*1./(1.+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)**2 + np.zeros((n_t,n_lat,n_long),dtype=np.float64)
                 H[:,pres,:,:] = R_gp*T[:,pres,:,:]/(M[:,pres,:,:]*g[:,pres,:,:])
 
             else :
@@ -428,55 +446,38 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
             if MassAtm == True :
                 Mass += P[:,pres,:,:]/(R_gp*T[:,pres,:,:])*M[:,pres,:,:]*4/3.*np.pi*((Rp + z[:,pres,:,:])**3 - (Rp + z[:,pres-1,:,:])**3)
 
-    print z
+    return compo, M, z, g, H
 
-    if h < np.amax(z) :
 
-        h = np.amax(z)
-        hmax = h
+########################################################################################################################
+########################################################################################################################
 
-    else :
 
-        hmax = np.amax(z)
+def Boxes_conversion(P,T,Q,gen,z,compo,delta_z,Rp,h,hmax,dim,g0,M_atm,number,T_comp,P_comp,Q_comp,x_species,M_species,ratio,rank,Upper,\
+                     species,m_species,composition,Tracer=False,Clouds=False,Middle=False,LogInterp=False,MassAtm=False,NoH2=False) :
 
-    dim = int(h/delta_z)+2
-    np.save('/Users/caldas/Desktop/Pytmosph3R/ParaCompare/z.npy',z)
-
-    if TopPressure == 'Mean' or TopPressure == 'No' :
-        M_mean = np.nansum(M[:,n_l-1,:,:])/(n_t*n_lat*n_long)
-        z_t = np.mean(z[:,n_l-1,:,:])
-        g_roof = g0*1/(1+z_t/Rp)**2
-        H_mean = R_gp*T_mean/(M_mean*g_roof)
-    if TopPressure == 'Up' :
-        wh_up = np.where(z[:,n_l-1,:,:] == np.amax(z))
-        z_t = np.amax(z)
-        g_roof = g0*1/(1.+z_t/Rp)**2
-        H_mean = R_gp*T[wh_up[0],n_l-1,wh_up[1],wh_up[2]]/(M[wh_up[0],n_l-1,wh_up[1],wh_up[2]]*g_roof)
-    if TopPressure == 'Down' :
-        wh_dn = np.where(z[:,n_l-1,:,:] == np.amin(z[:,n_l-1,:,:]))
-        z_t = z[wh_dn[0],n_l-1,wh_dn[1],wh_dn[2]]
-        g_roof = g0*1/(1.+z_t/Rp)**2
-        H_mean = R_gp*T[wh_dn[0],n_l-1,wh_dn[1],wh_dn[2]]/(M[wh_dn[0],n_l-1,wh_dn[1],wh_dn[2]]*g_roof)
-
-    print("The thickness of the simulation is %i m"%(np.amax(z)))
-    print("The thickness of the atmosphere is %i m"%((dim-2)*delta_z))
-    print("The scale height at the roof is %f m"%(H_mean))
-
-    if TopPressure != 'No' :
-        alp_h = H_mean*np.log(P_mean/P_h)
-        z_h = z_t + alp_h/(1.+alp_h/(Rp+z_t))
-        dim = int(z_h/delta_z)+2
-        z_h = (dim-2)*delta_z
-        h = z_h
-
-    print("The final thickness of the atmosphere is %i m"%((dim-2)*delta_z))
-
+    n_t,n_l,n_lat,n_long = np.shape(P)
     data_convert = np.zeros((number,n_t,dim,n_lat,n_long),dtype=np.float64)
+    
+    if Clouds == True : 
+        sh_c = np.shape(gen)
+        c_number = sh_c[0]
+    else :
+        c_number = 0
+
+    if Tracer == True :
+        m_number = 1
+    else :
+        m_number = 0
+
+    sh_comp = np.shape(compo)
+    size = sh_comp[0]
 
     Mass = np.zeros((n_t,n_lat,n_long),dtype=np.float64)
     Reformate = False
-
-    bar = ProgressBar(dim,'Computation of the atmospheric dataset')
+    
+    if rank == 0 : 
+        bar = ProgressBar(dim,'State of the conversion :')
 
     for i_z in range(dim) :
 
@@ -510,40 +511,60 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
 
                     # Si le point en question n'est pas au dessus du toit du modele a cette lattitude et a cette longitude
 
-                    if wh.size != 0 and i_z != 0 :
+                    if wh.size != 0 and i_z != 0  :
+
+                        # Si z_ref n'est pas un point d'altitude de la maille de depart
 
                         res, c_grid, i_grid = interpolation(z_ref,z[t,:,lat,long],np.log(P[t,:,lat,long]))
 
                         data_convert[0,t,i_z,lat,long] = np.exp(res)
                         data_convert[1,t,i_z,lat,long] = c_grid[1]*T[t,i_grid[0],lat,long] + c_grid[0]*T[t,i_grid[1],lat,long]
+                        if composition == 'composition' :
+                            if Tracer == True :
+                                data_convert[2,t,i_z,lat,long] = c_grid[1]*Q[t,i_grid[0],lat,long] + c_grid[0]*Q[t,i_grid[1],lat,long]
 
-                        if Tracer == True :
-                            data_convert[2,t,i_z,lat,long] = c_grid[1]*Q[t,i_grid[0],lat,long] + c_grid[0]*Q[t,i_grid[1],lat,long]
+                                if Clouds == True :
+                                    for c_num in range(c_number) :
+                                        data_convert[3+c_num,t,i_z,lat,long] = c_grid[1]*gen[c_num,t,i_grid[0],lat,long] + c_grid[0]*gen[c_num,t,i_grid[1],lat,long]
 
-                            if Clouds == True :
-                                for c_num in range(c_number) :
-                                    data_convert[3+c_num,t,i_z,lat,long] = c_grid[1]*gen[c_num,t,i_grid[0],lat,long] + c_grid[0]*gen[c_num,t,i_grid[1],lat,long]
-
-                            if LogInterp == True :
-                                com, c_gr, i_gr = interp3olation_uni_multi(np.log10(data_convert[0,t,i_z,lat,long]),data_convert[1,t,i_z,lat,long],\
-                                                                            data_convert[2,t,i_z,lat,long],np.log10(P_comp),T_comp,Q_comp,x_species)
+                                if LogInterp == True :
+                                    com, c_gr, i_gr = interp3olation_uni_multi(np.log10(data_convert[0,t,i_z,lat,long]),data_convert[1,t,i_z,lat,long],\
+                                                                                data_convert[2,t,i_z,lat,long],np.log10(P_comp),T_comp,Q_comp,x_species)
+                                else :
+                                    com, c_gr, i_gr = interp3olation_uni_multi(data_convert[0,t,i_z,lat,long],data_convert[1,t,i_z,lat,long],\
+                                                                                data_convert[2,t,i_z,lat,long],P_comp,T_comp,Q_comp,x_species)
                             else :
-                                com, c_gr, i_gr = interp3olation_uni_multi(data_convert[0,t,i_z,lat,long],data_convert[1,t,i_z,lat,long],\
-                                                                            data_convert[2,t,i_z,lat,long],P_comp,T_comp,Q_comp,x_species)
-                        else :
-                            if Clouds == True :
-                                for c_num in range(c_number) :
-                                    data_convert[2+c_num,t,i_z,lat,long] = c_grid[1]*gen[c_num,t,i_grid[0],lat,long] + c_grid[0]*gen[c_num,t,i_grid[1],lat,long]
+                                if Clouds == True :
+                                    for c_num in range(c_number) :
+                                        data_convert[2+c_num,t,i_z,lat,long] = c_grid[1]*gen[c_num,t,i_grid[0],lat,long] + c_grid[0]*gen[c_num,t,i_grid[1],lat,long]
 
-                            if LogInterp == True :
-                                com, c_gr, i_gr = interp2olation_uni_multi(np.log10(data_convert[0,t,i_z,lat,long]),data_convert[1,t,i_z,lat,long],\
-                                                                            np.log10(P_comp),T_comp,x_species)
-                            else :
-                                com, c_gr, i_gr = interp2olation_uni_multi(data_convert[0,t,i_z,lat,long],data_convert[1,t,i_z,lat,long],\
-                                                                            P_comp,T_comp,x_species)
+                                if LogInterp == True :
+                                    com, c_gr, i_gr = interp2olation_uni_multi(np.log10(data_convert[0,t,i_z,lat,long]),data_convert[1,t,i_z,lat,long],\
+                                                                                np.log10(P_comp),T_comp,x_species)
+                                else :
+                                    com, c_gr, i_gr = interp2olation_uni_multi(data_convert[0,t,i_z,lat,long],data_convert[1,t,i_z,lat,long],\
+                                                                                P_comp,T_comp,x_species)
+                                # Si le point considere n'est pas le premier, et donc, le point de surface, on calcule la masse d'atmosphere
+                                # a pendre en compte ensuite dans l'extrapolation
+                        if composition == 'tracer_othet' :
+                            if Tracer == True :
+                                data_convert[2,t,i_z,lat,long] = c_grid[1]*Q[t,i_grid[0],lat,long] + c_grid[0]*Q[t,i_grid[1],lat,long]
 
-                            # Si le point considere n'est pas le premier, et donc, le point de surface, on calcule la masse d'atmosphere
-                            # a pendre en compte ensuite dans l'extrapolation
+                                if Clouds == True :
+                                    for c_num in range(c_number) :
+                                        data_convert[3+c_num,t,i_z,lat,long] = c_grid[1]*gen[c_num,t,i_grid[0],lat,long] + c_grid[0]*gen[c_num,t,i_grid[1],lat,long]
+
+                                ind, = np.where(species[2:] == m_species)
+                                com = np.zeros(species.size,dtype=np.float64)
+                                if NoH2 == False :
+                                    M_f = 1./(ratio + 1.)*M_species[0] + ratio/(ratio+1.)*M_species[1]
+                                    ratio_mf = M_f/M_species[ind+2]*data_convert[2,t,i_z,lat,long]/(1.-data_convert[2,t,i_z,lat,long])
+                                    com[ind+2] = ratio_mf/(1.+ratio_mf)
+                                else :
+                                    indf, = np.where(species[2:] != m_species)
+                                    ratio_mf = M_species[indf+2]/M_species[ind+2]*data_convert[2,t,i_z,lat,long]/(1.-data_convert[2,t,i_z,lat,long])
+                                    com[ind+2] = ratio_mf/(1.+ratio_mf)
+                                    com[indf+2] = 1. - com[ind+2]
 
                         if NoH2 == False :
                             data_convert[2+m_number+c_number,t,i_z,lat,long] = (1. - np.nansum(com[2:]))/(1. + ratio)
@@ -555,8 +576,7 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
                             data_convert[2+m_number+c_number+2:number-1,t,i_z,lat,long] = com[2:]/(np.nansum(com[2:]))
                         data_convert[2+m_number+c_number+size,t,i_z,lat,long] = np.nansum(data_convert[2+m_number+c_number:2+m_number+c_number+size,t,i_z,lat,long]*M_species)
 
-                        if MassAtm == True :
-                            Mass[t,lat,long] += data_convert[0,t,i_z,lat,long]/(R_gp*data_convert[1,t,i_z,lat,long])*\
+                        Mass[t,lat,long] += data_convert[0,t,i_z,lat,long]/(R_gp*data_convert[1,t,i_z,lat,long])*\
                                     data_convert[number-1,t,i_z,lat,long]*4/3.*np.pi*((Rp + i_z*delta_z)**3 - (Rp + (i_z - 1)*delta_z)**3)
 
                     # Si le point d'altitude est plus eleve que le toit du modele a cette lattitude et cette longitude
@@ -572,7 +592,7 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
                             for c_num in range(c_number) :
                                 data_convert[2+m_number+c_num,t,i_z,lat,long] = gen[c_num,t,0,lat,long]
                         data_convert[2+m_number+c_number:number-1,t,i_z,lat,long] = compo[:,t,0,lat,long]
-                        data_convert[2+m_number+c_number+size,t,i_z,lat,long] = M[t,0,lat,long]
+                        data_convert[2+m_number+c_number+size,t,i_z,lat,long] = np.nansum(data_convert[2+m_number+c_number:2+m_number+c_number+size,t,i_z,lat,long]*M_species)
 
                     if wh.size == 0 :
 
@@ -586,14 +606,14 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
 
                         else :
 
-                            if Upper == "Isotherme" :
+                            if Upper[0] == "Isotherme" :
                                 data_convert[1,t,i_z,lat,long] = T[t,n_l-1,lat,long]
-                            if Upper ==  "Isotherme_moyen" :
-                                data_convert[1,t,i_z,lat,long] = T_mean
-                            if Upper == "Maximum_isotherme" :
-                                data_convert[1,t,i_z,lat,long] = T_max
-                            if Upper == "Minimum_isotherme" :
-                                data_convert[1,t,i_z,lat,long] = T_min
+                            if Upper[0] ==  "Isotherme_moyen" :
+                                data_convert[1,t,i_z,lat,long] = Upper[1]
+                            if Upper[0] == "Maximum_isotherme" :
+                                data_convert[1,t,i_z,lat,long] = Upper[2]
+                            if Upper[0] == "Minimum_isotherme" :
+                                data_convert[1,t,i_z,lat,long] = Upper[3]
 
                         # On estime la pression au dela du toit a partir de la temperature choisie
 
@@ -616,646 +636,55 @@ def Boxes(data,delta_z,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x
 
                         if MassAtm == True :
                             Mass[t,lat,long] += data_convert[0,t,i_z-1,lat,long]/(R_gp*data_convert[1,t,i_z-1,lat,long])*\
-                                data_convert[number-1,t,i_z-1,lat,long]*4/3.*np.pi*((Rp + i_z*delta_z)**3 - (Rp + (i_z - 1)*delta_z)**3)
+                            data_convert[number-1,t,i_z-1,lat,long]*4/3.*np.pi*((Rp + i_z*delta_z)**3 - (Rp + (i_z - 1)*delta_z)**3)
 
                         P_ref = data_convert[0,t,i_z,lat,long]
 
-                        if Tracer == True :
-                            data_convert[2,t,i_z,lat,long] = Q[t,n_l-1,lat,long]
-                            Q_ref = data_convert[2,t,i_z,lat,long]
+                        if composition == 'composition' :
+                            if Tracer == True :
+                                data_convert[2,t,i_z,lat,long] = Q[t,n_l-1,lat,long]
+                                Q_ref = data_convert[2,t,i_z,lat,long]
 
-                            if LogInterp == True :
-                                compos, c_grid, i_grid = interp3olation_uni_multi(np.log10(P_ref),T_ref,Q_ref,np.log10(P_comp),T_comp,Q_comp,x_species)
+                                if LogInterp == True :
+                                    compos, c_grid, i_grid = interp3olation_uni_multi(np.log10(P_ref),T_ref,Q_ref,np.log10(P_comp),T_comp,Q_comp,x_species)
+                                else :
+                                    compos, c_grid, i_grid = interp3olation_uni_multi(P_ref,T_ref,Q_ref,P_comp,T_comp,Q_comp,x_species)
+
+                                if Clouds == True :
+                                    data_convert[3:3+c_number,t,i_z,lat,long] = gen[:,t,n_l-1,lat,long]
+
                             else :
-                                compos, c_grid, i_grid = interp3olation_uni_multi(P_ref,T_ref,Q_ref,P_comp,T_comp,Q_comp,x_species)
+                                if LogInterp == True :
+                                    compos, c_grid, i_grid = interp2olation_uni_multi(np.log10(P_ref),T_ref,np.log10(P_comp),T_comp,x_species)
+                                else :
+                                    compos, c_grid, i_grid = interp2olation_uni_multi(P_ref,T_ref,P_comp,T_comp,x_species)
 
-                            if Clouds == True :
-                                data_convert[3:3+c_number,t,i_z,lat,long] = gen[:,t,n_l-1,lat,long]
+                                if Clouds == True :
+                                    data_convert[2:2+c_number,t,i_z,lat,long] = gen[:,t,n_l-1,lat,long]
 
-                        else :
-                            if LogInterp == True :
-                                compos, c_grid, i_grid = interp2olation_uni_multi(np.log10(P_ref),T_ref,np.log10(P_comp),T_comp,x_species)
+                            if NoH2 == False :
+                                compoH2 = (1 - np.nansum(compos[2:]))/(ratio + 1.)
+                                compoHe = compoH2*ratio
+                                data_convert[2+m_number+c_number,t,i_z,lat,long] = compoH2
+                                data_convert[3+m_number+c_number,t,i_z,lat,long] = compoHe
+                                data_convert[4+m_number+c_number:number-1,t,i_z,lat,long] = compos[2:]
                             else :
-                                compos, c_grid, i_grid = interp2olation_uni_multi(P_ref,T_ref,P_comp,T_comp,x_species)
-
-                            if Clouds == True :
-                                data_convert[2:2+c_number,t,i_z,lat,long] = gen[:,t,n_l-1,lat,long]
-
-                        if NoH2 == False :
-                            compoH2 = (1 - np.nansum(compos[2:]))/(ratio + 1.)
-                            compoHe = compoH2*ratio
-                            data_convert[2+m_number+c_number,t,i_z,lat,long] = compoH2
-                            data_convert[3+m_number+c_number,t,i_z,lat,long] = compoHe
-                            data_convert[4+m_number+c_number:number-1,t,i_z,lat,long] = compos[2:]
-                        else :
-                            data_convert[2+m_number+c_number,t,i_z,lat,long] = 0.
-                            data_convert[3+m_number+c_number,t,i_z,lat,long] = 0.
-                            data_convert[4+m_number+c_number:number-1,t,i_z,lat,long] = compos[2:]/(np.nansum(compos[2:]))
-                        data_convert[number-1,t,i_z,lat,long] = np.nansum(data_convert[2+m_number+c_number:number-1,t,i_z,lat,long]*\
+                                data_convert[2+m_number+c_number,t,i_z,lat,long] = 0.
+                                data_convert[3+m_number+c_number,t,i_z,lat,long] = 0.
+                                data_convert[4+m_number+c_number:number-1,t,i_z,lat,long] = compos[2:]/(np.nansum(compos[2:]))
+                            data_convert[number-1,t,i_z,lat,long] = np.nansum(data_convert[2+m_number+c_number:number-1,t,i_z,lat,long]*\
                                         M_species)
 
-        bar.animate(i_z + 1)
+                        if composition == 'tracer_other' :
+                            data_convert[2:,t,i_z,lat,long] = data_convert[2:,t,i_z-1,lat,long]
 
-    print 'Shape of the dataset :',np.shape(data_convert)
+        if rank == 0 :
+            bar.animate(i_z+1)
 
-    list = np.array([])
+    if rank == 0 :
+        print 'Shape of the dataset :',np.shape(data_convert)
 
-    for i in range(number) :
-
-        wh = np.where(data_convert[i] < 0)
-
-        if len(wh[0]) != 0 :
-
-            list = np.append(list,i)
-
-    if list.size != 0 :
-
-        mess = 'Dataset error, negative value encontered for axis : '
-
-        for i in range(list.size) :
-
-            mess += '%i, '%(list[i])
-
-        mess += 'a correction is necessary, or Boxes failed'
-
-        print mess
-
-    if Inverse[0] == 'True' :
-        data_convert = reverse_dim(data_convert,4,np.float64)
-        print 'Data needs to be reverse on longitude.'
-    if Inverse[1] == 'True' :
-        data_convert = reverse_dim(data_convert,3,np.float64)
-        print 'Data needs to be reverse on latitude.'
-
-    return data_convert, h
-
-
-########################################################################################################################
-
-
-def NBoxes(data,n_layers,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species,x_species,M_species,c_species,m_species,ratio,Upper,\
-          TopPressure,Inverse,Surf=True,Tracer=False,Clouds=False,Middle=False,LogInterp=False,TimeSelec=False,MassAtm=False,NoH2=False,TauREx=True) :
-
-    file = Dataset("%s.nc"%(data))
-    variables = file.variables
-    c_number = c_species.size
-    if Tracer == True :
-        m_number = 1
-        m_species = m_species[0]
-    else :
-        m_number = 0
-
-    # Si nous avons l'information sur les parametres de surface
-
-    if data != '' :
-
-        if Surf == True :
-
-            # Si nous avons l'information sur la pression de surface, il nous faut donc rallonger les tableaux de parametres
-            # de 1
-
-            if TimeSelec == False :
-                T_file = variables["temp"][:]
-                n_t,n_l,n_lat,n_long = np.shape(T_file)
-                T_surf = variables["tsurf"][:]
-                P_file = variables["p"][:]
-                P_surf = variables["ps"][:]
-                P = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
-                T = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
-            else :
-                T_prefile = variables["temp"][:]
-                n_t,n_l,n_lat,n_long = np.shape(T_prefile)
-                T_file = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
-                T_surf = np.zeros((1,n_lat,n_long),dtype=np.float64)
-                P_file = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
-                P_surf = np.zeros((1,n_lat,n_long),dtype=np.float64)
-                T_file[0] = variables["temp"][t,:,:,:]
-                T_surf[0] = variables["tsurf"][t,:,:]
-                P_file[0] = variables["p"][t,:,:,:]
-                P_surf[0] = variables["ps"][t,:,:]
-                P = np.zeros((1,n_l+1,n_lat,n_long),dtype=np.float64)
-                T = np.zeros((1,n_l+1,n_lat,n_long),dtype=np.float64)
-
-            P[:,0,:,:] = P_surf
-            P[:,1:n_l+1,:,:] = P_file
-            T[:,0,:,:] = T_surf
-            T[:,1:n_l+1,:,:] = T_file
-
-            if Tracer == True :
-                if TimeSelec == False :
-                    Q_vap = variables["%s_vap"%(m_species)][:]
-                    Q_vap_surf = variables["%s_vap_surf"%(m_species)][:]
-                    Q = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
-
-                else :
-                    Q_vap = np.zeros((1,n_l,n_lat,n_long))
-                    Q_vap_surf = np.zeros((1,n_lat,n_long))
-                    Q_vap[0] = variables["%s_vap"%(m_species)][t,:,:,:]
-                    Q_vap_surf[0] = variables["%s_vap_surf"%(m_species)][t,:,:]
-                    Q = np.zeros((1,n_l+1,n_lat,n_long),dtype=np.float64)
-
-                Q[:,0,:,:] = Q_vap_surf
-                Q[:,1:n_l+1,:,:] = Q_vap
-
-            if Clouds == True :
-                if TimeSelec == False :
-                    gen_cond = np.zeros((c_number,n_t,n_l,n_lat,n_long),dtype=np.float64)
-                    gen_cond_surf = np.zeros((c_number,n_t,n_lat,n_long),dtype=np.float64)
-                    for c_num in range(c_number) :
-                        gen_cond_surf[c_num,:,:,:] = variables["%s_surf"%(c_species[c_num])][:]
-                        gen_cond[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][:]
-                    gen = np.zeros((c_species.size,n_t,n_l+1,n_lat,n_long))
-                else :
-                    gen_cond = np.zeros((c_number,1,n_l,n_lat,n_long),dtype=np.float64)
-                    gen_cond_surf = np.zeros((c_number,1,n_lat,n_long),dtype=np.float64)
-                    for c_num in range(c_number) :
-                        gen_cond_surf[c_num,:,:,:] = variables["%s_surf"%(c_species[c_num])][t,:,:]
-                        gen_cond[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][t,:,:,:]
-                    gen = np.zeros((c_species.size,1,n_l+1,n_lat,n_long),dtype=np.float64)
-
-                gen[:,:,0,:,:] = gen_cond_surf
-                gen[:,:,1:n_l+1,:,:] = gen_cond
-
-            if TimeSelec == True :
-                n_t = 1
-            T_mean = np.nansum(T_file[:,n_l-1,:,:])/np.float(n_t*n_lat*n_long)
-            T_max = np.amax(T_file[:,n_l-1,:,:])
-            T_min = np.amin(T_file[:,n_l-1,:,:])
-            print('Mean temperature : %i K, Maximal temperature : %i K, Minimal temperature : %i K'%(T_mean,T_max,T_min))
-
-            P_mean = np.exp(np.nansum(np.log(P[:,n_l,:,:]))/(n_t*n_lat*n_long))
-            print('Mean roof pressure : %f Pa'%(P_mean))
-
-            n_l = n_l + 1
-            z = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
-
-        # Si nous n'avons pas l'information sur les parametres de surface
-
-        else :
-
-            if TimeSelec == False :
-                T = variables["temp"][:]
-                n_t,n_l,n_lat,n_long = np.shape(T)
-                P = variables["p"][:]
-            else :
-                T_prefile = variables["temp"][:]
-                n_t,n_l,n_lat,n_long = np.shape(T_prefile)
-                T = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
-                P = np.zeros((1,n_l,n_lat,n_long),dtype=np.float64)
-                T[0] = variables["temp"][t,:,:,:]
-                P[0] = variables["p"][t,:,:,:]
-
-            if Tracer == True :
-                if TimeSelec == False :
-                    Q = variables["%s_vap"%(m_species)][:]
-                else :
-                    Q = np.zeros((1,n_l,n_lat,n_long))
-                    Q[0] = variables["%s_vap"%(m_species)][t,:,:,:]
-
-            if Clouds == True :
-                if TimeSelec == False :
-                    gen = np.zeros((c_number,n_t,n_l,n_lat,n_long))
-                    for c_num in range(c_number) :
-                        gen[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][:]
-                else :
-                    gen = np.zeros((c_number,1,n_l,n_lat,n_long))
-                    for c_num in range(c_number) :
-                        gen[c_num,:,:,:,:] = variables["%s"%(c_species[c_num])][t,:,:,:]
-
-            if TimeSelec == True :
-                n_t = 1
-            T_mean = np.nansum(T[:,n_l-1,:,:])/np.float(n_t*n_lat*n_long)
-            T_max = np.amax(T[:,n_l-1,:,:])
-            T_min = np.amin(T[:,n_l-1,:,:])
-            print('Mean temperature : %i K, Maximal temperature : %i K, Minimal temperature of the high atmosphere : %i K'\
-                  %(T_mean,T_max,T_min))
-
-            P_mean = np.exp(np.nansum(np.log(P[:,n_l-1,:,:]))/(n_t*n_lat*n_long))
-            print('Mean roof pressure : %f Pa'%(P_mean))
-
-    else :
-
-        data = pickle.load(open(planet.pressure_profile_data))
-        param = data['params']
-        T_file = data['data'][planet.pressure_profile_key][:,1]
-        n_t,n_l,n_lat,n_long = 1, param[planet.number_layer_key],int(planet.latitude)+1,int(planet.longitude)+1
-        T_surf = param[planet.planet_temperature_key]
-        P_file = np.linspace(np.log10(param[planet.extreme_pressure_key[0]]),np.log10(param[planet.extreme_pressure_key[1]]),param[planet.number_layer_key]+1)
-        P_file = 10**P_file
-        T = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
-        P = np.zeros((n_t,n_l+1,n_lat,n_long),dtype=np.float64)
-
-        T[:,0,:,:] = np.ones((n_t,n_lat,n_long),dtype=np.float64)*T_surf
-        for i_n_t in range(n_t) :
-            for i_n_lat in range(n_lat) :
-                for i_n_long in range(n_long) :
-                    T[i_n_t,1:n_l+1,i_n_lat,i_n_long] = T_file
-                    P[i_n_t,:,i_n_lat,i_n_long] = P_file
-
-        Q = np.array([])
-
-        if Clouds == True :
-            gen_cond = np.zeros((c_number,1,n_l,n_lat,n_long),dtype=np.float64)
-            gen_cond_surf = np.zeros((c_number,1,n_lat,n_long),dtype=np.float64)
-            for c_num in range(c_number) :
-                gen_cond_surf[c_num,:,:,:] = data['data'][planet.extreme_pressure_key][:,c_num]
-                gen_cond[c_num,:,:,:,:] = data['data'][planet.extreme_pressure_key][:,c_num]
-            gen = np.zeros((c_species.size,1,n_l+1,n_lat,n_long),dtype=np.float64)
-
-            gen[:,:,0,:,:] = gen_cond_surf
-            gen[:,:,1:n_l+1,:,:] = gen_cond
-        else :
-            gen = np.array([])
-
-        T_mean = np.mean(T_file[n_l-1])
-        T_max = np.amax(T_file[n_l-1])
-        T_min = np.amin(T_file[n_l-1])
-        print('Mean temperature : %i K, Maximal temperature : %i K, Minimal temperature : %i K'%(T_mean,T_max,T_min))
-
-        P_mean = np.exp(np.nansum(np.log(P[:,n_l,:,:]))/(n_t*n_lat*n_long))
-        print('Mean roof pressure : %f Pa'%(P_mean))
-
-    z = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
-    M = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
-    H = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
-    g = np.zeros((n_t,n_l,n_lat,n_long),dtype=np.float64)
-
-    bar = ProgressBar(n_t*n_l,'Data convertion from pressure levels')
-
-    if Tracer == False :
-
-        size = species.size
-        compo = np.zeros((size,n_t,n_l,n_lat,n_long),dtype=np.float64)
-
-        if LogInterp == True :
-
-            P_comp = np.log10(P_comp)
-
-        for i in range(n_t) :
-            for j in range(n_l) :
-                for k in range(n_lat) :
-
-                    if LogInterp == True :
-                        res, c_grid, i_grid = interp2olation_multi(np.log10(P[i,j,k,:]),T[i,j,k,:],P_comp,T_comp,x_species)
-                    else :
-                        res, c_grid, i_grid = interp2olation_multi(P[i,j,k,:],T[i,j,k,:],P_comp,T_comp,x_species)
-
-                    compo[2:size,i,j,k,:] = res[2:]
-                    for l in range(n_long) :
-                        if NoH2 == False :
-                            compo[0,i,j,k,l] = (1. - np.nansum(compo[2:size,i,j,k,l]))/(ratio + 1.)
-                        else :
-                            compo[0,i,j,k,l] = 0.
-                            compo[2:size,i,j,k,l] = compo[2:size,i,j,k,l]/(np.nansum(compo[2:size,i,j,k,l]))
-                    if NoH2 == False :
-                        compo[1,i,j,k,:] = compo[0,i,j,k,:]*ratio
-                    else :
-                        compo[1,i,j,k,l] = 0.
-                    M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
-                bar.animate(i*n_l+j+1)
-
-    else :
-
-        size = species.size
-        compo = np.zeros((size,n_t,n_l,n_lat,n_long),dtype=np.float64)
-
-        if LogInterp == True :
-
-            P_comp = np.log10(P_comp)
-
-        for i in range(n_t) :
-            for j in range(n_l) :
-                for k in range(n_lat) :
-
-                    if LogInterp == True :
-                        res, c_grid, i_grid = interp3olation_multi(np.log10(P[i,j,k,:]),T[i,j,k,:],Q[i,j,k,:],P_comp,T_comp,Q_comp,x_species)
-                    else :
-                        res, c_grid, i_grid = interp3olation_multi(P[i,j,k,:],T[i,j,k,:],Q[i,j,k,:],P_comp,T_comp,Q_comp,x_species)
-
-                    compo[2:size,i,j,k,:] = res[2:]
-                    for l in range(n_long) :
-                        if NoH2 == False :
-                            compo[0,i,j,k,l] = (1. - np.nansum(compo[2:size,i,j,k,l]))/(ratio + 1.)
-                        else :
-                            compo[0,i,j,k,l] = 0.
-                            compo[2:size,i,j,k,l] = compo[2:size,i,j,k,l]/(np.nansum(compo[2:size,i,j,k,l]))
-                    if NoH2 == False :
-                        compo[1,i,j,k,:] = compo[0,i,j,k,:]*ratio
-                    else :
-                        compo[1,i,j,k,l] = 0.
-                    M[i,j,k,:] = np.dot(M_species,compo[:,i,j,k,:])
-
-                bar.animate(i*n_l+j+1)
-
-    # Une fois la composition dans chaque cellule des donnees GCM calculee, nous avons l'information manquante sur le
-    # poids moleculaire moyen et donc sur la hauteur d'echelle locale. Nous pouvons alors transformer l'echelle de
-    # pression en echelle d'altitude
-
-    for pres in range(n_l) :
-
-        if pres == 0 :
-
-            z[:,0,:,:] = 0.
-            Mass = np.zeros((n_t,n_lat,n_long),dtype=np.float64)
-            g[:,0,:,:] = np.ones((n_t,n_lat,n_long),dtype=np.float64)*g0
-            H[:,0,:,:] = R_gp*T[:,0,:,:]/(M[:,0,:,:]*g[:,0,:,:])
-
-        else :
-
-            # Premiere estmiation de l'altitude avec l'acceleration de la pesanteur de la couche precedente
-
-            if TauREx == False :
-
-                for i_n_t in range(n_t) :
-                    for i_n_lat in range(n_lat) :
-                        for i_n_long in range(n_long) :
-                            g_z = g[i_n_t,pres-1,i_n_lat,i_n_long]
-                            if T[i_n_t,pres,i_n_lat,i_n_long] != T[i_n_t,pres-1,i_n_lat,i_n_long] :
-                                a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*(T[i_n_t,pres,i_n_lat,i_n_long]-T[i_n_t,pres-1,i_n_lat,i_n_long])\
-                                      /((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g_z*\
-                                np.log(T[i_n_t,pres,i_n_lat,i_n_long]/T[i_n_t,pres-1,i_n_lat,i_n_long]))*np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
-                            else :
-                                a_z = -(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)*R_gp*T[i_n_t,pres-1,i_n_lat,i_n_long]/((M[i_n_t,pres,i_n_lat,i_n_long]+M[i_n_t,pres-1,i_n_lat,i_n_long])/2.*g_z)\
-                                *np.log(P[i_n_t,pres,i_n_lat,i_n_long]/P[i_n_t,pres-1,i_n_lat,i_n_long])
-                            dz = a_z*(1+z[i_n_t,pres-1,i_n_lat,i_n_long]/Rp)/(1-a_z/Rp)
-
-                            z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
-
-                if MassAtm == True :
-                    g[:,pres,:,:] = g0 + Mass*G/(Rp + z[:,pres,:,:])**2
-                else :
-                    g[:,pres,:,:] = g0 + np.zeros((n_t,n_lat,n_long),dtype=np.float64)
-                H[:,pres,:,:] = R_gp*T[:,pres,:,:]/(M[:,pres,:,:]*g[:,pres,:,:])
-
-            else :
-                for i_n_t in range(n_t) :
-                    for i_n_lat in range(n_lat) :
-                        for i_n_long in range(n_long) :
-                            dz = H[i_n_t,pres-1,i_n_lat,i_n_long]*np.log(P[i_n_t,pres-1,i_n_lat,i_n_long]/P[i_n_t,pres,i_n_lat,i_n_long])
-                            z[i_n_t,pres,i_n_lat,i_n_long] = z[i_n_t,pres-1,i_n_lat,i_n_long] + dz
-                g[:,pres,:,:] = g0*1/(1+z[:,pres,:,:]/Rp)**2
-                H[:,pres,:,:] = R_gp*T[:,pres,:,:]/(M[:,pres,:,:]*g[:,pres,:,:])
-
-            # On incremente petit a petit la masse atmospherique
-
-            if MassAtm == True :
-                Mass += P[:,pres,:,:]/(R_gp*T[:,pres,:,:])*M[:,pres,:,:]*4/3.*np.pi*((Rp + z[:,pres,:,:])**3 - (Rp + z[:,pres-1,:,:])**3)
-
-    if h < np.amax(z) :
-        h = np.amax(z)
-        hmax = h
-    else :
-        hmax = np.amax(z)
-
-    delta_z = h/np.float(n_layers)
-    dim = n_layers+2
-
-    np.save('/Users/caldas/Desktop/Pytmosph3R/ParaCompare/z.npy',z)
-
-    if TopPressure == 'Mean' or TopPressure == 'No' :
-        M_mean = np.nansum(M[:,n_l-1,:,:])/(n_t*n_lat*n_long)
-        z_t = np.mean(z[:,n_l-1,:,:])
-        g_roof = g0*1/(1+z_t/Rp)**2
-        H_mean = R_gp*T_mean/(M_mean*g_roof)
-    if TopPressure == 'Up' :
-        wh_up = np.where(z[:,n_l-1,:,:] == np.amax(z))
-        z_t = np.amax(z)
-        g_roof = g0*1/(1.+z_t/Rp)**2
-        H_mean = R_gp*T[wh_up[0],n_l-1,wh_up[1],wh_up[2]][0]/(M[wh_up[0],n_l-1,wh_up[1],wh_up[2]][0]*g_roof)
-    if TopPressure == 'Down' :
-        wh_dn = np.where(z[:,n_l-1,:,:] == np.amin(z[:,n_l-1,:,:]))
-        z_t = z[wh_dn[0],n_l-1,wh_dn[1],wh_dn[2]][0]
-        g_roof = g0*1/(1.+z_t/Rp)**2
-        H_mean = R_gp*T[wh_dn[0],n_l-1,wh_dn[1],wh_dn[2]][0]/(M[wh_dn[0],n_l-1,wh_dn[1],wh_dn[2]][0]*g_roof)
-
-    print("The thickness of the simulation is %i m"%(np.amax(z)))
-    print("The thickness of the atmosphere is %i m"%((dim-2)*delta_z))
-    print("The scale height at the roof is %f m"%(H_mean))
-
-    if TopPressure != 'No' :
-        alp_h = H_mean*np.log(P_mean/P_h)
-        z_h = z_t + alp_h/(1.+alp_h/(Rp+z_t))
-        h = z_h
-        delta_z =np.float(np.int(h/np.float(n_layers)))
-        h = delta_z*n_layers
-
-    print("The final thickness of the atmosphere is %i m"%((dim-2)*delta_z))
-
-    data_convert = np.zeros((number,n_t,dim,n_lat,n_long),dtype=np.float64)
-
-    Mass = np.zeros((n_t,n_lat,n_long),dtype=np.float64)
-    Reformate = False
-
-    bar = ProgressBar(dim,'Computation of the atmospheric dataset')
-
-    for i_z in range(dim) :
-
-        # Si la fonction Middle est selectionnee, le code va formater la grille cylindrique de maniere a ce que le
-        # premier point corresponde aux donnees de surface tandis que les autres points correspondront aux donnees
-        # des milieux de couche.
-
-        if Middle == False :
-            z_ref = i_z*delta_z
-        else :
-            if i_z == 0 :
-                z_ref = 0.
-            else :
-                if i_z == dim-1 :
-                    z_ref = (i_z-1)*delta_z
-                else :
-                    z_ref = (i_z-0.5)*delta_z
-
-        if z_ref >= hmax :
-            Reformate = True
-
-        for t in range(n_t) :
-
-            for lat in range(n_lat) :
-
-                for long in range(n_long) :
-
-                    # Nous cherchons l'intervalle dans lequel se situe le point d'altitude considere
-
-                    wh, = np.where(z[t,:,lat,long] >= z_ref)
-
-                    # Si le point en question n'est pas au dessus du toit du modele a cette lattitude et a cette longitude
-
-                    if wh.size != 0 and i_z != 0 :
-
-                        res, c_grid, i_grid = interpolation(z_ref,z[t,:,lat,long],np.log(P[t,:,lat,long]))
-
-                        data_convert[0,t,i_z,lat,long] = np.exp(res)
-                        data_convert[1,t,i_z,lat,long] = c_grid[1]*T[t,i_grid[0],lat,long] + c_grid[0]*T[t,i_grid[1],lat,long]
-
-                        if Tracer == True :
-                            data_convert[2,t,i_z,lat,long] = c_grid[1]*Q[t,i_grid[0],lat,long] + c_grid[0]*Q[t,i_grid[1],lat,long]
-
-                            if Clouds == True :
-                                for c_num in range(c_number) :
-                                    data_convert[3+c_num,t,i_z,lat,long] = c_grid[1]*gen[c_num,t,i_grid[0],lat,long] + c_grid[0]*gen[c_num,t,i_grid[1],lat,long]
-
-                            if LogInterp == True :
-                                com, c_gr, i_gr = interp3olation_uni_multi(np.log10(data_convert[0,t,i_z,lat,long]),data_convert[1,t,i_z,lat,long],\
-                                                                            data_convert[2,t,i_z,lat,long],np.log10(P_comp),T_comp,Q_comp,x_species)
-                            else :
-                                com, c_gr, i_gr = interp3olation_uni_multi(data_convert[0,t,i_z,lat,long],data_convert[1,t,i_z,lat,long],\
-                                                                            data_convert[2,t,i_z,lat,long],P_comp,T_comp,Q_comp,x_species)
-                        else :
-                            if Clouds == True :
-                                for c_num in range(c_number) :
-                                    data_convert[2+c_num,t,i_z,lat,long] = c_grid[1]*gen[c_num,t,i_grid[0],lat,long] + c_grid[0]*gen[c_num,t,i_grid[1],lat,long]
-
-                            if LogInterp == True :
-                                com, c_gr, i_gr = interp2olation_uni_multi(np.log10(data_convert[0,t,i_z,lat,long]),data_convert[1,t,i_z,lat,long],\
-                                                                            np.log10(P_comp),T_comp,x_species)
-                            else :
-                                com, c_gr, i_gr = interp2olation_uni_multi(data_convert[0,t,i_z,lat,long],data_convert[1,t,i_z,lat,long],\
-                                                                            P_comp,T_comp,x_species)
-
-                            # Si le point considere n'est pas le premier, et donc, le point de surface, on calcule la masse d'atmosphere
-                            # a pendre en compte ensuite dans l'extrapolation
-
-                        if NoH2 == False :
-                            data_convert[2+m_number+c_number,t,i_z,lat,long] = (1. - np.nansum(com[2:]))/(1. + ratio)
-                            data_convert[2+m_number+c_number+1,t,i_z,lat,long] = data_convert[2+m_number+c_number,t,i_z,lat,long]*ratio
-                            data_convert[2+m_number+c_number+2:number-1,t,i_z,lat,long] = com[2:]
-                        else :
-                            data_convert[2+m_number+c_number,t,i_z,lat,long] = 0.
-                            data_convert[2+m_number+c_number+1,t,i_z,lat,long] = 0.
-                            data_convert[2+m_number+c_number+2:number-1,t,i_z,lat,long] = com[2:]/(np.nansum(com[2:]))
-                        data_convert[2+m_number+c_number+size,t,i_z,lat,long] = np.nansum(data_convert[2+m_number+c_number:2+m_number+c_number+size,t,i_z,lat,long]*M_species)
-
-                        if MassAtm == True :
-                            Mass[t,lat,long] += data_convert[0,t,i_z,lat,long]/(R_gp*data_convert[1,t,i_z,lat,long])*\
-                                    data_convert[number-1,t,i_z,lat,long]*4/3.*np.pi*((Rp + i_z*delta_z)**3 - (Rp + (i_z - 1)*delta_z)**3)
-
-                    # Si le point d'altitude est plus eleve que le toit du modele a cette lattitude et cette longitude
-                    # il nous faut extrapoler
-
-                    if i_z == 0 :
-
-                        data_convert[0,t,i_z,lat,long] = P[t,0,lat,long]
-                        data_convert[1,t,i_z,lat,long] = T[t,0,lat,long]
-                        if Tracer == True :
-                            data_convert[2,t,i_z,lat,long] = Q[t,0,lat,long]
-                        if Clouds == True :
-                            for c_num in range(c_number) :
-                                data_convert[2+m_number+c_num,t,i_z,lat,long] = gen[c_num,t,0,lat,long]
-                        data_convert[2+m_number+c_number:number-1,t,i_z,lat,long] = compo[:,t,0,lat,long]
-                        data_convert[2+m_number+c_number+size,t,i_z,lat,long] = M[t,0,lat,long]
-
-
-                    if wh.size == 0 :
-
-                        if Reformate == False :
-
-                            data_convert[1,t,i_z,lat,long] = T[t,n_l-1,lat,long]
-
-                        else :
-
-                            if Upper == "Isotherme" :
-                                data_convert[1,t,i_z,lat,long] = T[t,n_l-1,lat,long]
-                            if Upper ==  "Isotherme_moyen" :
-                                data_convert[1,t,i_z,lat,long] = T_mean
-                            if Upper == "Maximum_isotherme" :
-                                data_convert[1,t,i_z,lat,long] = T_max
-                            if Upper == "Minimum_isotherme" :
-                                data_convert[1,t,i_z,lat,long] = T_min
-
-                        # On estime la pression au dela du toit a partir de la temperature choisie
-
-                        if MassAtm == True :
-                            g = g0 + Mass[t,lat,long]*G/(Rp + i_z*delta_z)**2
-                        else :
-                            g = g0
-
-                        if i_z != dim-1 :
-                            data_convert[0,t,i_z,lat,long] = data_convert[0,t,i_z-1,lat,long]*np.exp(-data_convert[number-1,t,i_z-1,lat,long]*g*\
-                                delta_z/(R_gp*data_convert[1,t,i_z,lat,long])*1./((1+z_ref/Rp)*(1+(z_ref-delta_z)/Rp)))
-                        else :
-                            data_convert[0,t,i_z,lat,long] = data_convert[0,t,i_z-1,lat,long]*np.exp(-data_convert[number-1,t,i_z-1,lat,long]*g*\
-                                delta_z/(2.*R_gp*data_convert[1,t,i_z,lat,long])*1./((1+z_ref/Rp)*(1+(z_ref-delta_z/2.)/Rp)))
-
-                        T_ref = data_convert[1,t,i_z,lat,long]
-
-                        # On incremente toujours la masse atmospherique pour la latitude et la longitude donnee, les
-                        # ce point est a modifier
-
-                        if MassAtm == True :
-                            Mass[t,lat,long] += data_convert[0,t,i_z-1,lat,long]/(R_gp*data_convert[1,t,i_z-1,lat,long])*\
-                                data_convert[number-1,t,i_z-1,lat,long]*4/3.*np.pi*((Rp + i_z*delta_z)**3 - (Rp + (i_z - 1)*delta_z)**3)
-
-                        P_ref = data_convert[0,t,i_z,lat,long]
-
-                        if Tracer == True :
-                            data_convert[2,t,i_z,lat,long] = Q[t,n_l-1,lat,long]
-                            Q_ref = data_convert[2,t,i_z,lat,long]
-
-                            if LogInterp == True :
-                                compos, c_grid, i_grid = interp3olation_uni_multi(np.log10(P_ref),T_ref,Q_ref,np.log10(P_comp),T_comp,Q_comp,x_species)
-                            else :
-                                compos, c_grid, i_grid = interp3olation_uni_multi(P_ref,T_ref,Q_ref,P_comp,T_comp,Q_comp,x_species)
-
-                            if Clouds == True :
-                                data_convert[3:3+c_number,t,i_z,lat,long] = gen[:,t,n_l-1,lat,long]
-
-                        else :
-                            if LogInterp == True :
-                                compos, c_grid, i_grid = interp2olation_uni_multi(np.log10(P_ref),T_ref,np.log10(P_comp),T_comp,x_species)
-                            else :
-                                compos, c_grid, i_grid = interp2olation_uni_multi(P_ref,T_ref,P_comp,T_comp,x_species)
-
-                            if Clouds == True :
-                                data_convert[2:2+c_number,t,i_z,lat,long] = gen[:,t,n_l-1,lat,long]
-
-                        if NoH2 == False :
-                            compoH2 = (1 - np.nansum(compos[2:]))/(ratio + 1.)
-                            compoHe = compoH2*ratio
-                            data_convert[2+m_number+c_number,t,i_z,lat,long] = compoH2
-                            data_convert[3+m_number+c_number,t,i_z,lat,long] = compoHe
-                            data_convert[4+m_number+c_number:number-1,t,i_z,lat,long] = compos[2:]
-                        else :
-                            data_convert[2+m_number+c_number,t,i_z,lat,long] = 0.
-                            data_convert[3+m_number+c_number,t,i_z,lat,long] = 0.
-                            data_convert[4+m_number+c_number:number-1,t,i_z,lat,long] = compos[2:]/(np.nansum(compos[2:]))
-                        data_convert[number-1,t,i_z,lat,long] = np.nansum(data_convert[2+m_number+c_number:number-1,t,i_z,lat,long]*\
-                                        M_species)
-
-        bar.animate(i_z + 1)
-
-    print 'Shape of the dataset :',np.shape(data_convert)
-
-    list = np.array([])
-
-    for i in range(number) :
-
-        wh = np.where(data_convert[i] < 0)
-
-        if len(wh[0]) != 0 :
-
-            list = np.append(list,i)
-
-    if list.size != 0 :
-
-        mess = 'Dataset error, negative value encontered for axis : '
-
-        for i in range(list.size) :
-
-            mess += '%i, '%(list[i])
-
-        mess += 'a correction is necessary, or Boxes failed'
-
-        print mess
-
-    if Inverse[0] == 'True' :
-        data_convert = reverse_dim(data_convert,4,np.float64)
-        print 'Data needs to be reverse on longitude.'
-    if Inverse[1] == 'True' :
-        data_convert = reverse_dim(data_convert,3,np.float64)
-        print 'Data needs to be reverse on latitude.'
-
-    return data_convert, h
-
+    return data_convert
 
 
 ########################################################################################################################
@@ -1277,15 +706,7 @@ def NBoxes(data,n_layers,Rp,h,P_h,t,g0,M_atm,number,T_comp,P_comp,Q_comp,species
 
 
 def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,theta_number,x_step,z_level,phi_rot,\
-                                   phi_obli,reso_long,reso_lat,long_lat,Obliquity=False,Middle=False,Layers=False) :
-
-    # On definit un r maximal qui est la somme du rayon planetaire et du toit de l'atmosphere, on en deduit une valeur
-    # entiere et qui est un multiple du pas en r
-
-    if h/np.float(r_step)%r_step != 0 :
-        r_reso = int(h/r_step) + 1
-    else :
-        r_reso = int(h/r_step) + 1 + 1
+                                   phi_obli,reso_long,reso_lat,long_lat,rank,number_rank,Obliquity=False,Middle=False) :
 
     # On calcule la distance maximale que peut parcourir un rayon lumineux rasant comme un entier et un multiple du pas
     # en x
@@ -1298,32 +719,50 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
         x_reso = 2*int(L_max/(2.*x_step)) + 1 + 1*2 + 2
     else :
         x_reso = 2*int(L_max/(2.*x_step)) + 1 + 1*2
+    
+    # Pour optimiser le calcul parallele, nous ne repartissons pas regulierement les couches a traiter par chaque coeur
+    # les premieres etant plus longues a etre calculees
+    
+    n_level_rank = np.array([],dtype=np.int)
+    n = rank
+    while n <= z_level.size - 1 :
+        n_level_rank = np.append(n_level_rank,n)
+        n += number_rank
 
     # p pour la latitude, q pour la longitude, z pour l'altitude
+    # Le coeur qui s'occupera de la toute derniere couche aura 5 points fictifs supplementaires charges de deliminter 
+    # l'echelle en altiude des tableaux. Le 5 est arbitraire
+ 
+    p_grid = np.ones((int(n_level_rank.size) ,theta_number , x_reso),dtype='int')*(-1)
+    q_grid = np.ones((int(n_level_rank.size) ,theta_number , x_reso),dtype='int')*(-1)
+    z_grid = np.ones((int(n_level_rank.size) ,theta_number , x_reso),dtype='int')*(-1)
 
-    p_grid = np.ones((r_reso ,theta_number , x_reso),dtype='int')*(-1)
-    q_grid = np.ones((r_reso ,theta_number , x_reso),dtype='int')*(-1)
-    z_grid = np.ones((r_reso ,theta_number , x_reso),dtype='int')*(-1)
+    if Obliquity == False :
+        theta_all = int(theta_number/2.)+1
+    else :
+        theta_all = theta_number
 
-    bar = ProgressBar(r_reso,'Transposition on cylindric stitch')
+    if rank == 0 :
+        if Obliquity == True :
+            bar = ProgressBar(np.int(n_level_rank.size*theta_all),'Transposition on cylindric stitch (with obliquity)')
+        else :
+            bar = ProgressBar(np.int(n_level_rank.size*theta_all),'Transposition on cylindric stitch')
 
-    for r_range in range(r_reso) :
+    for n_level in range(n_level_rank.size) :
+
+        r_level = n_level_rank[n_level]*r_step
 
         # Si les points de la maille spherique correspondent aux proprietes en milieu de couche, alors il faut tenir
         # compte de la demi-epaisseur de couche dans les calculs de correspondance
 
-        r_layer = r_range*r_step
         if Middle == True :
-            r = Rp + r_layer + r_step/2.
+            r = Rp + r_level + r_step/2.
         else :
-            r = Rp + r_layer
+            r = Rp + r_level
 
         # r_range est l'indice dans la maille cylindrique sur r
 
-        if Obliquity == False :
-            theta_all = int(theta_number/2.)+1
-        else :
-            theta_all = theta_number
+        r_range = n_level
 
         for theta_range in range(theta_all) :
             theta = theta_range*theta_step
@@ -1422,9 +861,11 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 
                         #print x_range, x_pos, begin, q, alpha_o_ref, alpha_o_ref_0
 
-        bar.animate(r_range+1)
+            if rank == 0 :
+                bar.animate(r_range*theta_all+theta_range+1)
 
-    return p_grid,q_grid,z_grid
+    return p_grid,q_grid,z_grid,n_level_rank
+
 
 ########################################################################################################################
 ########################################################################################################################
@@ -1441,9 +882,10 @@ def cylindric_assymatrix_parameter(Rp,h,alpha_step,delta_step,r_step,theta_step,
 ########################################################################################################################
 
 
-def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h,t,reso_long,reso_lat,Middle=False,\
+def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h,t,reso_long,reso_lat,n_lay_rank,Middle=False,\
                       Integral=True,Discret=True,Gravity=False,Ord=False) :
 
+    rank = n_lay_rank[0]
     r_size,theta_size,x_size = np.shape(p_grid)
     number,t_size,z_size,lat_size,long_size = np.shape(data)
     # Sur le parcours d'un rayon lumineux, dx indique les distances parcourue dans chaque cellule de la maille spherique
@@ -1457,11 +899,12 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
     len_ref = 0
 
-    bar = ProgressBar(r_size,'Correspondance for the optical path progression')
+    if rank == 0 : 
+        bar = ProgressBar(r_size*theta_size,'Correspondance for the optical path progression')
 
     for i in range(r_size) :
 
-        r = (i+0.5)*r_step
+        r = (n_lay_rank[i]+0.5)*r_step
 
         for j in range(theta_size) :
 
@@ -2219,15 +1662,15 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                             if dist < Lmax :
                                 # Comme z(k) < z(k-1), on resoud pythagore avec la distance au centre de l'exoplanete egale a
-                                # Rp + z(k)*r_step et r = Rp + (i+0.5)*r_step puisque les rayons sont tires au milieu des couches
+                                # Rp + z(k)*r_step et r = Rp + (n_lay_rank[i] +0.5)*r_step puisque les rayons sont tires au milieu des couches
 
                                 if z_grid[i,j,k] != z_grid[i,j,k-1] :
 
                                     if q_grid[i,j,k] != q_grid[i,j,k-1] and p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                        x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - i - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (i+0.5)**2))
-                                        x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
-                                        x_pre_3 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                        x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (n_lay_rank[i] +0.5)**2))
+                                        x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
+                                        x_pre_3 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                         x_ref = np.array([x_pre_1,x_pre_2,x_pre_3])
                                         ind = np.zeros((3,3),dtype='int')
@@ -2258,8 +1701,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                         if q_grid[i,j,k] != q_grid[i,j,k-1] :
 
-                                            x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - i - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (i+0.5)**2))
-                                            x_pre_2 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                            x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (n_lay_rank[i] +0.5)**2))
+                                            x_pre_2 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                             x_ref = np.array([x_pre_1,x_pre_2])
                                             ind = np.zeros((2,2),dtype='int')
@@ -2282,8 +1725,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             if p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                                x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - i - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (i+0.5)**2))
-                                                x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
+                                                x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (n_lay_rank[i] +0.5)**2))
+                                                x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
 
                                                 x_ref = np.array([x_pre_1,x_pre_2])
                                                 ind = np.zeros((2,2),dtype='int')
@@ -2304,7 +1747,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             else :
 
-                                                x_pre = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - i - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (i+0.5)**2))
+                                                x_pre = np.sqrt(2*Rp*r_step*(z_grid[i,j,k] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k]**2 - (n_lay_rank[i] +0.5)**2))
 
                                                 dx_init_opt[i,j,y] = L - x_pre
                                                 L -= dx_init_opt[i,j,y]
@@ -2314,8 +1757,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                     if q_grid[i,j,k] != q_grid[i,j,k-1] and p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                        x_pre_1 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
-                                        x_pre_2 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                        x_pre_1 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
+                                        x_pre_2 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                         x_ref = np.array([x_pre_1,x_pre_2])
                                         ind = np.zeros((2,2),dtype='int')
@@ -2338,7 +1781,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                         if q_grid[i,j,k] != q_grid[i,j,k-1] :
 
-                                            x_pre = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                            x_pre = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                             dx_init_opt[i,j,y] = L - x_pre
                                             L -= dx_init_opt[i,j,y]
@@ -2348,7 +1791,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             if p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                                x_pre = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
+                                                x_pre = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
 
                                                 dx_init_opt[i,j,y] = L - x_pre
                                                 L -= dx_init_opt[i,j,y]
@@ -2420,9 +1863,9 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             if q_grid[i,j,k] != q_grid[i,j,k-1] and p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                                x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - i - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (i+0.5)**2))
-                                                x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
-                                                x_pre_3 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                                x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (n_lay_rank[i] +0.5)**2))
+                                                x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
+                                                x_pre_3 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                                 x_ref = np.array([x_pre_1,x_pre_2,x_pre_3])
                                                 ind = np.zeros((3,3),dtype='int')
@@ -2451,8 +1894,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                                 if q_grid[i,j,k] != q_grid[i,j,k-1] :
 
-                                                    x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - i - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (i+0.5)**2))
-                                                    x_pre_2 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                                    x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (n_lay_rank[i] +0.5)**2))
+                                                    x_pre_2 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                                     x_ref = np.array([x_pre_1,x_pre_2])
                                                     ind = np.zeros((2,2),dtype='int')
@@ -2472,8 +1915,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                                 else :
 
-                                                    x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - i - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (i+0.5)**2))
-                                                    x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
+                                                    x_pre_1 = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (n_lay_rank[i] +0.5)**2))
+                                                    x_pre_2 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
 
                                                     x_ref = np.array([x_pre_1,x_pre_2])
                                                     ind = np.zeros((2,2),dtype='int')
@@ -2493,7 +1936,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                         else :
 
-                                            x_pre = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - i - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (i+0.5)**2))
+                                            x_pre = np.sqrt(2*Rp*r_step*(z_grid[i,j,k-1] - n_lay_rank[i] - 0.5) + r_step**2*(z_grid[i,j,k-1]**2 - (n_lay_rank[i] +0.5)**2))
 
                                             dx_init_opt[i,j,y] = x_pre - ex
                                             ex = x_pre
@@ -2505,8 +1948,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                             if q_grid[i,j,k] != q_grid[i,j,k-1] and p_grid[i,j,k] != p_grid[i,j,k-1] :
 
-                                                x_pre_1 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
-                                                x_pre_2 = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                                x_pre_1 = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
+                                                x_pre_2 = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                                 x_ref = np.array([x_pre_1,x_pre_2])
                                                 ind = np.zeros((2,2),dtype='int')
@@ -2528,7 +1971,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                                 if q_grid[i,j,k] != q_grid[i,j,k-1] :
 
-                                                    x_pre = np.abs((Rp+(i+0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
+                                                    x_pre = np.abs((Rp+(n_lay_rank[i] +0.5)*r_step)*np.cos(j*theta_step)/(np.tan(((q_grid[i,j,k]+q_grid[i,j,k-1])/np.float(reso_long)-1)*np.pi)))
 
                                                     dx_init_opt[i,j,y] = x_pre - ex
                                                     ex = x_pre
@@ -2536,7 +1979,7 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                                                 else :
 
-                                                    x_pre = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(i+0.5)*r_step)**2)
+                                                    x_pre = np.sqrt(((np.sin(j*theta_step)/np.sin((p_grid[i,j,k]+p_grid[i,j,k-1]-reso_lat)/2.*np.pi/np.float(reso_lat)))**2 - 1)*(Rp+(n_lay_rank[i] +0.5)*r_step)**2)
 
                                                     dx_init_opt[i,j,y] = x_pre - ex
                                                     ex = x_pre
@@ -2650,7 +2093,8 @@ def dx_correspondance(p_grid,q_grid,z_grid,data,x_step,r_step,theta_step,Rp,g0,h
 
                 len_ref = len
 
-        bar.animate(i+1)
+            if rank == 0 :
+                bar.animate(i*theta_size+j+1)
 
     dx_grid = dx_init[:,:,0:len_ref]
     order_grid = order_init[:,:,:,0:len_ref]
@@ -2728,7 +2172,6 @@ def altitude_line_array2D_cyl_optimized_correspondance (r_line,theta_line,dx_gri
 
 
 def altitude_line_array1D_cyl_optimized_correspondance (r_line,theta_line,dx_grid,alt_grid,order_grid,Rp,h,P_col,T_col,\
-
                                 Q_vap_col,r_step,x_step,lim_alt,Tracer=False) :
 
     zone, = np.where(dx_grid >= 0)
@@ -2766,6 +2209,7 @@ def altitude_line_array1D_cyl_optimized_correspondance (r_line,theta_line,dx_gri
 
         return zone,l,dx_ref,Cn_mol_ref,T_ref,P_ref
 
+
 ########################################################################################################################
 ########################################################################################################################
 
@@ -2783,7 +2227,8 @@ def altitude_line_array1D_cyl_optimized_correspondance (r_line,theta_line,dx_gri
 ########################################################################################################################
 ########################################################################################################################
 
-def atmospheric_matrix_3D(order,data,t,Rp,c_species,Tracer=False,Clouds=False) :
+
+def atmospheric_matrix_3D(order,data,t,Rp,c_species,rank,Tracer=False,Clouds=False,Composition=False) :
 
     sp,reso_t,reso_z,reso_lat,reso_long = np.shape(data)
     T_file = data[1,:,:,:,:]
@@ -2808,19 +2253,23 @@ def atmospheric_matrix_3D(order,data,t,Rp,c_species,Tracer=False,Clouds=False) :
     composit = data[num : sp,:,:,:,:]
 
     shape = np.shape(order)
+
+    del data
+
     T = np.zeros((shape[1],shape[2],shape[3]),dtype=np.float64)
     P = np.zeros((shape[1],shape[2],shape[3]),dtype=np.float64)
     Cn = np.zeros((shape[1],shape[2],shape[3]),dtype=np.float64)
+    compo = np.zeros((sp-num,shape[1],shape[2],shape[3]),dtype=np.float64)
 
     if Tracer == True :
         Xm_Q = np.zeros((shape[1],shape[2],shape[3]),dtype=np.float64)
 
     if Clouds == True :
+
         gen = np.zeros((c_number,shape[1],shape[2],shape[3]),dtype=np.float64)
 
-    compo = np.zeros((sp-num,shape[1],shape[2],shape[3]))
-
-    bar = ProgressBar(shape[1],'Parametric recording')
+    if rank == 0 :
+        bar = ProgressBar(shape[1]*shape[2],'Parametric recording')
 
     for i in range(shape[1]) :
 
@@ -2840,7 +2289,8 @@ def atmospheric_matrix_3D(order,data,t,Rp,c_species,Tracer=False,Clouds=False) :
 
             compo[:,i,j,wh] = composit[:,t,order[0,i,j,wh],order[1,i,j,wh],order[2,i,j,wh]]
 
-        bar.animate(i + 1)
+            if rank == 0 :
+                bar.animate(i*shape[2] + j)
 
     if Tracer == True :
         if Clouds == False :
@@ -2901,7 +2351,7 @@ def atmospheric_matrix_1D(z_file,P_col,T_col,Q_col) :
 ########################################################################################################################
 
 
-def PTprofil1D(Rp,g0,M,P_surf,T_iso,n_species,x_ratio_species,r_step,delta_z,dim,number,Middle,Origin,Gravity) :
+def PTprofil1D(Rp,g0,M,P_surf,T_iso,n_species,x_ratio_species,r_step,delta_z,dim,number,rank,Middle,Origin,Gravity) :
 
     data_convert = np.zeros((number,1,dim,1,1))
 
@@ -2911,7 +2361,8 @@ def PTprofil1D(Rp,g0,M,P_surf,T_iso,n_species,x_ratio_species,r_step,delta_z,dim
     for i in range(n_species.size) :
         data_convert[2+i,:,:,:,:] = x_ratio_species[i]
 
-    bar = ProgressBar(dim,'Computation of the atmospheric dataset')
+    if rank ==0 :
+        bar = ProgressBar(dim,'Computation of the atmospheric dataset')
 
     for i_z in range(1,dim) :
 
@@ -2936,7 +2387,8 @@ def PTprofil1D(Rp,g0,M,P_surf,T_iso,n_species,x_ratio_species,r_step,delta_z,dim
             else :
                 data_convert[0,0,i_z,0,0] = P_surf*np.exp(-data_convert[number-1,0,i_z-1,0,0]*g0/(R_gp*data_convert[1,0,i_z-1,0,0])*z_ref)
 
-        bar.animate(i_z + 1)
+        if rank == 0 :
+            bar.animate(i_z + 1)
 
     list = np.array([])
 
@@ -2949,9 +2401,9 @@ def PTprofil1D(Rp,g0,M,P_surf,T_iso,n_species,x_ratio_species,r_step,delta_z,dim
         mess = 'Dataset error, negative value encontered for axis : '
         for i in range(list.size) :
             mess += '%i, '%(list[i])
-
         mess += 'a correction is necessary, or Boxes failed'
 
-        print mess
+        if rank == 0 :
+            print mess
 
     return data_convert

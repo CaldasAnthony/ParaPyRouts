@@ -1,7 +1,9 @@
 
 from pytransfert import *
+from mpi4py import MPI
 
-
+comm = MPI.COMM_WORLD
+number_rank = comm.size
 
 ########################################################################################################################
 ########################################################################################################################
@@ -20,7 +22,7 @@ from pytransfert import *
     La cle de voute de cette bibliotheque, a savoir convertator, permet la generation de l'ensemble des opacites
     (moleculaire, continuum, diffusion Rayleigh et diffusion de Mie)
 
-    Version : 6.2
+    Version : 5.6
 
     Recentes mise a jour :
 
@@ -31,10 +33,6 @@ from pytransfert import *
     differentes cellules associees aux couples P,T ou P,T,Q
 
     Date de derniere modification : 10.10.2016
-
-    >> Optimisation dans le calcul des opacites liees au continuum (transposition des tableaux)
-
-    Date de derniere modification : 12.05.2017
 
     >> Reecriture du calcul des donnees continuum, elle s'adapte desormais a une plus grande diversite de sources
     continuum (l'eau, le methane, le dioxyde de carbone ...), et utilise les fonctions deja existante pour calculer
@@ -68,47 +66,12 @@ from pytransfert import *
 ########################################################################################################################
 ########################################################################################################################
 
+def convertator_save(P_rmd,T_rmd,rmind,Q_rmd,gen_cond_rmd,composit_rmd,directory,name,reso_long,reso_lat,name_exo,t,\
+                    x_step,phi_rot,phi_obli,domain,dim_bande,dim_gauss,rank,Kcorr=True,Tracer=False,Clouds=False,ByLay=False) :
 
-def convertator (P,T,gen,c_species,Q,compo,ind_active,ind_cross,K,K_cont,Qext,P_sample,T_sample,\
-                 Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,name,t,phi_rot,phi_obli,n_species,domain,ratio,directory,name_exo,reso_long,reso_lat,\
-                 Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,Script=True) :
-
-    if Clouds == True :
-
-        (c_number,a,b,c) = np.shape(gen)
-
-    P_rmd, T_rmd, Q_rmd, gen_cond_rmd, composit_rmd, wher, indices, liste = sort_set_param(P,T,Q,gen,compo,Tracer,Clouds)
-
-    p = np.log10(P_rmd)
-    p_min = int(np.amin(p))-1
-    p_max = int(np.amax(p))+1
-    rmind = np.zeros((2,p_max - p_min+1),dtype='int')
-    rmind[0,0] = 0
-
-    for i in xrange(p_max - p_min) :
-
-        wh, = np.where((p >= p_min + i)*(p <= p_min + (i+1)))
-
-        if wh.size != 0 :
-            rmind[0,i+1] = wh[wh.size-1]
-            rmind[1,i] = p_min + i
-        else :
-            rmind[0,i+1] = 0
-            rmind[1,i] = p_min + i
-
-    rmind[1,i+1] = p_max
-
-    zero, = np.where(P_rmd == 0.)
-
-    del P,T,Q,gen,compo
-
-    K = np.load(K)
-
-    if Kcorr == True :
-        dim_T,dim_P,dim_x,dim_bande,dim_gauss = np.shape(K)
-    else :
-        K = K[ind_cross]
-        dim_T,dim_P,dim_x,dim_bande = np.shape(K)
+    if ByLay == True :
+        domain += '_%i'%(rank)
+        name += '/Temp'
 
     if Kcorr == True :
         np.save("%s%s/P_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
@@ -142,212 +105,317 @@ def convertator (P,T,gen,c_species,Q,compo,ind_active,ind_cross,K,K_cont,Qext,P_
 
     if Kcorr == True :
         np.save("%s%s/compo_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
-            %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),composit_rmd)
+        %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),composit_rmd)
     else :
         np.save("%s%s/compo_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
-            %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),composit_rmd)
+        %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),composit_rmd)
 
+
+########################################################################################################################
+
+
+def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_active,ind_cross,K,K_cont,Qext,P_sample,T_sample,\
+                 Q_sample,bande_sample,bande_cloud,x_step,r_eff,r_cloud,rho_p,name,t,phi_rot,phi_obli,n_species,domain,ratio,directory,name_exo,reso_long,reso_lat,\
+                 rank,rank_ref,rank_max,Tracer=False,Molecular=False,Continuum=False,Clouds=False,Scattering=False,Kcorr=True,Optimal=False,ByLay=False) :
+    
+    if rank_max != comm.size :
+        number_rank = rank_max
+    else:
+        number_rank = comm.size
+    if ByLay == True :
+        domain += '_%i'%(rank)
+        name += '/Temp'
+
+    zero, = np.where(P_rmd == 0.)
+    
     if Molecular == True :
+    
+        K = np.load(K)
+
+        if Kcorr == True :
+            if Tracer == True :
+                t_size,p_size,q_size,dim_bande,dim_gauss = np.shape(K)
+            else :
+                t_size,p_size,dim_bande,dim_gauss = np.shape(K)
+        else :
+            K = K[ind_cross]
+            if Tracer == True :
+                np_size,p_size,t_size,q_size,dim_bande = np.shape(K)
+            else :
+                np_size,p_size,t_size,dim_bande = np.shape(K)
 
         if Kcorr == True :
             if Tracer == False :
-                k_rmd = Ksearcher(T_rmd,P_rmd,dim_gauss,dim_bande,K,P_sample,T_sample,Kcorr,Optimal)
-
-                np.save("%s%s/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_rmd)
+                k_rmd = Ksearcher(T_rmd,P_rmd,dim_gauss,dim_bande,K,P_sample,T_sample,rank,rank_ref,Kcorr,Optimal)
             else :
-                k_rmd = Ksearcher_M(T_rmd,P_rmd,Q_rmd,dim_gauss,dim_bande,K,P_sample,T_sample,Q_sample,Kcorr,Optimal)
+                k_rmd = Ksearcher_M(T_rmd,P_rmd,Q_rmd,dim_gauss,dim_bande,K,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,Optimal)
 
+            if rank_max == comm.size :
+                comm.Barrier()
+
+            if ByLay == False :
+                if rank != 0 :
+                    sh_k = np.array(np.shape(k_rmd),dtype=np.int)
+                    comm.Send([sh_k,MPI.INT],dest=0,tag=0)
+                    comm.Send([k_rmd,MPI.DOUBLE],dest=0,tag=1)
+                if rank == 0 :
+                    k_rmd_tot = k_rmd
+                    print "Reconstruction of molecular absorptions will begin"
+                    bar = ProgressBar(number_rank,"Reconstruction of k-correlated absorptions")
+                    for i_n in range(1,number_rank) :
+                        sh_k = np.zeros(2,dtype=np.int)
+                        comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
+                        k_rmd_n = np.zeros((sh_k),dtype=np.float64)
+                        comm.Recv([k_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
+                        k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd_n))
+                        bar.animate(i_n+1)
+
+                    np.save("%s%s/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                        %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
+                    del k_rmd_tot
+            else :
                 np.save("%s%s/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_rmd)
-
-            print "Ksearcher finished with success"
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_rmd)
 
         else :
             compo_active = composit_rmd[ind_active,:]
-            if Optimal == False :
-                if Tracer == False :
-                    k_rmd = Ssearcher(T_rmd,P_rmd,compo_active,K,P_sample,T_sample,Kcorr,Optimal)
-
-                    np.save("%s%s/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd)
-                else :
-                    k_rmd = Ssearcher_M(T_rmd,P_rmd,Q_rmd,compo_active,K,P_sample,T_sample,Kcorr,Optimal)
-
-                    np.save("%s%s/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd)
+            if Tracer == False :
+                k_rmd = Ssearcher(T_rmd,P_rmd,compo_active,K,P_sample,T_sample,rank,rank_ref,Kcorr,Optimal)
             else :
-                if Tracer == False :
-                    k_rmd = Ssearcher(T_rmd,P_rmd,compo_active,K,P_sample,T_sample,Kcorr,Optimal)
+                k_rmd = Ssearcher_M(T_rmd,P_rmd,Q_rmd,compo_active,K,P_sample,T_sample,rank,rank_ref,Kcorr,Optimal)
 
-                    np.save("%s%s/k_cross_opt_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+            if rank_max == comm.size :
+                comm.Barrier()
+
+            if ByLay == False :
+                if rank != 0 :
+                    sh_k = np.array(np.shape(k_rmd),dtype=np.int)
+                    comm.Send([sh_k,MPI.INT],dest=0,tag=0)
+                    comm.Send([k_rmd,MPI.DOUBLE],dest=0,tag=1)
+                if rank == 0 :
+                    k_rmd_tot = k_rmd
+                    if Optimal == False :
+                        print "Reconstruction of molecular absorptions will begin"
+                        bar = ProgressBar(number_rank,"Reconstruction of molecular absorptions")
+                    else :
+                        print "Reconstruction of optimized molecular absorptions will begin"
+                        bar = ProgressBar(number_rank,"Reconstruction of optimized molecular absorptions")
+                    for i_n in range(1,number_rank) :
+                        sh_k = np.zeros(2,dtype=np.int)
+                        comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
+                        k_rmd_n = np.zeros((sh_k),dtype=np.float64)
+                        comm.Recv([k_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
+                        k_rmd_tot = np.concatenate((k_rmd_tot,k_rmd_n))
+                        bar.animate(i_n+1)
+
+                    if Optimal == False :
+                        np.save("%s%s/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                        %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
+                    else :
+                        np.save("%s%s/k_cross_opt_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                        %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd_tot)
+
+                    del k_rmd_tot
+            else :
+                if Optimal == False :
+                    np.save("%s%s/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd)
                 else :
-                    k_rmd = Ssearcher_M(T_rmd,P_rmd,Q_rmd,compo_active,K,P_sample,T_sample,Kcorr,Optimal)
-
                     np.save("%s%s/k_cross_opt_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
                     %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_rmd)
 
-            print "Ssearcher finished with success"
-
+            if rank == 0 :
+                if Kcorr == True :
+                    print "Ksearcher finished with success"
+                else :
+                    print "Ssearcher finished with success"
         del k_rmd,K
 
     else :
 
         del K
 
+    if rank_max == comm.size :
+        comm.Barrier()
+
     if Continuum == True :
 
+        dim_bande = bande_sample.size
         cont_species = K_cont.species
         H2, He, Other = H2HeO(cont_species)
+        amagat = 2.69578e-3*P_rmd/T_rmd
+        k_cont_rmd = np.zeros((dim_bande,P_rmd.size))
+        decont = 0
 
-        for lay in range(rmind[0].size-1) :
+        if H2 == True :
 
-            decont = 0
-            P_rmind = P_rmd[rmind[0,lay]:rmind[0,lay+1]]
-            T_rmind = T_rmd[rmind[0,lay]:rmind[0,lay+1]]
-            composit_rmind = composit_rmd[:,rmind[0,lay]:rmind[0,lay+1]]
-            amagat = 2.69578e-3*P_rmind/T_rmind
-            k_cont_rmd = np.zeros((dim_bande,P_rmind.size))
+            decont += 1
+            K_cont_h2h2 = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[0]))
+            K_cont_nu_h2h2 = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[0]))
+            T_cont_h2h2 = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[0]))
 
-            if H2 == True :
+            k_interp_h2h2 = k_cont_interp_h2h2_integration(K_cont_h2h2,K_cont_nu_h2h2,\
+                                            T_rmd,bande_sample,T_cont_h2h2,rank,rank_ref,Kcorr)
 
-                decont += 1
-                if lay == 0 :
-                    K_cont_h2h2 = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[0]))
-                    K_cont_nu_h2h2 = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[0]))
-                    T_cont_h2h2 = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[0]))
 
-                k_interp_h2h2 = k_cont_interp_h2h2_integration(K_cont_h2h2,K_cont_nu_h2h2,\
-                                            T_rmind,bande_sample,T_cont_h2h2,rmind[0].size,lay+1,Kcorr)
+            amagat_h2h2 = amagat*composit_rmd[0,:]
 
-                amagat_h2h2 = amagat*composit_rmind[0,:]
+            for i_bande in range(dim_bande) :
+                k_cont_rmd[i_bande,:] = amagat_h2h2**2*k_interp_h2h2[i_bande,:]
+
+            del amagat_h2h2,k_interp_h2h2,K_cont_h2h2
+
+        if He == True :
+
+            decont += 1
+            K_cont_h2he = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[1]))
+            K_cont_nu_h2he = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[1]))
+            T_cont_h2he = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[1]))
+
+
+            k_interp_h2he = k_cont_interp_h2he_integration(K_cont_h2he,K_cont_nu_h2he,\
+                                            T_rmd,bande_sample,T_cont_h2he,rank,rank_ref,Kcorr)
+
+            amagat_self = amagat*composit_rmd[0,:]
+            amagat_foreign = amagat*composit_rmd[1,:]
+
+            for i_bande in range(dim_bande) :
+                k_cont_rmd[i_bande,:] += amagat_foreign*amagat_self*k_interp_h2he[i_bande,:]
+
+            del amagat_foreign,k_interp_h2he,K_cont_h2he
+
+        if Other == False :
+            del amagat
+        else :
+            for i_cont in range(decont,cont_species.size) :
+
+                K_cont_spespe = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
+                K_cont_nu_spespe = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[i_cont]))
+                T_cont_spespe = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
+
+                if cont_species[i_cont] != 'H2O' and cont_species[i_cont] != 'H2Os':
+                    wh_c, = np.where(n_species == cont_species[i_cont])
+                    amagat_spefor = amagat*composit_rmd[0,:]
+                    amagat_speself = amagat*composit_rmd[wh_c[0],:]
+                    amagat_spe = amagat_spefor*amagat_speself
+                else :
+                    wh_c, = np.where(n_species == 'H2O')
+                    H2O = True
+                    N_mol = P_rmd/(k_B*T_rmd)
+                    if cont_species[i_cont] == 'H2O' :
+                        amagat_spe = amagat*(1.-composit_rmd[wh_c[0],:])*composit_rmd[wh_c[0],:]*N_mol
+                    if cont_species[i_cont] == 'H2Os' :
+                        amagat_spe = amagat*composit_rmd[wh_c[0],:]**2*N_mol
+
+                k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
+                                T_rmd,bande_sample,T_cont_spespe,rank,rank_ref,K_cont.associations[i_cont],Kcorr,H2O)
 
                 for i_bande in range(dim_bande) :
 
-                    k_cont_rmd[i_bande,:] = amagat_h2h2**2*k_interp_h2h2[i_bande,:]
+                    k_cont_rmd[i_bande,:] += amagat_spe*k_interp_spespe[i_bande,:]
 
-                del amagat_h2h2,k_interp_h2h2
+                del amagat_spe,k_interp_spespe
 
-            if He == True :
+        if rank_max == comm.size :
+            comm.Barrier()
 
-                decont += 1
-                if lay == 0 :
+        if ByLay == False :
 
-                    K_cont_h2he = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[1]))
-                    K_cont_nu_h2he = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[1]))
-                    T_cont_h2he = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[1]))
-
-                k_interp_h2he = k_cont_interp_h2he_integration(K_cont_h2he,K_cont_nu_h2he,\
-                                        T_rmind,bande_sample,T_cont_h2he,rmind[0].size,lay+1,Kcorr)
-
-                amagat_self = amagat*composit_rmind[0,:]
-                amagat_foreign = amagat*composit_rmind[1,:]
-
-                for i_bande in range(dim_bande) :
-
-                    k_cont_rmd[i_bande,:] += amagat_foreign*amagat_self*k_interp_h2he[i_bande,:]
-
-                del amagat_foreign,amagat_self,k_interp_h2he
-
-            if Other == False :
+            if rank != 0 :
+                sh_k = np.array(np.shape(k_cont_rmd),dtype=np.int)
+                comm.Send([sh_k,MPI.INT],dest=0,tag=0)
+                comm.Send([k_cont_rmd,MPI.DOUBLE],dest=0,tag=1)
+            if rank == 0 :
+                bar = ProgressBar(number_rank,"Reconstruction of continuum absorptions will begin")
+                k_cont_rmd_tot = k_cont_rmd
+                for i_n in range(1,number_rank) :
+                    sh_k = np.zeros(2,dtype=np.int)
+                    comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
+                    k_cont_rmd_n = np.zeros((sh_k),dtype=np.float64)
+                    comm.Recv([k_cont_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
+                    k_cont_rmd_tot = np.concatenate((k_cont_rmd_tot,k_cont_rmd_n),axis=1)
+                    bar.animate(i_n+1)
 
                 if Kcorr == True :
-                    np.save("%s%s/k_cont_all_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,lay),k_cont_rmd)
+                    np.save("%s%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd_tot))
                 else :
-                    np.save("%s%s/k_cont_all_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,lay),k_cont_rmd)
-                del k_cont_rmd
+                    np.save("%s%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd_tot))
 
-            if Other == True :
-
-                for i_cont in range(decont,cont_species.size) :
-
-                    K_cont_spespe = np.load('%sSource/k_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
-                    K_cont_nu_spespe = np.load('%sSource/k_cont_nu_%s.npy'%(directory,K_cont.associations[i_cont]))
-                    T_cont_spespe = np.load('%sSource/T_cont_%s.npy'%(directory,K_cont.associations[i_cont]))
-
-                    if cont_species[i_cont] != 'H2O' and cont_species[i_cont] != 'H2Os':
-                        wh_c, = np.where(n_species == cont_species[i_cont])
-                        amagat_spefor = amagat*composit_rmind[0,:]
-                        amagat_speself = amagat*composit_rmind[wh_c[0],:]
-                        amagat_spe = amagat_spefor*amagat_speself
-                    else :
-                        wh_c, = np.where(n_species == 'H2O')
-                        H2O = True
-                        N_mol = P_rmind/(k_B*T_rmind)
-                        if cont_species[i_cont] == 'H2O' :
-                            amagat_spe = amagat*(1.-composit_rmind[wh_c[0],:])*composit_rmind[wh_c[0],:]*N_mol
-                        if cont_species[i_cont] == 'H2Os' :
-                            amagat_spe = amagat*composit_rmind[wh_c[0],:]**2*N_mol
-
-                    k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
-                                T_rmind,bande_sample,T_cont_spespe,rmind[0].size,lay+1,K_cont.associations[i_cont],Kcorr,Script,H2O)
-
-                    for i_bande in range(dim_bande) :
-
-                        k_cont_rmd[i_bande,:] += amagat_spe*k_interp_spespe[i_bande,:]
-
-                    del amagat_spe,k_interp_spespe
-
-                    if decont == cont_species.size -1 :
-                        if Kcorr == True :
-                            np.save("%s%s/k_cont_all_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                            %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,lay),k_cont_rmd)
-                        else :
-                            np.save("%s%s/k_cont_all_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                            %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,lay),k_cont_rmd)
-                        del k_cont_rmd
-                    decont += 1
-
-        k_cont_rmd = np.zeros((P_rmd.size,dim_bande))
-        for lay in range(rmind[0].size-1) :
-
-            if Kcorr == True :
-                k = np.load("%s%s/k_cont_all_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,lay))
-                k_cont_rmd[rmind[0,lay]:rmind[0,lay+1],:] = np.transpose(k)
-                os.remove("%s%s/k_cont_all_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,lay))
-            else :
-                k = np.load("%s%s/k_cont_all_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,lay))
-                k_cont_rmd[rmind[0,lay]:rmind[0,lay+1],:] = np.transpose(k)
-                os.remove("%s%s/k_cont_all_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,lay))
-            del k
-
-        if Kcorr == True :
-            np.save("%s%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_cont_rmd)
+            del k_cont_rmd_tot
         else :
-            np.save("%s%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
-                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_cont_rmd)
-        del k_cont_rmd
+            if Kcorr == True :
+                np.save("%s%s/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd))
+            else :
+                np.save("%s%s/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),np.transpose(k_cont_rmd))
 
-        print "Integration of the continuum finished with success"
+        if rank == 0 :
+                print "Integration of the continuum finished with success"
+        del k_cont_rmd
 
     else :
 
-        print "There is no continuum"
+        if rank == rank_ref :
+            print "There is no continuum"
+
+    if rank_max == comm.size :
+        comm.Barrier()
 
     x_mol_species = composit_rmd[0:n_species.size,:]
 
     if Scattering == True :
 
-        k_sca_rmd = Rayleigh_scattering(P_rmd,T_rmd,bande_sample,x_mol_species,n_species,zero,Kcorr)
+        k_sca_rmd = Rayleigh_scattering(P_rmd,T_rmd,bande_sample,x_mol_species,n_species,zero,rank,rank_ref,Kcorr)
 
-        if Kcorr == True :
-            np.save("%s%s/k_sca_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
-            %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_sca_rmd)
+        if rank_max == comm.size :
+            comm.Barrier()
+
+        if ByLay == False :
+            if rank != 0 :
+                sh_k = np.array(np.shape(k_sca_rmd),dtype=np.int)
+                comm.Send([sh_k,MPI.INT],dest=0,tag=0)
+                comm.Send([k_sca_rmd,MPI.DOUBLE],dest=0,tag=1)
+            if rank == 0 :
+                bar = ProgressBar(number_rank,"Reconstruction of scattering absorptions will begin")
+                k_sca_rmd_tot = k_sca_rmd
+                for i_n in range(1,number_rank) :
+                    sh_k = np.zeros(2,dtype=np.int)
+                    comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
+                    k_sca_rmd_n = np.zeros((sh_k),dtype=np.float64)
+                    comm.Recv([k_sca_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
+                    k_sca_rmd_tot = np.concatenate((k_sca_rmd_tot,k_sca_rmd_n))
+                    bar.animate(i_n+1)
+
+                if Kcorr == True :
+                    np.save("%s%s/k_sca_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_sca_rmd_tot)
+                else :
+                    np.save("%s%s/k_sca_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_sca_rmd_tot)
+                del k_sca_rmd_tot
         else :
-            np.save("%s%s/k_sca_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
-            %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_sca_rmd)
+            if Kcorr == True :
+                np.save("%s%s/k_sca_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain),k_sca_rmd)
+            else :
+                np.save("%s%s/k_sca_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s.npy"\
+                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain),k_sca_rmd)
 
-        print "Rayleigh_scattering finished with success"
+        if rank == 0 :
+            print "Rayleigh_scattering finished with success"
 
         del k_sca_rmd,x_mol_species
+
+    else :
+
+        if rank == rank_ref :
+            print "There is no scattering"
+
+    if rank_max == comm.size :
+        comm.Barrier()
 
     if Clouds == True :
 
@@ -365,25 +433,83 @@ def convertator (P,T,gen,c_species,Q,compo,ind_active,ind_cross,K,K_cont,Qext,P_
             wl[zer_p] = 0.
 
         n_size,rmd_size = np.shape(composit_rmd)
+        c_number = c_species.size
 
         Qext = np.load(Qext)
 
-        k_cloud_rmd = np.zeros((c_number,P_rmd.size,dim_bande))
+        if rank_max == comm.size :
+            comm.Barrier()
+
+        if rank == 0 :
+            bar = ProgressBar(c_number*number_rank,"Reconstruction of clouds scattering absorptions will begin")
 
         for c_num in range(c_number) :
 
-            k_cloud_rmd[c_num,:,:] = cloud_scattering(Qext[c_num,:,:],bande_cloud,P_rmd,T_rmd,wl,composit_rmd[n_size-1,:],rho_p[c_num],gen_cond_rmd[c_num,:],r_eff,r_cloud,zero,Kcorr)
+            k_cloud_rmd = cloud_scattering(Qext[c_num,:,:],bande_cloud,P_rmd,T_rmd,wl,composit_rmd[n_size-1,:],rho_p[c_num],gen_cond_rmd[c_num,:],r_eff,r_cloud,zero,rank,rank_ref,Kcorr)
 
-        print "Cloud_scattering finished with success, process are beginning to save data remind"
+            if ByLay == False :
+                if rank != 0 :
+                    sh_k = np.array(np.shape(k_cloud_rmd),dtype=np.int)
+                    comm.Send([sh_k,MPI.INT],dest=0,tag=0)
+                    comm.Send([k_cloud_rmd,MPI.DOUBLE],dest=0,tag=1)
+                if rank == 0 :
+                    k_cloud_rmd_tot = k_cloud_rmd
+                    for i_n in range(1,number_rank) :
+                        sh_k = np.zeros(2,dtype=np.int)
+                        comm.Recv([sh_k,MPI.INT],source=i_n,tag=0)
+                        k_cloud_rmd_n = np.zeros((sh_k),dtype=np.float64)
+                        comm.Recv([k_cloud_rmd_n,MPI.DOUBLE],source=i_n,tag=1)
+                        k_cloud_rmd_tot = np.concatenate((k_cloud_rmd_tot,k_cloud_rmd_n))
+                        bar.animate(c_num*number_rank+i_n+1)
 
-        if Kcorr == True :
-            np.save("%s%s/k_cloud_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd)
+                if rank == 0 :
+                    if c_num == 0 :
+                        sh_c = np.shape(k_cloud_rmd_tot)
+                        k_cloud_rmd_fin = np.zeros((c_number,sh_c[0],sh_c[1]),dtype=np.float64)
+                        k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd_tot
+                        del k_cloud_rmd_tot
+                    else :
+                        k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd_tot
+                        del k_cloud_rmd_tot
+            else :
+                if c_num == 0 :
+                    sh_c = np.shape(k_cloud_rmd)
+                    k_cloud_rmd_fin = np.zeros((c_number,sh_c[0],sh_c[1]),dtype=np.float64)
+                    k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd
+                    del k_cloud_rmd
+                else :
+                    k_cloud_rmd_fin[c_num,:,:] = k_cloud_rmd
+
+        if ByLay == False :
+            if rank == 0 :
+                if Kcorr == True :
+                    np.save("%s%s/k_cloud_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd_fin)
+                else :
+                    np.save("%s%s/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
+                    %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd_fin)
+                del k_cloud_rmd_fin
         else :
-            np.save("%s%s/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
-                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd)
+            if Kcorr == True :
+                np.save("%s%s/k_cloud_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
+                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd_fin)
+            else :
+                np.save("%s%s/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s.npy" \
+                %(directory,name,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain),k_cloud_rmd_fin)
+            del k_cloud_rmd_fin
+
+        if rank == 0 :
+            print "Cloud scattering finished with success, process are beginning to save data remind"
 
         del Qext,k_cloud_rmd
+
+    else :
+
+        if rank == 0 :
+            print "There is no clouds"
+
+    if rank_max == comm.size :
+        comm.Barrier()
 
 
 ########################################################################################################################
@@ -507,7 +633,7 @@ def convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,K,K_
                         amagat_spe = amagat*compo_rmd[wh_c[0],:]**2*N_mol
 
                 k_interp_spespe = k_cont_interp_spespe_integration(K_cont_spespe,K_cont_nu_spespe,\
-                            T_rmd,bande_sample,T_cont_spespe,1,1,K_cont.associations[i_cont],Kcorr,Script,H2O)
+                            T_rmd,bande_sample,T_cont_spespe,1,1,K_cont.associations[i_cont],Kcorr,H2O)
 
                 for i_bande in range(dim_bande) :
 
@@ -571,6 +697,7 @@ def convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,K,K_
 
     return P_rmd,T_rmd,Q_rmd,k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd
 
+
 ########################################################################################################################
 ########################################################################################################################
 
@@ -593,7 +720,7 @@ def convertator1D (P_col,T_col,gen_col,c_species,Q_col,compo_col,ind_active,K,K_
 ########################################################################################################################
 
 
-def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,Kcorr,Optimal=False) :
+def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
 
     n_sp, P_size, T_size, dim_bande = np.shape(sigma_array)
 
@@ -603,7 +730,7 @@ def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,Kcorr,Op
     compo_array_t = np.transpose(compo_array)
 
     k_inter,size,i_Tu_arr,i_pu_arr,coeff_1_array,coeff_3_array = \
-    k_correlated_interp(sigma_data,P_array,T_array,0,P_sample,T_sample,Kcorr,Optimal)
+    k_correlated_interp(sigma_data,P_array,T_array,0,P_sample,T_sample,rank,rank_ref,Kcorr,oneD,Optimal)
 
     zz, = np.where(i_Tu_arr == 0)
     i_Td_arr = i_Tu_arr - 1
@@ -614,7 +741,8 @@ def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,Kcorr,Op
 
     k_rmd = np.zeros((i_Tu_arr.size,dim_bande))
 
-    bar = ProgressBar(i_Tu_arr.size,'Ssearcher progression')
+    if rank == rank_ref :
+        bar = ProgressBar(i_Tu_arr.size,'Ssearcher progression')
 
     for i in xrange( i_Tu_arr.size ):
 
@@ -671,7 +799,8 @@ def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,Kcorr,Op
 
             k_rmd[i, :] = np.dot( k_u*a_mm*np.exp(-b_mm/T), comp )
 
-        bar.animate( i+1 )
+        if rank == rank_ref :
+            bar.animate( i+1 )
 
     return k_rmd
 
@@ -679,7 +808,7 @@ def Ssearcher(T_array,P_array,compo_array,sigma_array,P_sample,T_sample,Kcorr,Op
 ########################################################################################################################
 
 
-def Ksearcher(T_array,P_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sample,Kcorr,Optimal=False) :
+def Ksearcher(T_array,P_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
 
     k_rmd = np.zeros((P_array.size,dim_bande,dim_gauss))
 
@@ -687,7 +816,9 @@ def Ksearcher(T_array,P_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sa
 
     T_size = T_array.size
 
-    bar = ProgressBar(dim_bande*dim_gauss,'K-correlated coefficients computation')
+    if oneD == False :
+        if rank == rank_ref :
+            bar = ProgressBar(dim_bande*dim_gauss,'K-correlated coefficients computation')
 
     for i_bande in range(dim_bande) :
 
@@ -699,7 +830,7 @@ def Ksearcher(T_array,P_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sa
 
                 if i_gauss == 0 :
                     k_inter,size,i_Tu_array,i_pu_array,coeff_1_array,coeff_3_array = \
-                    k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,Kcorr,Optimal)
+                    k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,rank,rank_ref,Kcorr,oneD,Optimal)
 
                     k_rmd[:,i_bande,i_gauss] = k_inter[:]
 
@@ -721,7 +852,9 @@ def Ksearcher(T_array,P_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sa
 
                             k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
 
-                bar.animate(i_bande*dim_gauss + i_gauss + 1)
+                if oneD == False :
+                    if rank == rank_ref :
+                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
 
         else :
 
@@ -743,7 +876,9 @@ def Ksearcher(T_array,P_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sa
 
                         k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
 
-                bar.animate(i_bande*dim_gauss + i_gauss + 1)
+                if oneD == False :
+                    if rank == rank_ref :
+                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
 
     #print("Computed for bande %i" %(i_bande+1))
 
@@ -753,7 +888,7 @@ def Ksearcher(T_array,P_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sa
 ########################################################################################################################
 
 
-def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,Kcorr=True,Optimal=False) :
+def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,rank,rank_ref,Kcorr=True,oneD=False,Optimal=False) :
 
     size = P_array.size
     k_inter = np.zeros(size)
@@ -766,7 +901,8 @@ def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,Kc
         coeff_1_array = np.zeros(size)
     coeff_3_array = np.zeros(size)
 
-    bar = ProgressBar(size,'Module interpolates cross sections')
+    if rank == rank_ref :
+        bar = ProgressBar(size,'Module interpolates cross sections')
 
     for i in range(size) :
 
@@ -812,8 +948,10 @@ def k_correlated_interp(k_corr_data,P_array,T_array,i_gauss,P_sample,T_sample,Kc
             coeff_1_array[2,i] = T
         coeff_3_array[i] = coeff_3
 
-        if i%100 == 0. or i == size - 1 :
-            bar.animate(i + 1)
+        if rank == rank_ref :
+            if i%100 == 0. or i == size - 1 :
+                bar.animate(i + 1)
+            #print T, P, i_Tu, i_Td, T_sample[i_Tu], T_sample[i_Td], i_pu, i_pd, P_sample[i_pu], P_sample[i_pd]
 
     return k_inter*0.0001,size,i_Tu_array,i_pu_array,coeff_1_array,coeff_3_array
 
@@ -866,11 +1004,13 @@ def k_correlated_interp_boucle(k_corr_data,size,i_Tu_array,i_pu_array,\
 ########################################################################################################################
 
 
-def Ksearcher_M(T_array,P_array,Q_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sample,Q_sample,Kcorr,Optimal=False) :
+def Ksearcher_M(T_array,P_array,Q_array,dim_gauss,dim_bande,k_corr_data_grid,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
 
     k_rmd = np.zeros((P_array.size,dim_bande,dim_gauss))
 
-    bar = ProgressBar(dim_bande*dim_gauss,'K-correlated coefficients computation')
+    if oneD == False :
+        if rank == rank_ref :
+            bar = ProgressBar(dim_bande*dim_gauss,'K-correlated coefficients computation')
 
     layer = int(T_array.size/10.)
 
@@ -887,7 +1027,7 @@ def Ksearcher_M(T_array,P_array,Q_array,dim_gauss,dim_bande,k_corr_data_grid,P_s
                 if i_gauss == 0 :
 
                     k_inter,size,i_Tu_array,i_pu_array,i_Qu_array,coeff_1_array,coeff_3_array,coeff_5_array = \
-                        k_correlated_interp_M(k_corr_data,P_array,T_array,Q_array,i_gauss,P_sample,T_sample,Q_sample,Kcorr,Optimal)
+                        k_correlated_interp_M(k_corr_data,P_array,T_array,Q_array,i_gauss,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,oneD,Optimal)
 
                     k_rmd[:,i_bande,i_gauss] = k_inter[:]
 
@@ -911,7 +1051,9 @@ def Ksearcher_M(T_array,P_array,Q_array,dim_gauss,dim_bande,k_corr_data_grid,P_s
                             k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
 
 
-                bar.animate(i_bande*dim_gauss + i_gauss + 1)
+                if oneD == False :
+                    if rank == rank_ref :
+                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
 
         else :
 
@@ -934,7 +1076,9 @@ def Ksearcher_M(T_array,P_array,Q_array,dim_gauss,dim_bande,k_corr_data_grid,P_s
 
                         k_rmd[lay*layer:T_size,i_bande,i_gauss] = k_inter[:]
 
-                bar.animate(i_bande*dim_gauss + i_gauss + 1)
+                if oneD == False :
+                    if rank == rank_ref :
+                        bar.animate(i_bande*dim_gauss + i_gauss + 1)
 
     return k_rmd
 
@@ -942,7 +1086,7 @@ def Ksearcher_M(T_array,P_array,Q_array,dim_gauss,dim_bande,k_corr_data_grid,P_s
 ########################################################################################################################
 
 
-def Ssearcher_M(T_array,P_array,Q_array,compo_array,sigma_array,P_sample,T_sample,Q_sample,Kcorr,Optimal=False) :
+def Ssearcher_M(T_array,P_array,Q_array,compo_array,sigma_array,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,oneD=False,Optimal=False) :
 
     n_sp, P_size, T_size, dim_bande = np.shape(sigma_array)
 
@@ -952,7 +1096,7 @@ def Ssearcher_M(T_array,P_array,Q_array,compo_array,sigma_array,P_sample,T_sampl
     compo_array_t = np.transpose(compo_array)
 
     k_inter,size,i_Tu_arr,i_pu_arr,i_Qu_arr,coeff_1_array,coeff_3_array,coeff_5_array = \
-    k_correlated_interp_M(sigma_data,P_array,T_array,Q_array,0,P_sample,T_sample,Q_sample,Kcorr,Optimal)
+    k_correlated_interp_M(sigma_data,P_array,T_array,Q_array,0,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr,Optimal)
 
     zz, = np.where(i_Tu_arr == 0)
     i_Td_arr = i_Tu_arr - 1
@@ -966,7 +1110,8 @@ def Ssearcher_M(T_array,P_array,Q_array,compo_array,sigma_array,P_sample,T_sampl
 
     k_rmd = np.zeros((i_Tu_arr.size,dim_bande))
 
-    bar = ProgressBar(i_Tu_arr.size,'Ssearcher progression')
+    if rank == rank_ref :
+        bar = ProgressBar(i_Tu_arr.size,'Ssearcher progression')
 
     for i in xrange( i_Tu_arr.size ):
 
@@ -1045,7 +1190,8 @@ def Ssearcher_M(T_array,P_array,Q_array,compo_array,sigma_array,P_sample,T_sampl
 
             k_rmd[i, :] = np.dot((k_1+k_2)*a_mm*np.exp(-b_mm/T), comp )
 
-        bar.animate( i+1 )
+        if rank == rank_ref :
+            bar.animate( i+1 )
 
     return k_rmd
 
@@ -1053,7 +1199,7 @@ def Ssearcher_M(T_array,P_array,Q_array,compo_array,sigma_array,P_sample,T_sampl
 ########################################################################################################################
 
 
-def k_correlated_interp_M(k_corr_data,P_array,T_array,Q_array,i_gauss,P_sample,T_sample,Q_sample,Kcorr=True,Optimal=False) :
+def k_correlated_interp_M(k_corr_data,P_array,T_array,Q_array,i_gauss,P_sample,T_sample,Q_sample,rank,rank_ref,Kcorr=True,oneD=False,Optimal=False) :
 
     T_min = T_sample[0]
     p_min = P_sample[0]
@@ -1080,7 +1226,9 @@ def k_correlated_interp_M(k_corr_data,P_array,T_array,Q_array,i_gauss,P_sample,T
     coeff_3_array = np.zeros(size)
     coeff_5_array = np.zeros(size)
 
-    bar = ProgressBar(size,'Module interpolates cross sections')
+    if oneD == False :
+        if rank == rank_ref :
+            bar = ProgressBar(size,'Module interpolates cross sections')
 
     for i in range(size) :
 
@@ -1581,8 +1729,10 @@ def k_correlated_interp_M(k_corr_data,P_array,T_array,Q_array,i_gauss,P_sample,T
         coeff_3_array[i] = coeff_3
         coeff_5_array[i] = coeff_5
 
-        if i%100 == 0. or i == size - 1 :
-                bar.animate(i + 1)
+        if oneD == False :
+            if rank == rank_ref :
+                if i%100 == 0. or i == size - 1 :
+                    bar.animate(i + 1)
 
     return k_inter*0.0001,size,i_Tu_array,i_pu_array,i_Qu_array,coeff_1_array,coeff_3_array,coeff_5_array
 
@@ -1657,7 +1807,7 @@ def k_correlated_interp_boucle_M(k_corr_data,size,i_Tu_array,i_pu_array,i_Qu_arr
 ########################################################################################################################
 
 
-def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,zero,Kcorr=True,MarcIngo=False,Script=True) :
+def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,zero,rang,rang_ref,Kcorr=True,MarcIngo=False,oneD=False) :
 
     if Kcorr == True :
         dim_bande = bande_sample.size-1
@@ -1673,8 +1823,11 @@ def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,ze
 
         n_mol_tot[zero] = np.zeros((zero.size))
 
-    if Script == True :
-        bar = ProgressBar(dim_bande,'Scattering computation progression')
+    if oneD == False :
+        if rang == rang_ref :
+            bar = ProgressBar(dim_bande,'Scattering computation progression')
+
+    rank = 1
 
     for i_bande in range(dim_bande) :
 
@@ -1736,7 +1889,7 @@ def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,ze
             if n_species[sp] == 'CO2' :
 
                 f_K = 1.1364 + 2.53e-11*w_n**2
-                index = (1.1427e+6*(5.79925e+4/(5.0821e+13-w_n**2)+1.2005e+2/(7.9608e+9-w_n**2)+5.3334/(5.6306e+9-w_n**2)+\
+                index = (1.1427e+6*(5.79925e+3/(1.66175e+10-w_n**2)+1.2005e+2/(7.9608e+9-w_n**2)+5.3334/(5.6306e+9-w_n**2)+\
                                     4.3244/(4.619e+9-w_n**2)+0.12181e-4/(5.8474e+6-w_n**2)))**2
                 sig = fact/(wl**4)*index*f_K
 
@@ -1803,7 +1956,7 @@ def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,ze
 
             if n_species[sp] == 'H2O' :
 
-                f_K = 4.577e-49*(6+3*0.17)/(6-7*0.17)
+                f_K = (6+3*0.17)/(6-7*0.17)
 
                 if w_n < 43480 :
 
@@ -1817,8 +1970,11 @@ def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,ze
 
                 k_sca_rmd[:,i_bande] += sig*n_mol_tot*x_mol_species[sp,:]
 
-        if Script == True :
-            bar.animate(i_bande + 1)
+        if oneD == False :
+            if rang == rang_ref :
+                bar.animate(i_bande + 1)
+                rank += 1
+
 
     return k_sca_rmd
 
@@ -1826,7 +1982,7 @@ def Rayleigh_scattering (P_array,T_array,bande_sample,x_mol_species,n_species,ze
 ########################################################################################################################
 
 
-def cloud_scattering(Qext,bande_cloud,P,T,bande_sample,M,rho_p,gen,r_eff,r_cloud,zero,Kcorr,Script=True) :
+def cloud_scattering(Qext,bande_cloud,P,T,bande_sample,M,rho_p,gen,r_eff,r_cloud,zero,rang,rang_ref,Kcorr) :
 
     wh, = np.where(r_cloud == r_eff)
 
@@ -1873,7 +2029,9 @@ def cloud_scattering(Qext,bande_cloud,P,T,bande_sample,M,rho_p,gen,r_eff,r_cloud
 
     Q_int = Qext[i_r_u,:]*coeff1 + Qext[i_r_d,:]*coeff2
 
-    if Script == True :
+    rank = 1
+
+    if rang == rang_ref : 
         bar = ProgressBar(bande_sample.size,'Clouds scattering computation progression')
 
     for i_bande in range(bande_sample.size) :
@@ -1919,12 +2077,15 @@ def cloud_scattering(Qext,bande_cloud,P,T,bande_sample,M,rho_p,gen,r_eff,r_cloud
             coeff3 = 1
             coeff4 = 0
 
+        #print(i_bande,i_b_u,i_b_d,coeff1,coeff2,coeff3,coeff4)
+
         Q_fin = Q_int[i_b_u]*coeff3 + Q_int[i_b_d]*coeff4
 
         k_cloud_rmd[:,i_bande] = 3/4.*(Q_fin*gen*P*M/(rho_p*r_eff*R_gp*T))
 
-        if Script == True :
+        if rang == rang_ref :
             bar.animate(i_bande + 1)
+            rank += 1
 
     if zero.size != 0 :
 
@@ -1936,7 +2097,7 @@ def cloud_scattering(Qext,bande_cloud,P,T,bande_sample,M,rho_p,gen,r_eff,r_cloud
 ########################################################################################################################
 
 
-def refractive_index (P_array,T_array,bande_sample,x_mol_species,n_species,Kcorr=True,Script=True) :
+def refractive_index (P_array,T_array,bande_sample,x_mol_species,n_species,Kcorr=True,oneD=False) :
 
     if Kcorr == True :
         dim_bande = bande_sample.size-1
@@ -1947,7 +2108,7 @@ def refractive_index (P_array,T_array,bande_sample,x_mol_species,n_species,Kcorr
 
     fact = 32*np.pi**3/(3*(101325/(R_gp*288)*N_A)**2)
 
-    if Script == True :
+    if oneD == False :
         bar = ProgressBar(dim_bande,'Refractive index computation progression')
 
     for i_bande in range(dim_bande) :
@@ -2034,7 +2195,7 @@ def refractive_index (P_array,T_array,bande_sample,x_mol_species,n_species,Kcorr
 
                     n_rmd[:,i_bande] += (1 + 0.85*(8.06051 + 2.48099e+10/(132.274e+14 - 1/wl**2) + 1.74557e+8/(3.932957e+13 - 1/wl**2)))*x_mol_species[sp,:]
 
-        if Script == True :
+        if oneD == False :
             bar.animate(i_bande + 1)
 
     return n_rmd
@@ -2043,7 +2204,12 @@ def refractive_index (P_array,T_array,bande_sample,x_mol_species,n_species,Kcorr
 ########################################################################################################################
 
 
-def k_cont_interp_h2h2_integration(K_cont_h2h2,wavelength_cont_h2h2,T_array,bande_array,T_cont_h2h2,repetition,iter_rep,Kcorr=True,Script=True) :
+
+
+########################################################################################################################
+
+
+def k_cont_interp_h2h2_integration(K_cont_h2h2,wavelength_cont_h2h2,T_array,bande_array,T_cont_h2h2,rank,rank_ref,Kcorr=True) :
 
 
     losch = 2.6867774e19
@@ -2060,8 +2226,8 @@ def k_cont_interp_h2h2_integration(K_cont_h2h2,wavelength_cont_h2h2,T_array,band
     end = T_cont_h2h2.size - 1
     stop = 0
 
-    if Script == True :
-        bar = ProgressBar2(dim_bande,repetition,'Continuum H2/H2 computation progression')
+    if rank == rank_ref :
+        bar = ProgressBar(dim_bande,'Continuum H2/H2 computation progression')
 
     for i_bande in range(dim_bande) :
 
@@ -2084,6 +2250,8 @@ def k_cont_interp_h2h2_integration(K_cont_h2h2,wavelength_cont_h2h2,T_array,band
                 wave_min = bande_array[0]
 
                 zone_wave, = np.where((wavelength_cont_h2h2 >= wave_min)*(wavelength_cont_h2h2 <= wave_max))
+                #print("For bande number %i, we took into account wavelenght (cm-1) :" %(i_bande))
+                #print(wavelength_cont[zone_wave])
                 fact = zone_wave.size
 
                 for i_wave in zone_wave :
@@ -2237,6 +2405,8 @@ def k_cont_interp_h2h2_integration(K_cont_h2h2,wavelength_cont_h2h2,T_array,band
                 wave_min = bande_array[i_bande]
 
                 zone_wave, = np.where((wavelength_cont_h2h2 >= wave_min)*(wavelength_cont_h2h2 <= wave_max))
+                #print("For bande number %i, we took into account wavelenght (cm-1) :" %(i_bande+1))
+                #print(wavelength_cont[zone_wave])
                 fact = zone_wave.size
 
                 for i_wave in zone_wave :
@@ -2293,8 +2463,8 @@ def k_cont_interp_h2h2_integration(K_cont_h2h2,wavelength_cont_h2h2,T_array,band
 
                     k_interp_h2h2[i_bande,:] = k_interp[1,:]*coef + k_interp[0,:]*(1 - coef)
 
-        if Script == True :
-            bar.animate2(i_bande+1,iter_rep)
+        if rank == rank_ref :
+            bar.animate(i_bande+1)
 
     return k_interp_h2h2*100*losch**2
 
@@ -2302,7 +2472,7 @@ def k_cont_interp_h2h2_integration(K_cont_h2h2,wavelength_cont_h2h2,T_array,band
 ########################################################################################################################
 
 
-def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,bande_array,T_cont_h2he,repetition,iter_rep,Kcorr=True,Script=True) :
+def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,bande_array,T_cont_h2he,rank,rank_ref,Kcorr=True) :
 
     losch = 2.6867774e19
     size = T_array.size
@@ -2317,8 +2487,8 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
     end = T_cont_h2he.size - 1
     stop = 0
 
-    if Script == True :
-        bar = ProgressBar2(dim_bande,repetition,'Continuum H2/He computation progression')
+    if rank == rank_ref :
+        bar = ProgressBar(dim_bande, 'Continuum H2/He computation progression')
 
     for i_bande in range(dim_bande) :
 
@@ -2341,6 +2511,8 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
                 wave_min = bande_array[0]
 
                 zone_wave, = np.where((wavelength_cont_h2he >= wave_min)*(wavelength_cont_h2he <= wave_max))
+                #print("For bande number %i, we took into account wavelenght (cm-1) :" %(i_bande))
+                #print(wavelength_cont[zone_wave])
                 fact = zone_wave.size
 
                 for i_wave in zone_wave :
@@ -2495,7 +2667,8 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
                 wave_min = bande_array[i_bande]
 
                 zone_wave, = np.where((wavelength_cont_h2he >= wave_min)*(wavelength_cont_h2he <= wave_max))
-
+                #print("For bande number %i, we took into account wavelenght (cm-1) :" %(i_bande+1))
+                #print(wavelength_cont[zone_wave])
                 fact = zone_wave.size
 
                 for i_wave in zone_wave :
@@ -2552,8 +2725,8 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
 
                     k_interp_h2he[i_bande,:] = k_interp[1,:]*coef + k_interp[1,:]*(1 - coef)
 
-        if Script == True :
-            bar.animate2(i_bande+1,iter_rep)
+        if rank == rank_ref :
+            bar.animate(i_bande+1)
 
     return k_interp_h2he*100*losch**2
 
@@ -2561,8 +2734,7 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
 ########################################################################################################################
 
 
-def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_array,bande_array,T_cont_spespe,repetition,\
-                                     iter_rep,species,Kcorr=True,Script=True,H2O=False) :
+def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_array,bande_array,T_cont_spespe,rank,rank_ref,species,Kcorr=True,H2O=False) :
 
     losch = 2.6867774e19
     size = T_array.size
@@ -2577,8 +2749,8 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
     end = T_cont_spespe.size - 1
     stop = 0
 
-    if Script == True :
-        bar = ProgressBar2(dim_bande,repetition,'Continuum %s computation progression'%(species))
+    if rank == rank_ref :
+        bar = ProgressBar(dim_bande,'Continuum %s computation progression'%(species))
 
     for i_bande in range(dim_bande) :
 
@@ -2815,8 +2987,8 @@ def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_arra
 
                     k_interp_spespe[i_bande,:] = k_interp[1,:]*coef + k_interp[1,:]*(1 - coef)
 
-        if Script == True :
-            bar.animate2(i_bande+1,iter_rep)
+        if rank == rank_ref :
+            bar.animate(i_bande+1)
 
     if H2O == True :
         return k_interp_spespe*0.0001

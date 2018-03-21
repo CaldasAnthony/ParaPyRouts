@@ -89,10 +89,10 @@ def data_record(path,name_source,data_base,name_exo,aerosol,continuum,kcorr,cros
         else :
             All = False
         for i_res in range(kcorr.type.size) :
-            k_corr_data_read(kcorr,data_base,name_exo,kcorr.type[i_res],kcorr.resolution_n[0],kcorr.resolution_n[1],\
+            k_corr_data_read(kcorr,data_base,name_exo,kcorr.parameters,kcorr.type[i_res],kcorr.resolution_n[0],kcorr.resolution_n[1],\
                      kcorr.exception,directory,All,kcorr.jump)
 
-    if crossection.type != '' :
+    if crossection.file != '' :
         cross_data_read(crossection.file,crossection.type_ref,crossection.species,directory,crossection.type)
 
 
@@ -100,16 +100,16 @@ def data_record(path,name_source,data_base,name_exo,aerosol,continuum,kcorr,cros
 ########################################################################################################################
 
 
-def k_corr_data_read(kcorr,path,name_exo,domain,dim_bande,dim_gauss,exception,directory,All=True,Jump=False) :
+def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,exception,directory,All=True,Jump=False) :
 
-    data = open('%sSources/corrk_data/T.dat'%(path),'r')
+    data = open('%sSources/corrk_data/%s.dat'%(path,parameters[0]),'r')
     T_read = data.readlines()
     T_dim = line_search(T_read[0])
-    data = open('%sSources/corrk_data/p.dat'%(path),'r')
+    data = open('%sSources/corrk_data/%s.dat'%(path,parameters[1]),'r')
     p_read = data.readlines()
     P_dim = line_search(p_read[0])
     if kcorr.parameters.size > 2 :
-        data = open('%sSources/corrk_data/Q.dat'%(path),'r')
+        data = open('%sSources/corrk_data/%s.dat'%(path,parameters[2]),'r')
         Q_read = data.readlines()
         dec = line_search(Q_read[0])
         Q_dim = line_search(Q_read[int(dec[0])+1])
@@ -146,7 +146,7 @@ def k_corr_data_read(kcorr,path,name_exo,domain,dim_bande,dim_gauss,exception,di
             else :
                 ex_gauss = np.append(ex_gauss ,int(exception[1,ex]))
                 message += " gauss point n%i,"%(int(exception[1,ex]))
-        message += " for this IR %ix%i resolution."%(dim_bande,dim_gauss)
+        message += " for this %s %ix%i resolution."%(domain,dim_bande,dim_gauss)
         if ex_dim != 0 :
             print(message)
     else :

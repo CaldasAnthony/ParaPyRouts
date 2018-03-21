@@ -2412,10 +2412,13 @@ def stellar_noise(star,detection,gamme) :
 
 class JWST :
     def __init__(self):
-        self.diameter = np.array([6.5,6.5,6.5,6.5])
+        self.diameter = np.array([6.5,6.5,6.5,6.5,6.5,6.5])
         self.integration = 3600.
-        self.bande = np.array([[0.6,1.],[1.,9.],[9.,23.5],[23.5,27.5]])
-        self.tau = np.array([0.30,0.40,0.36,0.18])
+        self.bande = np.array([[0.6,1.6],[1.6,3.],[3.,5.],[5.,10.5],[10.5,16.],[16.,27.5]])
+        self.tau = np.array([0.30,0.40,0.40,0.36,0.36,0.18])
+        self.resolution_high = np.array([3500.,3500.,3500.,2400.,1600.,800.])
+        self.resolution_medium = np.array([1000.,1000.,1000.,2400.,1600.,800.])
+        self.resolution_low = np.array([100.,100.,100.,100.,1600.,800.])
 
 class planet :
     def __init__(self):
