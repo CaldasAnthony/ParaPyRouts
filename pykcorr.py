@@ -439,6 +439,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
         c_number = c_species.size
 
         Qext = np.load(Qext)
+        print np.shape(Qext)
 
         if rank_max == comm.size :
             comm.Barrier()
@@ -2739,7 +2740,6 @@ def k_cont_interp_h2he_integration(K_cont_h2he,wavelength_cont_h2he,T_array,band
 
 def k_cont_interp_spespe_integration(K_cont_spespe,wavelength_cont_spespe,T_array,bande_array,T_cont_spespe,rank,rank_ref,species,Kcorr=True,H2O=False) :
 
-    print Kcorr
     losch = 2.6867774e19
     size = T_array.size
     if Kcorr == True :
