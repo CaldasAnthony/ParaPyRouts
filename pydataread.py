@@ -70,7 +70,6 @@ def data_record(path,name_source,data_base,name_exo,aerosol,continuum,kcorr,cros
         if species != 'H2O' and species != 'H2Os' :
             k_cont_data_read(k_cont_file,continuum.associations[i_n],directory)
         else :
-            nu_file = '%sSources/continuum_data/H2O_CONT_NU.dat'%(data_base)
             k_cont_h2o_read(k_cont_file,continuum.associations[i_n],directory)
             data = open('%sSources/continuum_data/H2O_CONT_NU.dat'%(data_base))
             nu = data.readlines()
