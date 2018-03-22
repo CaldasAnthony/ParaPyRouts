@@ -291,7 +291,7 @@ def convertator (P_rmd,T_rmd,gen_cond_rmd,c_species,Q_rmd,composit_rmd,ind_activ
 
                 K_cont_spespe = np.load('%s%s/k_cont_%s.npy'%(directory,name_source,K_cont.associations[i_cont]))
                 K_cont_nu_spespe = np.load('%s%s/k_cont_nu_%s.npy'%(directory,name_source,K_cont.associations[i_cont]))
-                T_cont_spespe = np.load('%s%S/T_cont_%s.npy'%(directory,name_source,K_cont.associations[i_cont]))
+                T_cont_spespe = np.load('%s%s/T_cont_%s.npy'%(directory,name_source,K_cont.associations[i_cont]))
 
                 if cont_species[i_cont] != 'H2O' and cont_species[i_cont] != 'H2Os':
                     wh_c, = np.where(n_species == cont_species[i_cont])
