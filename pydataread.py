@@ -40,7 +40,7 @@ def data_record(path,name_source,data_base,name_exo,aerosol,continuum,kcorr,cros
     for i_c in range(aerosol.number) :
         if aerosol.continuity[i_c] == True :
             for i_continuity in range(2) :
-                aerosol_file = '%sSources/aerosol_properties/optprop_%s.dat'%(data_base,aerosol.file_name[i_c+i_continuity+i_dec])
+                aerosol_file = '%saerosol_properties/optprop_%s.dat'%(data_base,aerosol.file_name[i_c+i_continuity+i_dec])
                 aerosol_data_read(aerosol_file,0,13,aerosol.file_name[i_c+i_continuity+i_dec],name_exo,directory,Save=True)
                 if i_continuity == 0 :
                     bande_cloud = np.load('%sbande_cloud_%s.npy'%(directory,name_exo))
@@ -58,7 +58,7 @@ def data_record(path,name_source,data_base,name_exo,aerosol,continuum,kcorr,cros
             np.save('%sbande_cloud_%s.npy'%(directory,name_exo))
             i_dec += 1
         else :
-            aerosol_file = '%sSources/aerosol_properties/optprop_%s.dat'%(data_base,aerosol.file_name[i_dec+i_c])
+            aerosol_file = '%saerosol_properties/optprop_%s.dat'%(data_base,aerosol.file_name[i_dec+i_c])
             aerosol_data_read(aerosol_file,0,13,aerosol.nspecies[i_c],name_exo,directory,Save=True)
     Q_f = np.load('%sQ_%s_%s.npy'%(directory,aerosol.nspecies[0],name_exo))
     sh = np.shape(Q_f)
@@ -71,13 +71,13 @@ def data_record(path,name_source,data_base,name_exo,aerosol,continuum,kcorr,cros
 
     k_cont_number = continuum.number
     for i_n in range(k_cont_number) :
-        k_cont_file = '%sSources/continuum_data/%s'%(data_base,continuum.file_name[i_n])
+        k_cont_file = '%scontinuum_data/%s'%(data_base,continuum.file_name[i_n])
         species = continuum.species[i_n]
         if species != 'H2O' and species != 'H2Os' :
             k_cont_data_read(k_cont_file,continuum.associations[i_n],directory)
         else :
             k_cont_h2o_read(k_cont_file,continuum.associations[i_n],directory)
-            data = open('%sSources/continuum_data/H2O_CONT_NU.dat'%(data_base))
+            data = open('%scontinuum_data/H2O_CONT_NU.dat'%(data_base))
             nu = data.readlines()
             dim_b = np.shape(nu)[0]
             k_cont_nu = np.zeros(dim_b)
@@ -108,14 +108,14 @@ def data_record(path,name_source,data_base,name_exo,aerosol,continuum,kcorr,cros
 
 def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,exception,directory,All=True,Jump=False) :
 
-    data = open('%sSources/corrk_data/%s.dat'%(path,parameters[0]),'r')
+    data = open('%scorrk_data/%s.dat'%(path,parameters[0]),'r')
     T_read = data.readlines()
     T_dim = line_search(T_read[0])
-    data = open('%sSources/corrk_data/%s.dat'%(path,parameters[1]),'r')
+    data = open('%scorrk_data/%s.dat'%(path,parameters[1]),'r')
     p_read = data.readlines()
     P_dim = line_search(p_read[0])
     if kcorr.parameters.size > 2 :
-        data = open('%sSources/corrk_data/%s.dat'%(path,parameters[2]),'r')
+        data = open('%scorrk_data/%s.dat'%(path,parameters[2]),'r')
         Q_read = data.readlines()
         dec = line_search(Q_read[0])
         Q_dim = line_search(Q_read[int(dec[0])+1])
@@ -137,7 +137,7 @@ def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,e
     np.save('%sP_comp_%s.npy'%(directory,name_exo),P_sample)
     np.save('%sT_sample.npy'%(directory),T_sample)
     np.save('%sP_sample.npy'%(directory),P_sample)
-    data = open('%sSources/corrk_data/g.dat'%(path),'r')
+    data = open('%scorrk_data/g.dat'%(path),'r')
     g_read = data.readlines()
     g_dim = np.int(line_search(g_read[0])[0])-1
     g_sample = np.zeros(g_dim)
@@ -145,7 +145,7 @@ def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,e
         g_sample[i_g] = np.float(line_search(g_read[1+i_g])[0])
     np.save('%sgauss_sample.npy'%(directory),g_sample)
 
-    data = open('%sSources/corrk_data/%s/narrowbands_%s.in'%(path,kcorr.resolution,domain),'r')
+    data = open('%scorrk_data/%s/narrowbands_%s.in'%(path,kcorr.resolution,domain),'r')
     bande_read = data.readlines()
     bande_dim = np.int(line_search(bande_read[0])[0])
     bande_sample = np.zeros(bande_dim+1)
@@ -155,7 +155,7 @@ def k_corr_data_read(kcorr,path,name_exo,parameters,domain,dim_bande,dim_gauss,e
             bande_sample[i_ba+1] = np.float(line_search(bande_read[1+i_g])[1])
     np.save('%sbande_sample_%s.npy'%(directory,domain),bande_sample)
 
-    data = open('%sSources/corrk_data/%s/corrk_gcm_%s.dat'%(path,kcorr.resolution,domain),'r')
+    data = open('%scorrk_data/%s/corrk_gcm_%s.dat'%(path,kcorr.resolution,domain),'r')
     k_corr_data = data.readlines()
 
     ex_bande = np.array([],dtype='int')

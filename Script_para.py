@@ -32,6 +32,7 @@ version = 6.2
 # Donnees de base
 
 data_base,diag_file = "/data1/caldas/Pytmosph3R/Simulations/Trappist/",'diagfi4'
+data_source = "/data1/caldas/Pytmosph3R/Simulations/Trappist/Sources/"
 planet = planet()
 if diag_file == '' :
     information = pickle.load(open(planet.pressure_profile_data))
@@ -208,7 +209,7 @@ if Record == True :
             self.type_ref = np.array(['xsecarr','wno','p','t'])
 
     if rank == 0 :
-        data_record(path,name_source,data_base,name_exo,aerosol(),continuum(),kcorr(),crossection(),composition(),Renorm=False)
+        data_record(path,name_source,data_source,name_exo,aerosol(),continuum(),kcorr(),crossection(),composition(),Renorm=False)
 else :
     class continuum :
         def __init__(self) :
