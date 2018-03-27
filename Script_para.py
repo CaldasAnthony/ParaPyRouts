@@ -289,6 +289,7 @@ Script = True          ###### Si nous voulons avoir une version .dat du spectre
 ErrOr = False           ###### Si calculons le bruit de photon pour un instrument donne
 detection = JWST()
 Noise = False           ###### Si nous voulons bruiter le signal a partir du bruit de photon calcule
+Push = False            ###### Si nous voulons forcer le code a faire les spcectres intermediaires meme s'ils existent
 
 ########################################################################################################################
 

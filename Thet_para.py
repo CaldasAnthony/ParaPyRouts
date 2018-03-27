@@ -1,4 +1,5 @@
 from Script_para import *
+import os
 from mpi4py import MPI
 
 ########################################################################################################################
@@ -990,143 +991,152 @@ if Cylindric_transfert_3D == True :
         if rank == 0 :
             stud = stud_type(r_eff,Single,Continuum,Molecular,Scattering,Clouds)
             save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
-                phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
+                    phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
 
-        if Molecular == True :
-            if Kcorr == True :
-                k_rmd = np.load("%s%s/%s/Temp/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,rank))
-                gauss_val = np.load("%s%s/gauss_sample.npy"%(path,name_source))
+        if os.path.isfile('%s.npy'%(save_name_3D_step)) != True and Push == False :
+
+            if Molecular == True :
+                if Kcorr == True :
+                    k_rmd = np.load("%s%s/%s/Temp/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,rank))
+                    gauss_val = np.load("%s%s/gauss_sample.npy"%(path,name_source))
+                else :
+                    if Optimal == True :
+                        k_rmd = np.load("%s%s/%s/Temp/k_cross_opt_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+                        %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
+                    else :
+                        k_rmd = np.load("%s%s/%s/Temp/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+                        %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
+                    gauss_val = np.array([])
             else :
-                if Optimal == True :
-                    k_rmd = np.load("%s%s/%s/Temp/k_cross_opt_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
+                if Kcorr == True :
+                    k_rmd = np.load("%s%s/%s/Temp/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,rank))
+                    k_rmd = np.shape(k_rmd)
                 else :
                     k_rmd = np.load("%s%s/%s/Temp/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
+                        %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
+                    k_rmd = np.shape(k_rmd)
                 gauss_val = np.array([])
-        else :
-            if Kcorr == True :
-                k_rmd = np.load("%s%s/%s/Temp/k_corr_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,rank))
-                k_rmd = np.shape(k_rmd)
-            else :
-                k_rmd = np.load("%s%s/%s/Temp/k_cross_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+                if rank == 0 :
+                    print 'No molecular'
+
+            if Continuum == True :
+                if Kcorr == True :
+                    k_cont_rmd = np.load("%s%s/%s/Temp/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,rank))
+                else :
+                    k_cont_rmd = np.load("%s%s/%s/Temp/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
-                k_rmd = np.shape(k_rmd)
-            gauss_val = np.array([])
-            if rank == 0 :
-                print 'No molecular'
-
-        if Continuum == True :
-            if Kcorr == True :
-                k_cont_rmd = np.load("%s%s/%s/Temp/k_cont_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,rank))
             else :
-                k_cont_rmd = np.load("%s%s/%s/Temp/k_cont_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
-        else :
-            k_cont_rmd = np.array([])
-            if rank == 0 :
-                print 'No continuum'
+                k_cont_rmd = np.array([])
+                if rank == 0 :
+                    print 'No continuum'
 
-        if Scattering == True :
-            if Kcorr == True :
-                k_sca_rmd = np.load("%s%s/%s/Temp/k_sca_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,rank))
+            if Scattering == True :
+                if Kcorr == True :
+                    k_sca_rmd = np.load("%s%s/%s/Temp/k_sca_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,domain,rank))
+                else :
+                    k_sca_rmd = np.load("%s%s/%s/Temp/k_sca_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
+                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
             else :
-                k_sca_rmd = np.load("%s%s/%s/Temp/k_sca_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%i.npy"\
-                %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,domain,rank))
-        else :
-            k_sca_rmd = np.array([])
-            if rank == 0 :
-                print 'No scattering'
+                k_sca_rmd = np.array([])
+                if rank == 0 :
+                    print 'No scattering'
 
-        if Clouds == True :
-            if Kcorr == True :
-                k_cloud_rmd = np.load("%s%s/%s/Temp/k_cloud_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%.2f_%s_%i.npy" \
-                %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
-                r_eff*10**6,domain,rank))
+            if Clouds == True :
+                if Kcorr == True :
+                    k_cloud_rmd = np.load("%s%s/%s/Temp/k_cloud_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%.2f_%s_%i.npy" \
+                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
+                    r_eff*10**6,domain,rank))
+                else :
+                    k_cloud_rmd = np.load("%s%s/%s/Temp/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s_%i.npy" \
+                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain,rank))
             else :
-                k_cloud_rmd = np.load("%s%s/%s/Temp/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s_%i.npy" \
-                %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain,rank))
-        else :
-            k_cloud_rmd = np.array([])
-            if rank == 0 :
-                print 'No clouds'
+                k_cloud_rmd = np.array([])
+                if rank == 0 :
+                    print 'No clouds'
 
 ########################################################################################################################
     
-        if rank == 0 : 
-            print 'Pytmosph3R will begin to compute the %s contribution'%(cases_names[wh_ca[i_ca]])
-            print 'Save directory : %s'%(save_name_3D_step)
+            if rank == 0 :
+                print 'Pytmosph3R will begin to compute the %s contribution'%(cases_names[wh_ca[i_ca]])
+                print 'Save directory : %s'%(save_name_3D_step)
 
-        I_n = trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dim_bande,data_convert,\
-                  P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
-                  name_file,n_species,Single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
-                  Tracer,Continuum,Molecular,Scattering,Clouds,Kcorr,Rupt,Module,Integration,TimeSel)
+            I_n = trans2fert3D (k_rmd,k_cont_rmd,k_sca_rmd,k_cloud_rmd,Rp,h,g0,r_step,theta_step,gauss_val,dim_bande,data_convert,\
+                      P_rmd,T_rmd,Q_rmd,dx_grid,order_grid,pdx_grid,z_grid,t,\
+                      name_file,n_species,Single,rmind,lim_alt,rupt_alt,rank,rank_ref,\
+                      Tracer,Continuum,Molecular,Scattering,Clouds,Kcorr,Rupt,Module,Integration,TimeSel)
 
-        if rank == 0 :
-            sh_I = np.shape(I_n)
-            r_size, theta_size = sh_I[1], sh_I[2]
-            Itot = np.zeros((dim_bande,r_size,theta_number),dtype=np.float64)
-            Itot[:,:,dom_rank] = I_n
-        else : 
-            I_n = np.array(I_n,dtype=np.float64)
-            comm.Send([I_n,MPI.DOUBLE],dest=0,tag=0)
+            if rank == 0 :
+                sh_I = np.shape(I_n)
+                r_size, theta_size = sh_I[1], sh_I[2]
+                Itot = np.zeros((dim_bande,r_size,theta_number),dtype=np.float64)
+                Itot[:,:,dom_rank] = I_n
+            else :
+                I_n = np.array(I_n,dtype=np.float64)
+                comm.Send([I_n,MPI.DOUBLE],dest=0,tag=0)
 
-        if rank == 0 :
-            bar = ProgressBar(number_rank,'Reconstitution of transmitivity for the %s contribution'%(cases_names[wh_ca[i_ca]]))
-            for r_n in range(1,number_rank) :
-                new_dom_rank = repartition(theta_number,number_rank,r_n,True)
-                I_rn = np.zeros((dim_bande,r_size,new_dom_rank.size),dtype=np.float64)
-                comm.Recv([I_rn,MPI.DOUBLE],source=r_n,tag=0)
-                Itot[:,:,new_dom_rank] = I_rn
-                bar.animate(r_n+1)
+            if rank == 0 :
+                bar = ProgressBar(number_rank,'Reconstitution of transmitivity for the %s contribution'%(cases_names[wh_ca[i_ca]]))
+                for r_n in range(1,number_rank) :
+                    new_dom_rank = repartition(theta_number,number_rank,r_n,True)
+                    I_rn = np.zeros((dim_bande,r_size,new_dom_rank.size),dtype=np.float64)
+                    comm.Recv([I_rn,MPI.DOUBLE],source=r_n,tag=0)
+                    Itot[:,:,new_dom_rank] = I_rn
+                    bar.animate(r_n+1)
 
-        if rank == 0 :
-            np.save('%s.npy'%(save_name_3D_step),Itot)
+            if rank == 0 :
+                np.save('%s.npy'%(save_name_3D_step),Itot)
 
-            if Script == True :
+                if Script == True :
 
-                Itot = np.load('%s.npy'%(save_name_3D_step))
-                if Noise == True :
-                    save_ad = '%s_n'%(save_name_3D_step)
-                else :
-                    save_ad = "%s"%(save_name_3D_step)
-                class star :
-                    def __init__(self):
-                        self.radius = Rs
-                        self.temperature = Ts
-                        self.distance = d_al
-                if ErrOr == True :
-                    bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
-                    bande_sample = np.delete(bande_sample,[0])
-                    int_lambda = np.zeros((2,bande_sample.size))
-                    bande_sample = np.sort(bande_sample)
+                    Itot = np.load('%s.npy'%(save_name_3D_step))
+                    if Noise == True :
+                        save_ad = '%s_n'%(save_name_3D_step)
+                    else :
+                        save_ad = "%s"%(save_name_3D_step)
+                    class star :
+                        def __init__(self):
+                            self.radius = Rs
+                            self.temperature = Ts
+                            self.distance = d_al
+                    if ErrOr == True :
+                        bande_sample = np.load("%s%s/bande_sample_%s.npy"%(path,name_source,source))
+                        bande_sample = np.delete(bande_sample,[0])
+                        int_lambda = np.zeros((2,bande_sample.size))
+                        bande_sample = np.sort(bande_sample)
 
-                    for i_bande in range(bande_sample.size) :
-                        if i_bande == 0 :
-                            int_lambda[0,i_bande] = bande_sample[0]
-                            int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
-                        elif i_bande == bande_sample.size - 1 :
-                            int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
-                            int_lambda[1,i_bande] = bande_sample[bande_sample.size-1]
-                        else :
-                            int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
-                            int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
-                    int_lambda = np.sort(10000./int_lambda[::-1])
-                    noise = stellar_noise(star(),detection,int_lambda)
-                    noise = noise[::-1]
-                else :
-                    noise = error
-                if Kcorr == True :
-                    flux_script(path,name_source,domain,save_ad,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
-                else :
-                    flux_script(path,name_source,source,save_ad,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
+                        for i_bande in range(bande_sample.size) :
+                            if i_bande == 0 :
+                                int_lambda[0,i_bande] = bande_sample[0]
+                                int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
+                            elif i_bande == bande_sample.size - 1 :
+                                int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
+                                int_lambda[1,i_bande] = bande_sample[bande_sample.size-1]
+                            else :
+                                int_lambda[0,i_bande] = (bande_sample[i_bande-1]+bande_sample[i_bande])/2.
+                                int_lambda[1,i_bande] = (bande_sample[i_bande+1]+bande_sample[i_bande])/2.
+                        int_lambda = np.sort(10000./int_lambda[::-1])
+                        noise = stellar_noise(star(),detection,int_lambda)
+                        noise = noise[::-1]
+                    else :
+                        noise = error
+                    if Kcorr == True :
+                        flux_script(path,name_source,domain,save_ad,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
+                    else :
+                        flux_script(path,name_source,source,save_ad,Itot,noise,Rs,Rp,r_step,Kcorr,Middle,Noise)
 
-            del Itot
-        del I_n
+                del Itot
+            del I_n
+
+        else :
+
+            if rank == 0 :
+                print 'The %s contribution was already computed'%(cases_names[wh_ca[i_ca]])
+                print 'Corresponding save directory : %s'%(save_name_3D_step)
+                print 'Please check that this is the expected file'
     
     if rank == 0 :
         for i_ca in range(wh_ca.size) :
@@ -1138,10 +1148,9 @@ if Cylindric_transfert_3D == True :
                     phi_rot,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
             I_step = np.load('%s.npy'%(save_name_3D_step))
             if i_ca == 0 :
-                tau = np.log(I_step)
+                Itot = I_step
             else :
-                tau += np.log(I_step)
-        Itot = np.exp(tau)
+                Itot *= I_step
         np.save('%s.npy'%(save_name_3D),Itot)
 
         if Script == True :
