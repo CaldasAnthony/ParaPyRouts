@@ -163,7 +163,7 @@ def stud_type(r_eff,single,Continuum=False,Molecular=False,Scattering=False,Clou
 ########################################################################################################################
 
 
-def saving(dimension,type,special,save_adress,version,name,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,phi_rot,r_eff,\
+def saving(dimension,type,special,save_adress,version,name,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,inclinaison,phi_rot,phi_obli,r_eff,\
            domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,D1) :
 
     s_n = special
@@ -213,21 +213,21 @@ def saving(dimension,type,special,save_adress,version,name,reso_long,reso_lat,t,
 
     if Kcorr == True :
         if D1 == False :
-            s_m = '%sI_%s_%.1f_%s_%i_%i%i_%i_%i%i_%s_%i_%.2f_%.2f_%s_%s'\
-                %(save_adress,s_n,version,name,D,reso_long,reso_lat,t,dim_bande,dim_gauss,h_range,r_step,phi_rot,r_eff*10**6,\
+            s_m = '%sI_%s_%.1f_%s_%i_%ix%i_%i_%i%i_%s_%i_%.2f_%.2f_%.2f_%.2f_%s_%s'\
+                %(save_adress,s_n,version,name,D,reso_long,reso_lat,t,dim_bande,dim_gauss,h_range,r_step,inclinaison,phi_rot,phi_obli,r_eff*10**6,\
                   stud,domain)
         else :
-            s_m = '%sI_%s_%.1f_%s_%i_%i_%i_%i%i_%i_%i%i_%s_%i_%.2f_%.2f_%s_%s'\
-                %(save_adress,s_n,version,name,D,long,lat,reso_long,reso_lat,t,dim_bande,dim_gauss,h_range,r_step,phi_rot,r_eff*10**6,\
+            s_m = '%sI_%s_%.1f_%s_%i_%i_%i_%ix%i_%i_%i%i_%s_%i_%.2f_%.2f_%.2f_%.2f_%s_%s'\
+                %(save_adress,s_n,version,name,D,long,lat,reso_long,reso_lat,t,dim_bande,dim_gauss,h_range,r_step,inclinaison,phi_rot,phi_obli,r_eff*10**6,\
                   stud,domain)
     else :
         if D1 == False :
-            s_m = "%sI_%s_%.1f_%s_%i_%i%i_%i_%i_%s_%i_%.2f_%.2f_%s_%s"\
-                %(save_adress,s_n,version,name,D,reso_long,reso_lat,t,dim_bande,h_range,r_step,phi_rot,r_eff*10**6,\
+            s_m = "%sI_%s_%.1f_%s_%i_%ix%i_%i_%i_%s_%i_%.2f_%.2f_%.2f_%.2f_%s_%s"\
+                %(save_adress,s_n,version,name,D,reso_long,reso_lat,t,dim_bande,h_range,r_step,inclinaison,phi_rot,phi_obli,r_eff*10**6,\
                     stud,domain)
         else :
-            s_m = "%sI_%s_%.1f_%s_%i_%i_%i_%i%i_%i_%i_%s_%i_%.2f_%.2f_%s_%s"\
-                %(save_adress,s_n,version,name,D,long,lat,reso_long,reso_lat,t,dim_bande,h_range,r_step,phi_rot,r_eff*10**6,\
+            s_m = "%sI_%s_%.1f_%s_%i_%i_%i_%ix%i_%i_%i_%s_%i_%.2f_%.2f_%.2f_%.2f_%s_%s"\
+                %(save_adress,s_n,version,name,D,long,lat,reso_long,reso_lat,t,dim_bande,h_range,r_step,inclinaison,phi_rot,phi_obli,r_eff*10**6,\
                   stud,domain)
 
     return s_m
