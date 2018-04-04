@@ -100,14 +100,14 @@ else :
     T_iso, P_surf = information[planet.planet_temperature_key], information[planet.extreme_pressure_key[0]]
     x_ratio_species_active = information[planet.planet_active_ratio_key]
 
-M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=True)
+M_species, M, x_ratio_species = ratio(n_species,x_ratio_species_active,IsoComp=False)
 
 # Proprietes des nuages
 
-c_species = np.array([])
-c_species_name = np.array([])
-c_species_file = np.array([])
-rho_p = np.array([])
+c_species = np.array(['gen_cond','gen_cond2'])
+c_species_name = np.array(['KCl','ZnS'])
+c_species_file = np.array(['KCl','ZnS'])
+rho_p = np.array([1980.,4090.])
 r_eff = 0.5e-6
 
 ########################################################################################################################
