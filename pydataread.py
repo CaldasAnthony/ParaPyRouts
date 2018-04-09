@@ -55,7 +55,7 @@ def data_record(path,name_source,data_base,name_exo,aerosol,continuum,kcorr,cros
             Q_fin[:,0:sh_1[1]] = Q_1
             Q_fin[:,sh_1[1]:sh_1[1]+sh_2[1]] = Q_2
             np.save('%sQ_%s_%s.npy'%(directory,aerosol.nspecies[i_c],name_exo),Q_fin)
-            np.save('%sbande_cloud_%s.npy'%(directory,name_exo))
+            np.save('%sbande_cloud_%s.npy'%(directory,name_exo),bande_cloud)
             i_dec += 1
         else :
             aerosol_file = '%saerosol_properties/optprop_%s.dat'%(data_base,aerosol.file_name[i_dec+i_c])

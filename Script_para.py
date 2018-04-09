@@ -111,7 +111,7 @@ c_species = np.array(['h2o_ice'])
 c_species_name = np.array(['H2O'])
 c_species_file = np.array(['iceir_n50'])
 rho_p = np.array([917.])
-r_eff = 0.5e-6
+r_eff = np.array([0.5e-6])
 
 ########################################################################################################################
 

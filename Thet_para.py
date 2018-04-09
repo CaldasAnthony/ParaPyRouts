@@ -1045,13 +1045,19 @@ if Cylindric_transfert_3D == True :
                     print 'No scattering'
 
             if Clouds == True :
+                r_enn = ''
+                for i_r in range(r_eff.size) :
+                    if i_r != r_eff.size-1 :
+                        r_enn += '%.2f_'%(r_eff[i_r]*10**6)
+                    else :
+                        r_enn += '%.2f'%(r_eff[i_r]*10**6)
                 if Kcorr == True :
-                    k_cloud_rmd = np.load("%s%s/%s/Temp/k_cloud_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%.2f_%s_%i.npy" \
+                    k_cloud_rmd = np.load("%s%s/%s/Temp/k_cloud_%i%i_%s_%i_%i%i_%i_rmd_%.2f_%.2f_%s_%s_%i.npy" \
                     %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,dim_gauss-1,x_step,phi_rot,phi_obli,\
-                    r_eff*10**6,domain,rank))
+                    r_enn,domain,rank))
                 else :
-                    k_cloud_rmd = np.load("%s%s/%s/Temp/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%.2f_%s_%i.npy" \
-                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_eff*10**6,domain,rank))
+                    k_cloud_rmd = np.load("%s%s/%s/Temp/k_cloud_%i%i_%s_%i_%i_%i_rmd_%.2f_%.2f_%s_%s_%i.npy" \
+                    %(path,name_file,opac_file,reso_long,reso_lat,name_exo,t,dim_bande,x_step,phi_rot,phi_obli,r_enn,domain,rank))
             else :
                 k_cloud_rmd = np.array([])
                 if rank == 0 :

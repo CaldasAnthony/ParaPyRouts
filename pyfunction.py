@@ -125,12 +125,17 @@ def stud_type(r_eff,single,Continuum=False,Molecular=False,Scattering=False,Clou
         stu = np.append(stu,np.array(["tot"]))
 
     link = stu.size
+    stud = ''
 
     if link == 1 :
 
         if Molecular == False :
             if Clouds == True :
-                stud = "%.2f_%s"%(r_eff*10**6,stu[0])
+                for i_r in range(r_eff.size) :
+                    if i_r != r_eff.size-1 :
+                        stud += "%.2f_"%(r_eff[i_r]*10**6)
+                    else :
+                        stud += "%.2f_%s"%(r_eff[i_r]*10**6,stu[0])
             else :
                 stud = "%s"%(stu[0])
         else :
@@ -139,21 +144,33 @@ def stud_type(r_eff,single,Continuum=False,Molecular=False,Scattering=False,Clou
     if link == 2 :
 
         if Clouds == True :
-            stud = "%.2f_%s%s"%(r_eff*10**6,stu[0],stu[1])
+            for i_r in range(r_eff.size) :
+                if i_r != r_eff.size-1 :
+                    stud += "%.2f_"%(r_eff[i_r]*10**6)
+                else :
+                    stud += "%.2f_%s%s"%(r_eff[i_r]*10**6,stu[0],stu[1])
         else :
             stud = "%s%s"%(stu[0],stu[1])
 
     if link == 3 :
 
         if Clouds == True :
-            stud = "%.2f_%s%s%s"%(r_eff*10**6,stu[0],stu[1],stu[2])
+            for i_r in range(r_eff.size) :
+                if i_r != r_eff.size-1 :
+                    stud = "%.2f_"%(r_eff[i_r]*10**6)
+                else :
+                    stud += "%.2f_%s%s%s"%(r_eff[i_r]*10**6,stu[0],stu[1],stu[2])
         else :
             stud = "%s%s%s"%(stu[0],stu[1],stu[2])
 
     if link == 4 :
 
         if Clouds == True :
-            stud = "%.2f_tot"%(r_eff*10**6)
+            for i_r in range(r_eff.size) :
+                if i_r != r_eff.size-1 :
+                    stud += "%.2f_"%(r_eff[i_r]*10**6)
+                else :
+                    stud += "%.2f_tot"%(r_eff[i_r]*10**6)
         else :
             stud = "tot"
 
@@ -213,21 +230,21 @@ def saving(dimension,type,special,save_adress,version,name,reso_long,reso_lat,t,
 
     if Kcorr == True :
         if D1 == False :
-            s_m = '%sI_%s_%.1f_%s_%i_%ix%i_%i_%i%i_%s_%i_%.2f_%.2f_%.2f_%.2f_%s_%s'\
-                %(save_adress,s_n,version,name,D,reso_long,reso_lat,t,dim_bande,dim_gauss,h_range,r_step,inclinaison,phi_rot,phi_obli,r_eff*10**6,\
+            s_m = '%sI_%s_%.1f_%s_%i_%ix%i_%i_%i%i_%s_%i_%.2f_%.2f_%.2f_%s_%s'\
+                %(save_adress,s_n,version,name,D,reso_long,reso_lat,t,dim_bande,dim_gauss,h_range,r_step,inclinaison,phi_rot,phi_obli,\
                   stud,domain)
         else :
-            s_m = '%sI_%s_%.1f_%s_%i_%i_%i_%ix%i_%i_%i%i_%s_%i_%.2f_%.2f_%.2f_%.2f_%s_%s'\
-                %(save_adress,s_n,version,name,D,long,lat,reso_long,reso_lat,t,dim_bande,dim_gauss,h_range,r_step,inclinaison,phi_rot,phi_obli,r_eff*10**6,\
+            s_m = '%sI_%s_%.1f_%s_%i_%i_%i_%ix%i_%i_%i%i_%s_%i_%.2f_%.2f_%.2f_%s_%s'\
+                %(save_adress,s_n,version,name,D,long,lat,reso_long,reso_lat,t,dim_bande,dim_gauss,h_range,r_step,inclinaison,phi_rot,phi_obli,\
                   stud,domain)
     else :
         if D1 == False :
-            s_m = "%sI_%s_%.1f_%s_%i_%ix%i_%i_%i_%s_%i_%.2f_%.2f_%.2f_%.2f_%s_%s"\
-                %(save_adress,s_n,version,name,D,reso_long,reso_lat,t,dim_bande,h_range,r_step,inclinaison,phi_rot,phi_obli,r_eff*10**6,\
+            s_m = "%sI_%s_%.1f_%s_%i_%ix%i_%i_%i_%s_%i_%.2f_%.2f_%.2f_%s_%s"\
+                %(save_adress,s_n,version,name,D,reso_long,reso_lat,t,dim_bande,h_range,r_step,inclinaison,phi_rot,phi_obli,\
                     stud,domain)
         else :
-            s_m = "%sI_%s_%.1f_%s_%i_%i_%i_%ix%i_%i_%i_%s_%i_%.2f_%.2f_%.2f_%.2f_%s_%s"\
-                %(save_adress,s_n,version,name,D,long,lat,reso_long,reso_lat,t,dim_bande,h_range,r_step,inclinaison,phi_rot,phi_obli,r_eff*10**6,\
+            s_m = "%sI_%s_%.1f_%s_%i_%i_%i_%ix%i_%i_%i_%s_%i_%.2f_%.2f_%.2f_%s_%s"\
+                %(save_adress,s_n,version,name,D,long,lat,reso_long,reso_lat,t,dim_bande,h_range,r_step,inclinaison,phi_rot,phi_obli,\
                   stud,domain)
 
     return s_m
