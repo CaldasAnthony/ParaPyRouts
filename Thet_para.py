@@ -992,7 +992,7 @@ if Cylindric_transfert_3D == True :
         save_name_3D_step = saving('3D',type,special,save_adress,version,name_exo,reso_long,reso_lat,t,h,dim_bande,dim_gauss,r_step,\
                 inclinaison,phi_rot,phi_obli,r_eff,domain,stud,lim_alt,rupt_alt,long,lat,Discreet,Integration,Module,Optimal,Kcorr,False)
 
-        if os.path.isfile('%s.npy'%(save_name_3D_step)) != True and Push == False :
+        if os.path.isfile('%s.npy'%(save_name_3D_step)) != True and Push[i_ca] == False :
 
             if Molecular == True :
                 if Kcorr == True :
